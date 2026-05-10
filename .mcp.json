@@ -6,6 +6,14 @@
       "headers": {
         "X-Goog-Api-Key": "AQ.Ab8RN6JatExBpWzNDWkWWEC_6VVbPXK6oH_S9bQqlVzbCwMsfg"
       }
+    },
+    "apifox-new-mcp": {
+      "type": "http",
+      "url": "https://api.apifox.com/mcp",
+      "headers": {
+        "Authorization": "Bearer afxp_df7dd92pC4HaHORasas30TGc5rlZeQKUXXly",
+        "X-Apifox-Api-Version": "2025-09-01"
+      }
     }
   }
 }

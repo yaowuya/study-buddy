@@ -67,3 +67,13 @@ def student_bind_family(
 @router.get("/me", response_model=UserOut)
 def get_me(user: User = Depends(get_current_user)):
     return user
+
+
+@router.get("/family", response_model=FamilyOut)
+def get_family(user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    if not user.family_id:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "Not bound to a family")
+    family = family_crud.get_family_by_id(db, user.family_id)
+    if not family:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Family not found")
+    return family

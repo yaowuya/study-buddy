@@ -1,0 +1,18 @@
+{
+  "pages": [
+    { "path": "pages/auth/login", "style": { "navigationBarTitleText": "登录" } },
+    { "path": "pages/auth/bind", "style": { "navigationBarTitleText": "绑定家庭" } },
+    { "path": "pages/parent/dashboard", "style": { "navigationBarTitleText": "今日作业" } },
+    { "path": "pages/parent/task-create", "style": { "navigationBarTitleText": "发布任务" } },
+    { "path": "pages/parent/dictation-config", "style": { "navigationBarTitleText": "听写配置" } },
+    { "path": "pages/parent/grading", "style": { "navigationBarTitleText": "作业批改" } },
+    { "path": "pages/parent/mistake-book", "style": { "navigationBarTitleText": "错题本" } },
+    { "path": "pages/student/home", "style": { "navigationBarTitleText": "今日任务" } },
+    { "path": "pages/student/dictation", "style": { "navigationBarTitleText": "听写模式" } }
+  ],
+  "globalStyle": {
+    "navigationBarTextStyle": "black",
+    "navigationBarBackgroundColor": "#f8f9fa",
+    "backgroundColor": "#f8f9fa"
+  }
+}
