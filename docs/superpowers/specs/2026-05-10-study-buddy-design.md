@@ -16,10 +16,10 @@
 
 ### 家长端
 1. 注册 / 登录，生成家庭连接码
-2. 发布任务（学校任务 / 家庭任务）：标题、描述、预计耗时、是否需拍照
+2. 发布任务（学校任务 / 家庭任务）：标题、描述、预计耗时
 3. 听写配置：批量录入词组、设置语速和停顿间隔
 4. 任务追踪：列表/日历视图，实时进度（未开始/进行中/待批改）
-5. 作业批改：查看照片、标记对错、填写评语
+5. 作业批改：查看完成状态、标记对错、填写评语
 6. 错题本：自动归集错题，按学科分类，支持归档
 
 ### 学生端
@@ -27,7 +27,7 @@
 2. 今日任务看板：大卡片展示，区分学校/家庭任务
 3. 任务状态流转：待开始 → 进行中 → 提交/完成
 4. 听写模式：设备本地 TTS 报词，支持暂停/重播/跳词
-5. 拍照提交：相机拍摄作业后上传
+5. 完成提交：点击"完成"即可提交任务
 6. 完成激励：全部任务完成后全屏勋章动画
 
 ### 数据层
@@ -40,7 +40,6 @@
 ### 后端
 - **FastAPI** (Python) + **PostgreSQL** + SQLAlchemy 2.x + Alembic
 - **JWT** 认证（python-jose）
-- 图片存储：服务器本地文件系统（`/data/uploads/`）
 - 部署：阿里云 ECS，Docker Compose（Nginx + FastAPI + PostgreSQL）
 
 ### 客户端
@@ -54,9 +53,9 @@
 ```
 User(id, role, family_code, hashed_password)
 Family(id, code, parent_id, student_id)
-Task(id, family_id, type, title, desc, duration, need_photo, status, date)
+Task(id, family_id, type, title, desc, duration, status, date)
 DictationItem(id, task_id, content, speed, pause_interval)
-Submission(id, task_id, photo_path, comment, is_correct, submitted_at)
+Submission(id, task_id, comment, is_correct, submitted_at)
 MistakeBook(id, task_id, subject, archived)
 ```
 
@@ -71,7 +70,6 @@ MistakeBook(id, task_id, subject, archived)
 | 听写 | `/dictation/` CRUD |
 | 提交 | `/submissions/`, `/submissions/{id}/grade` |
 | 错题本 | `/mistakes/`, `/mistakes/{id}/archive` |
-| 图片 | `/uploads/{path}?token=<jwt>` |
 
 ## 界面设计规范
 
@@ -83,9 +81,7 @@ MistakeBook(id, task_id, subject, archived)
 
 ## 关键约束
 
-- 图片上传前客户端压缩至 < 2MB
 - 学生端离线时仍可查看当日任务，本地操作队列网络恢复后同步
-- 图片访问需鉴权（token 查询参数），仅家庭内成员可访问
 - 无实时推送，家长发布后学生最长 30 秒内感知
 
 ## 参考资料

@@ -10,7 +10,6 @@
 | 数据库 | PostgreSQL | 结构化数据，JSON 字段支持灵活扩展，生产可靠 |
 | ORM | SQLAlchemy 2.x + Alembic | 类型安全，迁移管理完善 |
 | 认证 | JWT (python-jose) | 无状态，UniApp 适配简单 |
-| 图片存储 | 服务器本地文件系统 | 简单直接，通过 FastAPI StaticFiles 提供访问 |
 | 客户端框架 | UniApp (Vue 3) | 一套代码编译 iOS/Android/H5 |
 | 客户端语言 | TypeScript | 类型安全，减少运行时错误 |
 | 状态管理 | Pinia | Vue 3 官方推荐 |
@@ -19,7 +18,7 @@
 | 数据同步 | 客户端定时轮询 | 30 秒间隔，实现简单，作业场景延迟可接受 |
 | 部署 | 阿里云 ECS | Ubuntu 22.04，Docker Compose 编排 |
 | 进程管理 | Gunicorn + Uvicorn | 多 worker，生产稳定 |
-| 反向代理 | Nginx | HTTPS 终止，静态文件服务，图片文件代理 |
+| 反向代理 | Nginx | HTTPS 终止，静态文件服务 |
 
 ## 2. 后端架构
 
@@ -32,7 +31,7 @@ backend/
 │   │   │   ├── auth.py        # 注册、登录、家庭绑定
 │   │   │   ├── tasks.py       # 任务 CRUD
 │   │   │   ├── dictation.py   # 听写配置
-│   │   │   ├── submissions.py # 作业提交、图片上传
+│   │   │   ├── submissions.py # 作业提交、批改
 │   │   │   └── mistakes.py    # 错题本
 │   ├── core/
 │   │   ├── config.py          # 环境变量配置
@@ -43,7 +42,6 @@ backend/
 │   ├── crud/                  # 数据库操作层
 │   └── main.py
 ├── alembic/                   # 数据库迁移
-├── uploads/                   # 作业照片本地存储目录
 ├── requirements.txt
 └── Dockerfile
 ```
@@ -52,9 +50,9 @@ backend/
 ```
 User          — id, role(parent/student), family_code, hashed_password
 Family        — id, code(唯一连接码), parent_id, student_id
-Task          — id, family_id, type(school/home), title, desc, duration, need_photo, status, created_at
+Task          — id, family_id, type(school/home), title, desc, duration, status, date
 DictationItem — id, task_id, content, speed, pause_interval
-Submission    — id, task_id, photo_path, comment, is_correct, submitted_at
+Submission    — id, task_id, comment, is_correct, submitted_at
 MistakeBook   — id, task_id, subject, archived
 ```
 
@@ -74,8 +72,7 @@ client/
 │   │   │   └── mistake-book/  # 错题本
 │   │   └── student/           # 学生端页面
 │   │       ├── home/          # 今日任务看板
-│   │       ├── dictation/     # 听写模式
-│   │       └── submit/        # 拍照提交
+│   │       └── dictation/     # 听写模式
 │   ├── stores/
 │   │   ├── auth.ts
 │   │   ├── tasks.ts
@@ -117,13 +114,7 @@ client/
 // 返回数据与本地 store diff，仅在有变化时触发 UI 更新
 ```
 
-### 4.3 图片上传与访问
-
-- 上传：`uni.chooseImage` → 压缩到 < 2MB → `multipart/form-data` POST
-- 存储：`backend/uploads/{family_id}/{task_id}/{timestamp}.jpg`
-- 访问：Nginx 代理 `/uploads/` 路径，需携带 JWT 验证（通过查询参数传 token）
-
-### 4.4 离线缓存
+### 4.3 离线缓存
 
 - 使用 `uni.setStorageSync` 缓存当日任务列表
 - 检测到网络断开时切换离线模式，操作记录写入本地队列
@@ -137,13 +128,11 @@ client/
 │   ├── nginx         # 443/80，SSL 证书（Let's Encrypt）
 │   ├── api           # FastAPI / Gunicorn + Uvicorn
 │   └── db            # PostgreSQL 15
-├── /data/uploads/    # 挂载卷，持久化图片
-└── /data/postgres/   # 挂载卷，持久化数据库
+├── /data/postgres/   # 挂载卷，持久化数据库
 ```
 
 ### 备份策略
 - PostgreSQL：每日 `pg_dump` 定时任务，保留 30 天
-- uploads 目录：每周同步备份到阿里云 OSS（可选）
 
 ## 6. API 设计原则
 
@@ -158,6 +147,5 @@ client/
 |------|------|-----------|------|
 | TTS | 设备本地 | 讯飞/阿里云 TTS | 无网络依赖，零成本，学生端离线场景友好 |
 | 同步 | 轮询 30s | WebSocket / SSE | 实现简单，作业场景不需要秒级实时性 |
-| 图片存储 | 服务器本地 | 阿里云 OSS | 减少外部依赖，初期规模图片量可控 |
 | 数据库 | PostgreSQL | SQLite / MongoDB | 多端并发写安全，云部署成熟，结构化数据契合 |
 | 认证 | JWT | Session + Redis | 无状态，UniApp 客户端适配简单 |

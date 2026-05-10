@@ -8,7 +8,16 @@
       "Bash(git -C D:/01-code/study-buddy status)",
       "Bash(git -C D:/01-code/study-buddy diff)",
       "Bash(git -C D:/01-code/study-buddy add .gitignore .claude/)",
-      "Bash(git -C D:/01-code/study-buddy commit -m \"chore: add gitignore and claude project config\")"
+      "Bash(git -C D:/01-code/study-buddy commit -m \"chore: add gitignore and claude project config\")",
+      "mcp__stitch__list_projects",
+      "mcp__stitch__list_design_systems",
+      "mcp__stitch__list_screens",
+      "Bash(git add *)",
+      "Bash(git commit *)"
     ]
-  }
+  },
+  "enableAllProjectMcpServers": true,
+  "enabledMcpjsonServers": [
+    "stitch"
+  ]
 }
