@@ -1,6 +1,6 @@
 # 作业陪伴助手 — 产品需求文档
 
-> 来源：Stitch 设计稿（projects/1261262470017047406, projects/13033815433092296680）
+> 来源：Stitch 设计稿（projects/1261262470017047406）
 > 整理日期：2026-05-10
 
 ## 1. 产品背景与目标
@@ -97,13 +97,6 @@
 - 学生：首页（精简版）
 - 学生：听写练习
 - 历史作业（按日期归类与打分）
-
-**"Design System Implementation"项目（13033815433092296680）**
-- Parent Dashboard（家长控制台）
-- 家长控制台 Playful 版
-- 听写模式（Dictation Mode）
-- 学生任务中心（Student Todo Center）
-- 作业批改（Assignment Grading）
 
 ## 6. 设计规范摘要
 

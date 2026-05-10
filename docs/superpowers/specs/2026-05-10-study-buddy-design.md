@@ -88,6 +88,4 @@ MistakeBook(id, task_id, subject, archived)
 
 - 需求文档：`docs/requirements.md`
 - 技术选型：`docs/tech-stack.md`
-- Stitch 设计稿：
-  - 作业陪伴助手：`projects/1261262470017047406`
-  - 设计系统参考：`projects/13033815433092296680`
+- Stitch 设计稿：作业陪伴助手 `projects/1261262470017047406`
