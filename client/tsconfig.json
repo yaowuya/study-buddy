@@ -9,7 +9,6 @@
     "lib": ["esnext", "dom"],
     "types": ["@dcloudio/types"],
     "verbatimModuleSyntax": true,
-    "importsNotUsedAsValues": false,
     "preserveValueImports": false
   },
   "include": ["src/**/*.ts", "src/**/*.d.ts", "src/**/*.tsx", "src/**/*.vue"]
