@@ -1,3 +1,4 @@
+.idea
 # Claude local config (contains API keys)
 .claude.json
 
@@ -6,7 +7,7 @@ __pycache__/
 *.pyc
 *.pyo
 .venv/
-venv/
+backend/venv/
 *.egg-info/
 
 # Environment
