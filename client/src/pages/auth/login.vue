@@ -72,7 +72,7 @@ function navigateByRole() {
 </script>
 
 <style lang="scss" scoped>
-@import '@/static/styles/variables.scss';
+@use '@/static/styles/variables.scss' as *;
 
 .login-page {
   padding: $spacing-xl $spacing-md;

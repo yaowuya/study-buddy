@@ -56,7 +56,7 @@ onMounted(fetchMistakes)
 </script>
 
 <style lang="scss" scoped>
-@import '@/static/styles/variables.scss';
+@use '@/static/styles/variables.scss' as *;
 
 .mistake-page { padding: $spacing-md; min-height: 100vh; }
 

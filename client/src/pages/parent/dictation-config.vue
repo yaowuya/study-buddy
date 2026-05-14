@@ -83,7 +83,7 @@ async function handleSave() {
 </script>
 
 <style lang="scss" scoped>
-@import '@/static/styles/variables.scss';
+@use '@/static/styles/variables.scss' as *;
 
 .dict-config { padding: $spacing-md; }
 .form-section { display: flex; flex-direction: column; gap: $spacing-sm; }

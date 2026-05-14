@@ -44,7 +44,13 @@
       "mcp__apifox-new-mcp__getOpenApiDetails",
       "mcp__apifox-new-mcp__executeOpenApi",
       "mcp__apifox-new-mcp__updateHttpEndpoint",
-      "mcp__apifox-new-mcp__deleteHttpEndpoint"
+      "mcp__apifox-new-mcp__deleteHttpEndpoint",
+      "mcp__stitch__get_screen",
+      "WebFetch(domain:contribution.usercontent.google.com)",
+      "WebFetch(domain:lh3.googleusercontent.com)",
+      "Bash(node *)",
+      "Bash(npm list *)",
+      "Bash(npx playwright *)"
     ]
   },
   "enableAllProjectMcpServers": true,
