@@ -2,6 +2,10 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## 开发规范
+
+- Git commit message 使用中文
+
 ## Project Overview
 
 作业陪伴助手 (Study Buddy) — a family education collaboration tool. Parents assign tasks (including dictation with TTS), students complete them, parents grade. Two roles: parent (task creator/reviewer) and student (task executor).

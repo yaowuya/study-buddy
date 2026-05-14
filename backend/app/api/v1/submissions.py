@@ -37,11 +37,11 @@ def list_submissions(task_id: uuid.UUID | None = None, user: User = Depends(get_
 @router.post("/", response_model=SubmissionOut)
 def submit_task(body: SubmissionCreate, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     task = _get_family_task(db, body.task_id, user)
-    if task.status in (TaskStatus.SUBMITTED, TaskStatus.GRADED):
-        raise HTTPException(status.HTTP_400_BAD_REQUEST, "Task already submitted")
+    if task.status == TaskStatus.GRADED:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "Task already graded")
     existing = submission_crud.get_submission_by_task(db, body.task_id)
     if existing:
-        raise HTTPException(status.HTTP_400_BAD_REQUEST, "Submission already exists")
+        return existing  # 已有 submission 直接返回，幂等处理
     sub = submission_crud.create_submission(db, body.task_id)
     task_crud.update_task_status(db, task, TaskStatus.SUBMITTED)
     return sub

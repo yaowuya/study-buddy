@@ -35,7 +35,7 @@ export const useTasksStore = defineStore('tasks', () => {
 
   function loadCached() {
     const cached = getCache<TaskOut[]>('today_tasks')
-    if (cached) tasks.value = cached
+    if (Array.isArray(cached)) tasks.value = cached
   }
 
   const pendingTasks = () => tasks.value.filter(t => t.status === 'pending')

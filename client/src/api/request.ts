@@ -1,6 +1,11 @@
 import { getToken, removeToken } from '@/utils/storage'
 
-const BASE_URL = 'http://localhost:8000/api/v1'
+declare const plus: any
+
+const isApp = typeof plus !== 'undefined'
+const BASE_URL = isApp
+  ? 'http://10.10.41.184:8000/api/v1'
+  : '/api/v1'
 
 export function request<T = any>(
   url: string,

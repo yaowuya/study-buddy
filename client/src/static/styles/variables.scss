@@ -1,39 +1,79 @@
 // Design system variables from Stitch "Bright Path" theme
 
-// Colors
-$color-primary: #005DA7;
-$color-primary-light: #4F46E5;
-$color-secondary: #FFD95A;
-$color-tertiary: #7ED957;
-$color-error: #EF4444;
-$color-surface: #f8f9fa;
-$color-on-surface: #191c1d;
-$color-on-surface-variant: #414751;
-$color-outline: #717783;
-$color-outline-variant: #c1c7d3;
+// Colors - Primary
+$color-primary: #0058bd;
+$color-primary-container: #1470e8;
+$color-primary-fixed: #d8e2ff;
+$color-primary-fixed-dim: #adc6ff;
+$color-on-primary: #ffffff;
+$color-on-primary-container: #fefcff;
+$color-on-primary-fixed-variant: #004494;
+
+// Colors - Secondary
+$color-secondary: #785a00;
+$color-secondary-container: #ffd167;
+$color-secondary-fixed: #ffdf9b;
+$color-secondary-fixed-dim: #edc157;
+
+// Colors - Tertiary
+$color-tertiary: #00685f;
+$color-tertiary-container: #008379;
+$color-tertiary-fixed: #70f8e8;
+$color-tertiary-fixed-dim: #4fdbcc;
+$color-on-tertiary: #ffffff;
+$color-on-tertiary-container: #f4fffc;
+$color-on-tertiary-fixed-variant: #005049;
+
+// Colors - Surface
+$color-surface: #f8f9ff;
+$color-surface-bright: #f8f9ff;
+$color-surface-dim: #cfdbee;
+$color-surface-container-lowest: #ffffff;
+$color-surface-container-low: #eff4ff;
+$color-surface-container: #e6eeff;
+$color-surface-container-high: #dee9fd;
+$color-surface-container-highest: #d8e3f7;
+$color-surface-variant: #d8e3f7;
+
+// Colors - On Surface
+$color-on-surface: #111c2a;
+$color-on-surface-variant: #414754;
+$color-outline: #727785;
+$color-outline-variant: #c2c6d6;
+
+// Colors - Error
+$color-error: #ba1a1a;
 
 // Typography
 $font-family: 'Lexend', sans-serif;
-$font-hero: 48px;
+$font-family-body: 'Plus Jakarta Sans', sans-serif;
+$font-hero: 32px;
+$font-headline-xl: 32px;
+$font-headline-lg: 24px;
 $font-card-title: 24px;
 $font-body-lg: 18px;
 $font-body-md: 16px;
 $font-label: 14px;
+$font-label-md: 14px;
+$font-label-sm: 12px;
 
 // Spacing (8px grid)
 $spacing-xs: 4px;
 $spacing-sm: 12px;
-$spacing-md: 24px;
-$spacing-lg: 40px;
-$spacing-xl: 64px;
+$spacing-md: 20px;
+$spacing-lg: 32px;
+$spacing-xl: 48px;
 $spacing-base: 8px;
-$card-padding: 24px;
+$spacing-gutter: 16px;
+$spacing-margin: 24px;
+$card-padding: 20px;
 
 // Border Radius
 $radius-sm: 0.25rem;
-$radius-md: 0.75rem;
-$radius-lg: 1rem;
-$radius-xl: 1.5rem;
+$radius-md: 0.5rem;
+$radius-lg: 0.75rem;
+$radius-xl: 1rem;
+$radius-2xl: 1.5rem;
 $radius-full: 9999px;
 
 // Touch

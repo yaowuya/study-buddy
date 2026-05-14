@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+
+<html lang="zh-CN"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>听写练习 - 学习小伙伴</title>
+<!-- Google Fonts & Material Symbols -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;500;600;700;900&amp;family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Theme Configuration -->
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "tertiary": "#00685f",
+                    "on-background": "#111c2a",
+                    "surface-variant": "#d8e3f7",
+                    "surface-container-low": "#eff4ff",
+                    "on-primary-fixed": "#001a41",
+                    "on-secondary": "#ffffff",
+                    "surface-bright": "#f8f9ff",
+                    "on-secondary-container": "#765900",
+                    "background": "#f8f9ff",
+                    "on-primary-container": "#fefcff",
+                    "tertiary-fixed": "#70f8e8",
+                    "primary-fixed": "#d8e2ff",
+                    "on-secondary-fixed": "#251a00",
+                    "tertiary-container": "#008379",
+                    "on-tertiary-fixed": "#00201d",
+                    "surface-container-lowest": "#ffffff",
+                    "on-tertiary-fixed-variant": "#005049",
+                    "primary-fixed-dim": "#adc6ff",
+                    "inverse-on-surface": "#eaf1ff",
+                    "secondary": "#785a00",
+                    "surface-dim": "#cfdbee",
+                    "on-primary-fixed-variant": "#004494",
+                    "on-primary": "#ffffff",
+                    "surface-tint": "#005ac2",
+                    "tertiary-fixed-dim": "#4fdbcc",
+                    "secondary-fixed-dim": "#edc157",
+                    "secondary-fixed": "#ffdf9b",
+                    "inverse-primary": "#adc6ff",
+                    "surface-container-high": "#dee9fd",
+                    "error": "#ba1a1a",
+                    "on-error": "#ffffff",
+                    "on-tertiary-container": "#f4fffc",
+                    "on-secondary-fixed-variant": "#5b4300",
+                    "secondary-container": "#ffd167",
+                    "on-error-container": "#93000a",
+                    "surface-container": "#e6eeff",
+                    "outline-variant": "#c2c6d6",
+                    "on-surface-variant": "#414754",
+                    "on-tertiary": "#ffffff",
+                    "on-surface": "#111c2a",
+                    "surface-container-highest": "#d8e3f7",
+                    "surface": "#f8f9ff",
+                    "primary-container": "#1470e8",
+                    "error-container": "#ffdad6",
+                    "outline": "#727785",
+                    "primary": "#0058bd",
+                    "inverse-surface": "#263140"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "lg": "32px",
+                    "md": "20px",
+                    "xl": "48px",
+                    "base": "8px",
+                    "sm": "12px",
+                    "margin": "24px",
+                    "xs": "4px",
+                    "gutter": "16px"
+            },
+            "fontFamily": {
+                    "label-sm": ["Lexend"],
+                    "body-md": ["Plus Jakarta Sans"],
+                    "headline-lg": ["Lexend"],
+                    "label-md": ["Lexend"],
+                    "headline-xl": ["Lexend"],
+                    "body-lg": ["Plus Jakarta Sans"]
+            },
+            "fontSize": {
+                    "label-sm": ["12px", {"lineHeight": "16px", "fontWeight": "600"}],
+                    "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "headline-lg": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                    "label-md": ["14px", {"lineHeight": "20px", "fontWeight": "600"}],
+                    "headline-xl": ["32px", {"lineHeight": "40px", "fontWeight": "700"}],
+                    "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "500"}]
+            }
+          }
+        }
+      }
+    </script>
+<style>
+        /* Utility for Material Symbols specific fills if needed, relying on style attribute mainly */
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        
+        /* Blur effect for hidden dictation word */
+        .dictation-blur {
+            filter: blur(4px);
+            opacity: 0.7;
+            transition: all 0.3s ease;
+        }
+        .dictation-reveal-area:hover .dictation-blur,
+        .dictation-reveal-area:active .dictation-blur {
+            filter: blur(0);
+            opacity: 1;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-background min-h-screen flex flex-col antialiased selection:bg-primary-fixed selection:text-on-primary-fixed">
+<!-- Task Header (Overrides normal TopAppBar for focused tasks) -->
+<header class="flex items-center justify-between px-margin py-md sticky top-0 z-10 bg-background/90 backdrop-blur-sm">
+<button aria-label="Close" class="w-12 h-12 flex items-center justify-center rounded-full bg-surface-container hover:bg-surface-container-high active:scale-95 transition-all text-on-surface-variant shadow-sm">
+<span class="material-symbols-outlined text-[28px]">close</span>
+</button>
+<!-- Progress Bar -->
+<div class="flex-1 mx-margin flex items-center gap-sm">
+<div class="flex-1 h-4 bg-surface-container-highest rounded-full overflow-hidden shadow-inner">
+<div class="h-full bg-tertiary-container rounded-full w-[30%] relative">
+<!-- Sparkle effect on progress bar -->
+<div class="absolute inset-0 bg-white/20 w-1/2 skew-x-[-20deg] animate-pulse"></div>
+</div>
+</div>
+<span class="font-label-md text-label-md text-on-surface-variant min-w-[36px] text-right">3/10</span>
+</div>
+</header>
+<!-- Main Content Canvas -->
+<main class="flex-1 flex flex-col items-center px-margin pt-md pb-[140px] relative">
+<!-- Introductory Prompt -->
+<div class="inline-flex items-center gap-base px-md py-sm bg-surface-container-low rounded-full border border-surface-container mb-xl shadow-sm">
+<span class="material-symbols-outlined text-secondary-fixed-dim text-[20px]" style="font-variation-settings: 'FILL' 1;">stars</span>
+<p class="font-body-md text-body-md text-on-surface-variant">请准备好你的作业本，听写开始啦！</p>
+</div>
+<!-- Giant Play Button (Tactile 3D Effect) -->
+<div class="relative group mt-md mb-xl">
+<!-- Decorative ripple behind -->
+<div class="absolute inset-0 bg-primary-fixed rounded-full scale-110 opacity-50"></div>
+<button class="relative w-[180px] h-[180px] bg-primary text-on-primary rounded-full flex items-center justify-center border-b-[8px] border-on-primary-fixed-variant shadow-lg active:border-b-0 active:translate-y-[8px] transition-all duration-150 z-10 hover:brightness-110">
+<span class="material-symbols-outlined text-[100px] ml-4" style="font-variation-settings: 'FILL' 1;">play_arrow</span>
+</button>
+</div>
+<!-- Main Instruction -->
+<h1 class="font-headline-lg text-headline-lg text-on-background text-center max-w-[280px] mb-xl leading-relaxed">
+            认真听发音，并在<span class="text-primary relative inline-block">作业本<svg class="absolute -bottom-2 left-0 w-full h-2 text-secondary-fixed-dim" preserveaspectratio="none" viewbox="0 0 100 10"><path d="M0,5 Q50,10 100,5" fill="none" stroke="currentColor" stroke-width="3"></path></svg></span>上手写
+        </h1>
+<!-- Weakened Auxiliary Input/Display -->
+<div class="dictation-reveal-area mt-auto w-full max-w-[320px] bg-surface-container rounded-xl p-md border-2 border-dashed border-outline-variant flex flex-col items-center justify-center gap-base cursor-pointer hover:border-primary-fixed-dim transition-colors group">
+<div class="flex items-center gap-base text-on-surface-variant group-hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-[20px]">volume_up</span>
+<span class="font-label-sm text-label-sm">点击再次播放或查看提示</span>
+</div>
+<div class="dictation-blur bg-surface rounded-lg px-xl py-base mt-xs w-full text-center border border-surface-container-high shadow-sm">
+<span class="font-headline-xl text-headline-xl text-on-background tracking-widest">苹果 <span class="font-body-lg text-body-lg text-on-surface-variant ml-2">Apple</span></span>
+</div>
+</div>
+</main>
+<!-- Bottom Action Area (Fixed) -->
+<div class="fixed bottom-0 left-0 w-full px-margin pb-margin pt-xl bg-gradient-to-t from-background via-background to-transparent z-20">
+<!-- Giant Tactile Action Button -->
+<button class="w-full bg-tertiary-container text-on-tertiary-container font-headline-lg text-headline-lg py-[18px] rounded-xl flex items-center justify-center gap-md border-b-[6px] border-on-tertiary-fixed-variant shadow-md active:border-b-0 active:translate-y-[6px] transition-all duration-150 hover:brightness-105">
+            检查答案
+            <span class="material-symbols-outlined text-[28px]" style="font-variation-settings: 'wght' 600;">arrow_forward</span>
+</button>
+</div>
+</body></html>

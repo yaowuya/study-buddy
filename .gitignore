@@ -63,3 +63,6 @@ backend/openapi.json
 
 # === Docs build artifacts ===
 docs/_build/
+
+# === Temp / debug files ===
+docs/tmp/

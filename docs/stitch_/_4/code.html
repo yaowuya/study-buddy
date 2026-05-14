@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+
+<html lang="zh-CN"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>家长助手 - 今日作业</title>
+<!-- Google Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;500;600;700;900&amp;family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Tailwind Configuration -->
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface": "#f8f9ff",
+                        "inverse-primary": "#adc6ff",
+                        "secondary-container": "#ffd167",
+                        "primary-fixed-dim": "#adc6ff",
+                        "surface-variant": "#d8e3f7",
+                        "on-tertiary-fixed": "#00201d",
+                        "on-secondary-fixed-variant": "#5b4300",
+                        "on-secondary": "#ffffff",
+                        "error-container": "#ffdad6",
+                        "on-primary-container": "#fefcff",
+                        "tertiary": "#00685f",
+                        "secondary-fixed-dim": "#edc157",
+                        "on-tertiary-fixed-variant": "#005049",
+                        "background": "#f8f9ff",
+                        "primary": "#0058bd",
+                        "on-background": "#111c2a",
+                        "surface-bright": "#f8f9ff",
+                        "tertiary-fixed-dim": "#4fdbcc",
+                        "secondary": "#785a00",
+                        "on-secondary-fixed": "#251a00",
+                        "surface-dim": "#cfdbee",
+                        "on-primary": "#ffffff",
+                        "on-error": "#ffffff",
+                        "surface-container-high": "#dee9fd",
+                        "on-tertiary-container": "#f4fffc",
+                        "on-secondary-container": "#765900",
+                        "primary-fixed": "#d8e2ff",
+                        "on-surface-variant": "#414754",
+                        "surface-tint": "#005ac2",
+                        "outline": "#727785",
+                        "tertiary-container": "#008379",
+                        "on-error-container": "#93000a",
+                        "surface-container": "#e6eeff",
+                        "inverse-surface": "#263140",
+                        "tertiary-fixed": "#70f8e8",
+                        "surface-container-lowest": "#ffffff",
+                        "surface-container-highest": "#d8e3f7",
+                        "on-primary-fixed-variant": "#004494",
+                        "on-primary-fixed": "#001a41",
+                        "error": "#ba1a1a",
+                        "surface-container-low": "#eff4ff",
+                        "primary-container": "#1470e8",
+                        "outline-variant": "#c2c6d6",
+                        "secondary-fixed": "#ffdf9b",
+                        "inverse-on-surface": "#eaf1ff",
+                        "on-tertiary": "#ffffff",
+                        "on-surface": "#111c2a"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "margin": "24px",
+                        "xs": "4px",
+                        "lg": "32px",
+                        "gutter": "16px",
+                        "base": "8px",
+                        "xl": "48px",
+                        "sm": "12px",
+                        "md": "20px"
+                    },
+                    "fontFamily": {
+                        "body-md": ["Plus Jakarta Sans"],
+                        "label-sm": ["Lexend"],
+                        "label-md": ["Lexend"],
+                        "headline-xl": ["Lexend"],
+                        "body-lg": ["Plus Jakarta Sans"],
+                        "headline-lg": ["Lexend"]
+                    },
+                    "fontSize": {
+                        "body-md": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "label-sm": ["12px", { "lineHeight": "16px", "fontWeight": "600" }],
+                        "label-md": ["14px", { "lineHeight": "20px", "fontWeight": "600" }],
+                        "headline-xl": ["32px", { "lineHeight": "40px", "fontWeight": "700" }],
+                        "body-lg": ["18px", { "lineHeight": "28px", "fontWeight": "500" }],
+                        "headline-lg": ["24px", { "lineHeight": "32px", "fontWeight": "600" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body {
+            background-color: theme('colors.background');
+            color: theme('colors.on-background');
+        }
+        /* Hide scrollbar for clean app-like feel */
+        ::-webkit-scrollbar {
+            display: none;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="antialiased min-h-screen relative flex flex-col">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 bg-white dark:bg-slate-950 shadow-sm flex justify-between items-center px-6 h-16">
+<div class="flex items-center gap-sm">
+<img class="w-[32px] h-[32px] rounded-full object-cover" data-alt="close-up portrait of a friendly young mother with warm natural lighting and soft blurred background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDIwijlXgkq4Zj0Fygii9Bec5wW4m_p_Zv3gQ0xqz4-mSI_yhuBsObUy_--6yQ-LCfjWVWaOr9PII1gmTLhYMl9_xropNARVAIk-Ys2Sch6NKKYqaDwwW8Mlf8zqtS63r2uf7kf86v15XmoJPVnusd51AOenV_wgwG74xJf46BDUctV1Y_fmHJMJ6h3Cy8fSveX6Amuh_1Ro2s3m5cmI3QA4wpwG0X3Go4XiS_5blJsYdWTdHcfdfkSWI-y4PLs6rPEIJIcsTjWmZM"/>
+</div>
+<div class="text-xl font-black text-blue-600 dark:text-blue-400">
+            家长助手
+        </div>
+<button class="hover:bg-slate-50 dark:hover:bg-slate-900 rounded-full transition-colors active:scale-95 duration-200 transition-all p-sm flex items-center justify-center">
+<span class="material-symbols-outlined text-slate-500 dark:text-slate-400 text-[24px]">notifications</span>
+</button>
+</header>
+<!-- Main Canvas -->
+<main class="flex-1 pt-[88px] pb-[120px] px-margin max-w-2xl mx-auto w-full flex flex-col gap-margin">
+<!-- Page Header -->
+<section class="flex flex-col gap-xs">
+<h1 class="font-headline-xl text-headline-xl text-on-background">今日作业预览</h1>
+<p class="font-body-md text-body-md text-on-surface-variant flex items-center gap-xs">
+<span class="material-symbols-outlined text-[20px]">calendar_today</span> 10月24日 星期二
+            </p>
+</section>
+<!-- Tasks Container -->
+<section class="flex flex-col gap-gutter">
+<!-- Card 1: Pending Task (Math) -->
+<article class="bg-surface-container-lowest rounded-xl shadow-sm border-l-4 border-primary p-gutter flex flex-col gap-gutter relative overflow-hidden">
+<!-- Header -->
+<div class="flex justify-between items-center">
+<div class="flex items-center gap-sm">
+<span class="bg-primary-container text-on-primary-container font-label-md text-label-md px-sm py-xs rounded-lg flex items-center gap-xs">
+<span class="material-symbols-outlined text-[16px]">calculate</span> 数学
+                        </span>
+<span class="font-label-sm text-label-sm text-outline px-xs py-xs rounded bg-surface-container-high">未完成</span>
+</div>
+</div>
+<!-- Content -->
+<div class="flex flex-col gap-xs">
+<h2 class="font-headline-lg text-headline-lg text-on-surface">口算天天练 第45页</h2>
+<p class="font-body-md text-body-md text-on-surface-variant">请监督孩子在10分钟内完成，并检查错误。</p>
+</div>
+<!-- Actions -->
+<div class="flex justify-end pt-sm border-t border-outline-variant/30">
+<button class="bg-surface-container text-on-surface hover:bg-surface-container-high font-label-md text-label-md px-gutter py-sm rounded-lg flex items-center gap-xs transition-transform active:translate-y-[2px]">
+<span class="material-symbols-outlined text-[18px]">edit</span> 修改要求
+                    </button>
+</div>
+</article>
+<!-- Card 2: Completed Task (English) -->
+<article class="bg-surface-container-lowest rounded-xl shadow-sm border-l-4 border-tertiary p-gutter flex flex-col gap-gutter relative overflow-hidden">
+<!-- Header -->
+<div class="flex justify-between items-center">
+<div class="flex items-center gap-sm">
+<span class="bg-tertiary-container text-on-tertiary-container font-label-md text-label-md px-sm py-xs rounded-lg flex items-center gap-xs">
+<span class="material-symbols-outlined text-[16px]">language</span> 英语
+                        </span>
+<span class="font-label-sm text-label-sm text-tertiary flex items-center gap-xs">
+<span class="material-symbols-outlined text-[16px]" style="font-variation-settings: 'FILL' 1;">check_circle</span> 已提交
+                        </span>
+</div>
+</div>
+<!-- Content -->
+<div class="flex flex-col gap-xs">
+<h2 class="font-headline-lg text-headline-lg text-on-surface">背诵第三单元课文</h2>
+<p class="font-body-md text-body-md text-on-surface-variant">已上传语音记录。</p>
+</div>
+<!-- Attachment Preview (Simulated) -->
+<div class="bg-surface-container-low rounded-lg p-sm flex items-center gap-sm border border-outline-variant/30">
+<div class="w-10 h-10 rounded-full bg-tertiary/10 text-tertiary flex items-center justify-center">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">mic</span>
+</div>
+<div class="flex flex-col">
+<span class="font-label-md text-label-md text-on-surface">语音打卡.m4a</span>
+<span class="font-label-sm text-label-sm text-outline">01:15</span>
+</div>
+<button class="ml-auto material-symbols-outlined text-primary p-xs hover:bg-primary-container rounded-full">play_arrow</button>
+</div>
+<!-- Rating Section -->
+<div class="bg-surface-container-high rounded-xl p-sm flex items-center justify-between mt-xs border border-transparent hover:border-outline-variant transition-colors">
+<span class="font-label-md text-label-md text-on-surface">家长打分</span>
+<div class="flex gap-[4px] text-secondary-container">
+<button class="hover:scale-110 transition-transform active:scale-95"><span class="material-symbols-outlined text-[28px]" style="font-variation-settings: 'FILL' 1;">star</span></button>
+<button class="hover:scale-110 transition-transform active:scale-95"><span class="material-symbols-outlined text-[28px]" style="font-variation-settings: 'FILL' 1;">star</span></button>
+<button class="hover:scale-110 transition-transform active:scale-95"><span class="material-symbols-outlined text-[28px]" style="font-variation-settings: 'FILL' 1;">star</span></button>
+<button class="hover:scale-110 transition-transform active:scale-95"><span class="material-symbols-outlined text-[28px]" style="font-variation-settings: 'FILL' 1;">star</span></button>
+<button class="hover:scale-110 transition-transform active:scale-95 text-outline-variant"><span class="material-symbols-outlined text-[28px]">star</span></button>
+</div>
+</div>
+</article>
+<!-- Card 3: Pending Task (Chinese) -->
+<article class="bg-surface-container-lowest rounded-xl shadow-sm border-l-4 border-secondary p-gutter flex flex-col gap-gutter relative overflow-hidden">
+<!-- Header -->
+<div class="flex justify-between items-center">
+<div class="flex items-center gap-sm">
+<span class="bg-secondary-fixed text-on-secondary-fixed font-label-md text-label-md px-sm py-xs rounded-lg flex items-center gap-xs">
+<span class="material-symbols-outlined text-[16px]">menu_book</span> 语文
+                        </span>
+<span class="font-label-sm text-label-sm text-outline px-xs py-xs rounded bg-surface-container-high">未完成</span>
+</div>
+</div>
+<!-- Content -->
+<div class="flex flex-col gap-xs">
+<h2 class="font-headline-lg text-headline-lg text-on-surface">抄写生字词三遍</h2>
+<p class="font-body-md text-body-md text-on-surface-variant">包含拼音和组词，注意书写规范。</p>
+</div>
+<!-- Actions -->
+<div class="flex justify-end pt-sm border-t border-outline-variant/30">
+<button class="bg-surface-container text-on-surface hover:bg-surface-container-high font-label-md text-label-md px-gutter py-sm rounded-lg flex items-center gap-xs transition-transform active:translate-y-[2px]">
+<span class="material-symbols-outlined text-[18px]">edit</span> 修改要求
+                    </button>
+</div>
+</article>
+</section>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full z-50 bg-white dark:bg-slate-950 shadow-[0_-4px_20px_rgba(0,0,0,0.05)] rounded-t-[32px] flex justify-around items-center px-4 pt-3 pb-6 md:hidden">
+<!-- Active Item: 作业预览 -->
+<button class="flex flex-col items-center justify-center bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-300 rounded-2xl px-6 py-2 active:translate-y-0.5 transition-transform duration-100 w-24">
+<span class="material-symbols-outlined text-[24px]" style="font-variation-settings: 'FILL' 1;">visibility</span>
+<span class="font-lexend font-medium text-[10px] tracking-wide mt-1">作业预览</span>
+</button>
+<!-- Inactive Item: 布置作业 -->
+<button class="flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-900 rounded-2xl px-6 py-2 active:translate-y-0.5 transition-transform duration-100 w-24">
+<span class="material-symbols-outlined text-[24px]">edit_square</span>
+<span class="font-lexend font-medium text-[10px] tracking-wide mt-1">布置作业</span>
+</button>
+<!-- Inactive Item: 历史记录 -->
+<button class="flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-900 rounded-2xl px-6 py-2 active:translate-y-0.5 transition-transform duration-100 w-24">
+<span class="material-symbols-outlined text-[24px]">history</span>
+<span class="font-lexend font-medium text-[10px] tracking-wide mt-1">历史记录</span>
+</button>
+</nav>
+</body></html>

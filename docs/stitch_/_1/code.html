@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+
+<html lang="zh"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>学生端首页</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;500;600;700;800;900&amp;family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-primary-fixed": "#001a41",
+                        "surface-bright": "#f8f9ff",
+                        "primary": "#0058bd",
+                        "on-tertiary-fixed-variant": "#005049",
+                        "surface-container": "#e6eeff",
+                        "secondary-fixed": "#ffdf9b",
+                        "on-primary-container": "#fefcff",
+                        "primary-fixed-dim": "#adc6ff",
+                        "outline": "#727785",
+                        "on-primary": "#ffffff",
+                        "on-tertiary": "#ffffff",
+                        "surface-dim": "#cfdbee",
+                        "on-secondary": "#ffffff",
+                        "secondary": "#785a00",
+                        "on-tertiary-fixed": "#00201d",
+                        "outline-variant": "#c2c6d6",
+                        "on-secondary-fixed-variant": "#5b4300",
+                        "tertiary-fixed": "#70f8e8",
+                        "primary-container": "#1470e8",
+                        "surface-container-low": "#eff4ff",
+                        "surface-container-high": "#dee9fd",
+                        "tertiary-fixed-dim": "#4fdbcc",
+                        "on-error-container": "#93000a",
+                        "background": "#f8f9ff",
+                        "on-surface-variant": "#414754",
+                        "tertiary": "#00685f",
+                        "on-surface": "#111c2a",
+                        "on-tertiary-container": "#f4fffc",
+                        "on-secondary-container": "#765900",
+                        "surface-variant": "#d8e3f7",
+                        "secondary-fixed-dim": "#edc157",
+                        "inverse-primary": "#adc6ff",
+                        "surface-container-lowest": "#ffffff",
+                        "inverse-on-surface": "#eaf1ff",
+                        "primary-fixed": "#d8e2ff",
+                        "on-secondary-fixed": "#251a00",
+                        "on-error": "#ffffff",
+                        "surface": "#f8f9ff",
+                        "on-primary-fixed-variant": "#004494",
+                        "inverse-surface": "#263140",
+                        "surface-container-highest": "#d8e3f7",
+                        "surface-tint": "#005ac2",
+                        "secondary-container": "#ffd167",
+                        "error": "#ba1a1a",
+                        "on-background": "#111c2a",
+                        "error-container": "#ffdad6",
+                        "tertiary-container": "#008379"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "xl": "48px",
+                        "gutter": "16px",
+                        "md": "20px",
+                        "margin": "24px",
+                        "xs": "4px",
+                        "base": "8px",
+                        "sm": "12px",
+                        "lg": "32px"
+                    },
+                    "fontFamily": {
+                        "label-sm": ["Lexend"],
+                        "headline-xl": ["Lexend"],
+                        "body-lg": ["Plus Jakarta Sans"],
+                        "headline-lg": ["Lexend"],
+                        "body-md": ["Plus Jakarta Sans"],
+                        "label-md": ["Lexend"]
+                    },
+                    "fontSize": {
+                        "label-sm": ["12px", { "lineHeight": "16px", "fontWeight": "600" }],
+                        "headline-xl": ["32px", { "lineHeight": "40px", "fontWeight": "700" }],
+                        "body-lg": ["18px", { "lineHeight": "28px", "fontWeight": "500" }],
+                        "headline-lg": ["24px", { "lineHeight": "32px", "fontWeight": "600" }],
+                        "body-md": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "label-md": ["14px", { "lineHeight": "20px", "fontWeight": "600" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body {
+            background-color: #f8f9ff;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-background pb-32">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 border-b-2 border-slate-100 dark:border-slate-800 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md shadow-sm">
+<div class="flex items-center justify-between px-6 h-16 w-full">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full overflow-hidden bg-primary-fixed flex items-center justify-center">
+<img alt="Student profile avatar" class="w-full h-full object-cover" data-alt="close up portrait of a happy primary school student smiling with bright lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDspihxMpaW6T4isG1sSpXmL4GK6cCa8Xv4Xxj4aTDiS5-hs-_tiJP-k6Yf5OrdGJcumwDOD_f5AC9Ynm0vpoGempGmZ23BkJYiP2X6_ZUBPfDGMOfQi_NH6AvwmYD1pdR2OAYwcqAA9ChPRllsMacMVLNzWF6IPiFCt-JyeKtTeal_5YZBpKKjNBzlR21H_lCkkfNZOdtDZ2qS9uq_D-RJKFpcxkDmaLc3Xsl9a9PcBpBkns88u-_92BO7zZ_1R77LNFaB55yY7aM"/>
+</div>
+<span class="font-lexend font-bold text-lg text-blue-500 dark:text-blue-400">作业伙伴</span>
+</div>
+<button class="w-10 h-10 flex items-center justify-center text-slate-400 dark:text-slate-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-full transition-colors active:scale-95 transition-transform duration-150">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">notifications</span>
+</button>
+</div>
+</header>
+<main class="pt-24 px-margin max-w-2xl mx-auto flex flex-col gap-margin">
+<!-- Hero Section: Greeting & Progress -->
+<section class="flex items-center justify-between bg-surface-container rounded-[24px] p-6 shadow-sm border border-surface-variant relative overflow-hidden">
+<div class="z-10">
+<h1 class="font-headline-xl text-headline-xl text-on-surface mb-2">你好，Alex！</h1>
+<p class="font-body-md text-body-md text-on-surface-variant">今天也要加油鸭～</p>
+</div>
+<!-- Circular Progress Indicator -->
+<div class="relative w-24 h-24 flex-shrink-0 z-10">
+<svg class="w-full h-full transform -rotate-90" viewbox="0 0 100 100">
+<!-- Background circle -->
+<circle class="text-surface-variant" cx="50" cy="50" fill="none" r="40" stroke="currentColor" stroke-width="12"></circle>
+<!-- Progress circle (75%) -->
+<circle class="text-tertiary" cx="50" cy="50" fill="none" r="40" stroke="currentColor" stroke-dasharray="251.2" stroke-dashoffset="62.8" stroke-linecap="round" stroke-width="12"></circle>
+</svg>
+<div class="absolute inset-0 flex flex-col items-center justify-center">
+<span class="font-headline-lg text-headline-lg text-tertiary">3/4</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">已完成</span>
+</div>
+</div>
+<!-- Decorative background element -->
+<div class="absolute -right-8 -bottom-8 w-40 h-40 bg-white/40 rounded-full blur-2xl"></div>
+</section>
+<!-- Main Action: Dictation -->
+<section>
+<button class="w-full flex items-center justify-between bg-primary-container text-on-primary-container rounded-[20px] p-6 shadow-[0_8px_16px_rgba(20,112,232,0.2)] border-b-4 border-primary active:border-b-0 active:translate-y-[4px] transition-all group overflow-hidden relative">
+<div class="absolute right-0 top-0 w-32 h-32 bg-white/10 rounded-full -mr-10 -mt-10 group-hover:scale-110 transition-transform"></div>
+<div class="flex items-center gap-4 relative z-10">
+<div class="w-14 h-14 bg-white/20 rounded-2xl flex items-center justify-center">
+<span class="material-symbols-outlined text-4xl" style="font-variation-settings: 'FILL' 1;">mic</span>
+</div>
+<div class="text-left">
+<h2 class="font-headline-lg text-headline-lg mb-1">听写作业</h2>
+<p class="font-body-md text-body-md opacity-90">进入今天的听写练习</p>
+</div>
+</div>
+<span class="material-symbols-outlined text-3xl relative z-10 group-hover:translate-x-2 transition-transform">arrow_forward_ios</span>
+</button>
+</section>
+<!-- Task List -->
+<section class="flex flex-col gap-sm">
+<h3 class="font-headline-lg text-headline-lg text-on-surface mb-2">今日作业</h3>
+<!-- Task Card 1 (Completed) -->
+<div class="bg-surface rounded-2xl p-5 border-2 border-tertiary shadow-[0_4px_12px_rgba(0,104,95,0.05)] relative overflow-hidden flex items-start gap-4 cursor-pointer group">
+<div class="w-12 h-12 rounded-xl bg-tertiary-container/20 flex items-center justify-center flex-shrink-0">
+<span class="material-symbols-outlined text-tertiary text-2xl" style="font-variation-settings: 'FILL' 1;">calculate</span>
+</div>
+<div class="flex-1">
+<div class="flex justify-between items-center mb-1">
+<h4 class="font-headline-lg text-[20px] font-semibold text-on-surface line-through opacity-70">数学练习册 P12-13</h4>
+<div class="w-8 h-8 rounded-full bg-tertiary flex items-center justify-center flex-shrink-0">
+<span class="material-symbols-outlined text-on-tertiary" style="font-variation-settings: 'FILL' 1;">check</span>
+</div>
+</div>
+<p class="font-body-md text-body-md text-on-surface-variant line-through opacity-70">完成乘法口诀表练习，并订正昨日错题。</p>
+</div>
+</div>
+<!-- Task Card 2 (Pending) -->
+<div class="bg-surface rounded-2xl p-5 border-2 border-outline-variant shadow-[0_4px_12px_rgba(17,28,42,0.03)] relative overflow-hidden flex items-start gap-4 cursor-pointer hover:border-primary transition-colors active:translate-y-[2px]">
+<div class="w-12 h-12 rounded-xl bg-secondary-container/30 flex items-center justify-center flex-shrink-0">
+<span class="material-symbols-outlined text-secondary text-2xl" style="font-variation-settings: 'FILL' 1;">menu_book</span>
+</div>
+<div class="flex-1">
+<div class="flex justify-between items-center mb-1">
+<h4 class="font-headline-lg text-[20px] font-semibold text-on-surface">语文课文朗读</h4>
+<div class="w-8 h-8 rounded-full border-2 border-outline-variant flex items-center justify-center flex-shrink-0">
+</div>
+</div>
+<p class="font-body-md text-body-md text-on-surface-variant">大声朗读《秋天的雨》三遍，注意感情和停顿。</p>
+</div>
+</div>
+<!-- Task Card 3 (Pending) -->
+<div class="bg-surface rounded-2xl p-5 border-2 border-outline-variant shadow-[0_4px_12px_rgba(17,28,42,0.03)] relative overflow-hidden flex items-start gap-4 cursor-pointer hover:border-primary transition-colors active:translate-y-[2px]">
+<div class="w-12 h-12 rounded-xl bg-primary-container/20 flex items-center justify-center flex-shrink-0">
+<span class="material-symbols-outlined text-primary text-2xl" style="font-variation-settings: 'FILL' 1;">translate</span>
+</div>
+<div class="flex-1">
+<div class="flex justify-between items-center mb-1">
+<h4 class="font-headline-lg text-[20px] font-semibold text-on-surface">英语单词抄写</h4>
+<div class="w-8 h-8 rounded-full border-2 border-outline-variant flex items-center justify-center flex-shrink-0">
+</div>
+</div>
+<p class="font-body-md text-body-md text-on-surface-variant">Unit 3 单词每个抄写5遍，并背诵中文意思。</p>
+</div>
+</div>
+</section>
+</main>
+<!-- BottomNavBar (Restricted to '作业' and '历史' based on prompt) -->
+<nav class="fixed bottom-0 w-full z-50 rounded-t-[32px] border-t-2 border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-950 shadow-[0_-8px_30px_rgb(0,0,0,0.04)] fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 pt-3 pb-6 md:hidden">
+<!-- Active Tab: 作业 -->
+<a class="flex flex-col items-center justify-center bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-300 rounded-2xl px-8 py-2 mb-1 shadow-[inset_0_-2px_0_0_rgba(58,134,255,0.3)] active:scale-90 transition-all duration-200 ease-out" href="#">
+<span class="material-symbols-outlined text-2xl mb-1" style="font-variation-settings: 'FILL' 1;">assignment</span>
+<span class="font-lexend text-[12px] font-medium">作业</span>
+</a>
+<!-- Inactive Tab: 历史 -->
+<a class="flex flex-col items-center justify-center text-slate-400 dark:text-slate-600 px-8 py-2 hover:text-blue-400 dark:hover:text-blue-300 active:scale-90 transition-all duration-200 ease-out" href="#">
+<span class="material-symbols-outlined text-2xl mb-1" style="font-variation-settings: 'FILL' 0;">history</span>
+<span class="font-lexend text-[12px] font-medium">历史</span>
+</a>
+</nav>
+</body></html>

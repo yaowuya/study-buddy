@@ -9,7 +9,7 @@ onLaunch(async () => {
 </script>
 
 <style lang="scss">
-@import './static/styles/variables.scss';
+@use './static/styles/variables.scss' as *;
 
 page {
   font-family: $font-family;
