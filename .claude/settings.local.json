@@ -50,7 +50,14 @@
       "WebFetch(domain:lh3.googleusercontent.com)",
       "Bash(node *)",
       "Bash(npm list *)",
-      "Bash(npx playwright *)"
+      "Bash(npx playwright *)",
+      "Bash(git push *)",
+      "Bash(./venv/Scripts/python -m pytest tests/ -v --tb=short)",
+      "Bash(./venv/Scripts/python -m pytest tests/test_auth.py -v)",
+      "Bash(./venv/Scripts/python -m pytest tests/test_auth.py tests/test_submissions.py -v)",
+      "Bash(./venv/Scripts/python -m pytest tests/test_auth.py tests/test_submissions.py -v -q)",
+      "Bash(./venv/Scripts/python -m pytest tests/test_auth.py tests/test_submissions.py -q)",
+      "Bash(./venv/Scripts/python -m pytest tests/test_auth.py tests/test_dictation.py -q)"
     ]
   },
   "enableAllProjectMcpServers": true,
