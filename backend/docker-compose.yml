@@ -1,0 +1,11 @@
+services:
+  studybuddy-api:
+    build: .
+    container_name: studybuddy-api
+    restart: always
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
