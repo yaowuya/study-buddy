@@ -41,7 +41,13 @@
               <text class="material-symbols-outlined">{{ subjectIcon(task.subject) }}</text>
             </view>
             <view class="task-card-info">
-              <text class="task-card-title">{{ task.title }}</text>
+              <view class="title-row">
+                <text class="task-card-title">{{ task.title }}</text>
+                <view v-if="task.has_dictation" class="dictation-tag" @tap="previewDictation(task)">
+                  <text class="material-symbols-outlined tag-icon">record_voice_over</text>
+                  <text class="tag-text">听写</text>
+                </view>
+              </view>
               <view v-if="task.duration" class="task-meta">
                 <text class="material-symbols-outlined meta-icon">timer</text>
                 <text class="task-meta-text">预计 {{ task.duration }} 分钟</text>
@@ -49,9 +55,15 @@
             </view>
           </view>
           <text v-if="task.desc" class="task-desc">{{ task.desc }}</text>
-          <view class="remind-btn" @tap="remind(task)">
-            <text class="material-symbols-outlined btn-icon">notifications_active</text>
-            <text class="btn-text">提醒孩子去写</text>
+          <view class="btn-row">
+            <view v-if="task.has_dictation" class="preview-btn" @tap="previewDictation(task)">
+              <text class="material-symbols-outlined btn-icon">volume_up</text>
+              <text class="btn-text">预览听写</text>
+            </view>
+            <view class="edit-btn" @tap="editTask(task)">
+              <text class="material-symbols-outlined btn-icon">edit</text>
+              <text class="btn-text">编辑</text>
+            </view>
           </view>
         </view>
         <view v-if="pendingTasks.length === 0" class="empty-hint">
@@ -68,7 +80,13 @@
               <text class="material-symbols-outlined">{{ subjectIcon(task.subject) }}</text>
             </view>
             <view class="task-card-info">
-              <text class="task-card-title task-title-done">{{ task.title }}</text>
+              <view class="title-row">
+                <text class="task-card-title task-title-done">{{ task.title }}</text>
+                <view v-if="task.has_dictation" class="dictation-tag dictation-tag-done" @tap="previewDictation(task)">
+                  <text class="material-symbols-outlined tag-icon">record_voice_over</text>
+                  <text class="tag-text">听写</text>
+                </view>
+              </view>
               <text v-if="task.desc" class="task-meta-text">{{ task.desc }}</text>
             </view>
             <view class="check-circle">
@@ -84,6 +102,43 @@
           <text class="modal-title">家庭连接码</text>
           <text class="modal-code">{{ familyCode }}</text>
           <text class="modal-hint">让学生输入此码完成绑定</text>
+        </view>
+      </view>
+
+      <!-- Dictation Preview Modal -->
+      <view v-if="dictationModal.visible" class="modal-overlay" @tap="closeDictationModal">
+        <view class="dictation-modal" @tap.stop>
+          <view class="dictation-modal-header">
+            <text class="dictation-modal-title">听写预览</text>
+            <view class="close-btn" @tap="closeDictationModal">
+              <text class="material-symbols-outlined">close</text>
+            </view>
+          </view>
+          <text class="dictation-modal-subtitle">{{ dictationModal.taskTitle }}</text>
+
+          <view v-if="dictationModal.loading" class="dictation-loading">
+            <text>加载中...</text>
+          </view>
+          <view v-else class="dictation-words">
+            <view
+              v-for="(word, i) in dictationModal.words"
+              :key="i"
+              :class="['word-chip', playingIndex === i ? 'word-chip-playing' : '']"
+              @tap="playWord(word, i)"
+            >
+              <text class="word-text">{{ word }}</text>
+              <text class="material-symbols-outlined word-play-icon">
+                {{ playingIndex === i ? 'volume_up' : 'play_arrow' }}
+              </text>
+            </view>
+          </view>
+
+          <view class="dictation-modal-actions">
+            <view class="play-all-btn" @tap="playAllWords">
+              <text class="material-symbols-outlined">playlist_play</text>
+              <text>顺序播放</text>
+            </view>
+          </view>
         </view>
       </view>
 
@@ -109,11 +164,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted, onUnmounted } from 'vue'
 import { onShow } from '@dcloudio/uni-app'
 import { useAuthStore } from '@/stores/auth'
 import { useTasksStore } from '@/stores/tasks'
 import { useSyncStore } from '@/stores/sync'
+import { getDictationItems } from '@/api/dictation'
 import type { TaskOut } from '@/api/tasks'
 
 const authStore = useAuthStore()
@@ -125,6 +181,16 @@ const familyCode = ref('加载中')
 const statusBarHeight = ref(0)
 const safeAreaBottom = ref(0)
 const appbarHeight = ref(68)
+
+// Dictation preview
+const dictationModal = reactive({
+  visible: false,
+  loading: false,
+  taskId: '',
+  taskTitle: '',
+  words: [] as string[],
+})
+const playingIndex = ref(-1)
 
 async function loadFamilyCode() {
   if (!authStore.user?.family_id) {
@@ -154,8 +220,80 @@ function subjectIcon(subject: string | null) {
   return map[subject || ''] || 'assignment'
 }
 
-function remind(task: TaskOut) {
-  uni.showToast({ title: `已提醒: ${task.title}`, icon: 'none' })
+function editTask(task: TaskOut) {
+  uni.navigateTo({ url: `/pages/parent/task-edit?id=${task.id}` })
+}
+
+async function previewDictation(task: TaskOut) {
+  dictationModal.visible = true
+  dictationModal.loading = true
+  dictationModal.taskId = task.id
+  dictationModal.taskTitle = task.title
+  dictationModal.words = []
+  playingIndex.value = -1
+
+  try {
+    const items = await getDictationItems(task.id)
+    dictationModal.words = items.map(i => i.content)
+  } catch (e: any) {
+    uni.showToast({ title: e.message || '加载失败', icon: 'none' })
+  } finally {
+    dictationModal.loading = false
+  }
+}
+
+function closeDictationModal() {
+  dictationModal.visible = false
+  stopSpeech()
+}
+
+function speak(text: string): Promise<void> {
+  return new Promise((resolve) => {
+    // #ifdef H5
+    const utter = new SpeechSynthesisUtterance(text)
+    utter.rate = 1.0
+    utter.lang = 'zh-CN'
+    utter.onend = () => resolve()
+    utter.onerror = () => resolve()
+    speechSynthesis.speak(utter)
+    // #endif
+
+    // #ifdef APP-PLUS
+    ;(plus.speech as any).startSpeak(text, {
+      rate: 1.0,
+      onComplete: () => resolve(),
+      onError: () => resolve(),
+    })
+    // #endif
+  })
+}
+
+function stopSpeech() {
+  playingIndex.value = -1
+  // #ifdef H5
+  speechSynthesis.cancel()
+  // #endif
+
+  // #ifdef APP-PLUS
+  try { (plus.speech as any).stopSpeak() } catch {}
+  // #endif
+}
+
+async function playWord(word: string, index: number) {
+  stopSpeech()
+  playingIndex.value = index
+  await speak(word)
+  playingIndex.value = -1
+}
+
+async function playAllWords() {
+  stopSpeech()
+  for (let i = 0; i < dictationModal.words.length; i++) {
+    playingIndex.value = i
+    await speak(dictationModal.words[i])
+    await new Promise(r => setTimeout(r, 1500))
+  }
+  playingIndex.value = -1
 }
 
 function goCreate() {
@@ -181,6 +319,10 @@ onMounted(() => {
 onShow(() => {
   tasksStore.fetchTodayTasks()
   syncStore.start()
+})
+
+onUnmounted(() => {
+  stopSpeech()
 })
 </script>
 
@@ -222,10 +364,6 @@ onShow(() => {
   color: $color-primary;
 }
 .appbar-title { font-family: $font-family; font-size: 18px; font-weight: 700; color: #2563eb; }
-.appbar-icon-btn {
-  width: 40px; height: 40px; border-radius: $radius-full;
-  display: flex; align-items: center; justify-content: center; color: #60a5fa;
-}
 
 // Main scroll area
 .main { flex: 1; padding-left: $spacing-margin; padding-right: $spacing-margin; box-sizing: border-box; width: 100%; }
@@ -265,7 +403,7 @@ onShow(() => {
 }
 .section-label-done { opacity: 0.8; }
 
-// Task cards - pending
+// Task cards
 .task-card {
   background: $color-surface-container-lowest; border-radius: $radius-xl;
   padding: $card-padding; border: 2px solid $color-surface-container-highest;
@@ -275,7 +413,7 @@ onShow(() => {
 .task-card-done {
   background: rgba(0, 131, 121, 0.06); border-color: rgba(0, 104, 95, 0.2);
 }
-.task-card-top { display: flex; align-items: flex-start; gap: $spacing-sm; }
+.task-card-top { display: flex; align-items: center; gap: $spacing-sm; }
 .task-icon-box {
   width: 48px; height: 48px; border-radius: $radius-xl; flex-shrink: 0;
   display: flex; align-items: center; justify-content: center;
@@ -287,11 +425,20 @@ onShow(() => {
 .icon-科学 { background: $color-tertiary-fixed; color: $color-on-tertiary-fixed-variant; }
 .icon-default { background: $color-surface-container; color: $color-on-surface-variant; }
 .icon-done { opacity: 0.7; }
-.task-card-info { flex: 1; }
+.task-card-info { flex: 1; display: flex; flex-direction: column; justify-content: center; }
+.title-row { display: flex; align-items: center; gap: $spacing-xs; flex-wrap: wrap; line-height: 1; }
 .task-card-title {
   font-family: $font-family; font-size: 18px; font-weight: 700;
-  color: $color-on-surface; display: block;
+  color: $color-on-surface; line-height: 24px;
 }
+.dictation-tag {
+  display: inline-flex; align-items: center; gap: 2px;
+  background: $color-tertiary-container; padding: 2px 8px; border-radius: $radius-full;
+  height: 24px; box-sizing: border-box;
+}
+.tag-icon { font-size: 14px; color: $color-on-tertiary-container; line-height: 1; }
+.tag-text { font-size: 12px; font-weight: 600; color: $color-on-tertiary-container; line-height: 1; }
+.dictation-tag-done { background: rgba(0, 131, 121, 0.15); }
 .task-title-done { color: $color-tertiary; }
 .task-meta { display: flex; align-items: center; gap: 4px; margin-top: 4px; }
 .meta-icon { font-size: 14px; color: $color-on-surface-variant; }
@@ -308,17 +455,26 @@ onShow(() => {
 }
 .check-icon { color: $color-on-tertiary; font-size: 20px; }
 
-// Remind button (3D)
-.remind-btn {
-  display: flex; align-items: center; justify-content: center; gap: 8px;
-  background: $color-primary; color: $color-on-primary;
-  padding: $spacing-sm $spacing-md; border-radius: $radius-xl;
-  border-bottom: 4px solid $color-on-primary-fixed-variant;
+// Button row
+.btn-row { display: flex; gap: $spacing-sm; }
+.preview-btn, .edit-btn {
+  flex: 1;
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+  padding: $spacing-sm; border-radius: $radius-xl;
   font-family: $font-family; font-size: $font-label-md; font-weight: 600;
-  &:active { border-bottom-width: 0; transform: translateY(4px); }
+  border-bottom: 3px solid transparent;
+  &:active { border-bottom-width: 0; transform: translateY(3px); }
 }
-.btn-icon { font-size: 18px; color: $color-on-primary; }
-.btn-text { color: $color-on-primary; }
+.preview-btn {
+  background: $color-tertiary-container; color: $color-on-tertiary-container;
+  border-bottom-color: $color-on-tertiary-fixed-variant;
+}
+.edit-btn {
+  background: $color-primary; color: $color-on-primary;
+  border-bottom-color: $color-on-primary-fixed-variant;
+}
+.btn-icon { font-size: 16px; }
+.btn-text { color: inherit; }
 
 .empty-hint { padding: $spacing-md; text-align: center; }
 .empty-hint-text { color: $color-on-surface-variant; font-size: $font-body-md; }
@@ -335,6 +491,59 @@ onShow(() => {
 .modal-title { font-size: $font-card-title; font-weight: 600; display: block; margin-bottom: $spacing-md; }
 .modal-code { font-size: 40px; font-weight: 700; color: $color-primary; letter-spacing: 8px; display: block; margin-bottom: $spacing-sm; }
 .modal-hint { font-size: $font-body-md; color: $color-on-surface-variant; display: block; }
+
+// Dictation Preview Modal
+.dictation-modal {
+  background: #fff; border-radius: $radius-2xl; width: 340px; max-width: 90vw;
+  max-height: 80vh; display: flex; flex-direction: column; overflow: hidden;
+}
+.dictation-modal-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: $spacing-md; border-bottom: 1px solid $color-surface-container-high;
+}
+.dictation-modal-title {
+  font-family: $font-family; font-size: $font-headline-lg; font-weight: 600;
+  color: $color-on-surface;
+}
+.close-btn {
+  width: 36px; height: 36px; border-radius: $radius-full;
+  background: $color-surface-container; display: flex; align-items: center; justify-content: center;
+  color: $color-on-surface-variant;
+}
+.dictation-modal-subtitle {
+  font-size: $font-body-md; color: $color-on-surface-variant;
+  padding: 0 $spacing-md $spacing-sm;
+}
+.dictation-loading {
+  padding: $spacing-xl; text-align: center; color: $color-on-surface-variant;
+}
+.dictation-words {
+  display: flex; flex-wrap: wrap; gap: $spacing-sm;
+  padding: $spacing-md; overflow-y: auto;
+}
+.word-chip {
+  display: flex; align-items: center; gap: $spacing-xs;
+  background: $color-surface-container; padding: $spacing-sm $spacing-md;
+  border-radius: $radius-xl; border: 2px solid transparent;
+  transition: all 0.2s;
+}
+.word-chip-playing {
+  background: $color-tertiary-container; border-color: $color-tertiary;
+}
+.word-text { font-family: $font-family; font-size: $font-body-lg; font-weight: 600; color: $color-on-surface; }
+.word-play-icon { font-size: 20px; color: $color-on-surface-variant; }
+.word-chip-playing .word-play-icon { color: $color-tertiary; }
+.dictation-modal-actions {
+  padding: $spacing-md; border-top: 1px solid $color-surface-container-high;
+}
+.play-all-btn {
+  display: flex; align-items: center; justify-content: center; gap: $spacing-sm;
+  background: $color-primary; color: $color-on-primary;
+  padding: $spacing-sm $spacing-md; border-radius: $radius-xl;
+  font-family: $font-family; font-size: $font-label-md; font-weight: 600;
+  border-bottom: 3px solid $color-on-primary-fixed-variant;
+  &:active { border-bottom-width: 0; transform: translateY(3px); }
+}
 
 // Bottom Nav
 .bottom-nav {

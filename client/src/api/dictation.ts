@@ -21,3 +21,7 @@ export function createDictationItems(taskId: string, items: DictationItemCreate[
 export function getDictationItems(taskId: string) {
   return request<DictationItemOut[]>(`/dictation/${taskId}`, 'GET')
 }
+
+export function deleteDictationItems(taskId: string) {
+  return request(`/dictation/${taskId}`, 'DELETE')
+}

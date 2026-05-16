@@ -31,3 +31,10 @@ def create_dictation_items(body: DictationItemBatch, user: User = Depends(get_cu
 def get_dictation_items(task_id: uuid.UUID, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     _get_family_task(db, task_id, user)
     return dictation_crud.get_items_by_task(db, task_id)
+
+
+@router.delete("/{task_id}")
+def delete_dictation_items(task_id: uuid.UUID, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    _get_family_task(db, task_id, user)
+    dictation_crud.delete_items_by_task(db, task_id)
+    return {"ok": True}

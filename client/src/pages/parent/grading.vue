@@ -1,32 +1,43 @@
 <template>
   <view class="page">
-    <!-- AppBar -->
+    <!-- TopAppBar -->
     <view class="appbar" :style="{ paddingTop: Math.max(statusBarHeight, 12) + 'px' }">
-      <view class="appbar-left">
-        <view class="avatar-circle">
-          <text class="material-symbols-outlined">person</text>
-        </view>
-        <text class="appbar-title">家长助手</text>
+      <view class="avatar" @tap="showFamilyCode">
+        <text class="material-symbols-outlined">person</text>
+      </view>
+      <view class="appbar-center">
+        <text class="appbar-title">{{ isStudentMode ? '作业伙伴' : '家长助手' }}</text>
+        <text v-if="!isStudentMode" class="appbar-code">家庭连接码：{{ familyCode }}</text>
+      </view>
+      <view class="appbar-icon-btn">
+        <text class="material-symbols-outlined">notifications</text>
       </view>
     </view>
 
+    <!-- Main Content -->
     <scroll-view scroll-y class="main" :style="{ paddingTop: (appbarHeight + 8) + 'px' }">
+      <!-- Empty State -->
       <view v-if="dateGroups.length === 0" class="empty">
         <text class="material-symbols-outlined empty-icon">history</text>
         <text class="empty-text">暂无历史记录</text>
       </view>
 
+      <!-- Date Groups -->
       <view v-for="group in dateGroups" :key="group.label" class="date-group">
         <view class="date-header">
           <text class="date-label">{{ group.label }}</text>
           <view class="date-line"></view>
         </view>
 
+        <!-- Task Cards -->
         <view v-for="task in group.tasks" :key="task.id" class="task-card">
+          <!-- Accent Bar -->
           <view :class="['accent-bar', `accent-${task.subject || 'default'}`]"></view>
 
-          <view class="card-body">
-            <view class="card-top">
+          <!-- Card Content -->
+          <view class="card-content">
+            <!-- Header: Subject + Time + Title -->
+            <view class="card-header">
               <view class="chip-row">
                 <view :class="['subject-chip', `chip-${task.subject || 'default'}`]">
                   <text class="chip-text">{{ task.subject || '其他' }}</text>
@@ -36,30 +47,60 @@
               <text class="task-title">{{ task.title }}</text>
             </view>
 
-            <!-- 待评价 -->
-            <view v-if="task.status === 'submitted'" class="card-bottom">
-              <text class="pending-hint">请评价</text>
-              <view class="grade-btns">
-                <view class="grade-btn btn-pass" @tap="doGrade(task, true)">
-                  <text class="material-symbols-outlined grade-icon">check_circle</text>
-                  <text class="grade-text">合格</text>
-                </view>
-                <view class="grade-btn btn-fail" @tap="doGrade(task, false)">
-                  <text class="material-symbols-outlined grade-icon">cancel</text>
-                  <text class="grade-text">不合格</text>
-                </view>
+            <!-- Task Description -->
+            <view v-if="task.desc" class="task-desc-box">
+              <text class="task-desc-text">{{ task.desc }}</text>
+            </view>
+
+            <!-- Dictation Words -->
+            <view v-if="task.has_dictation && dictationWords[task.id]?.length" class="dictation-section">
+              <view class="dictation-header">
+                <text class="material-symbols-outlined dictation-icon">record_voice_over</text>
+                <text class="dictation-label">听写词语</text>
+              </view>
+              <view class="dictation-words">
+                <text v-for="(word, i) in dictationWords[task.id]" :key="i" class="dictation-word">{{ word }}</text>
               </view>
             </view>
 
-            <!-- 已评价 -->
-            <view v-else-if="task.status === 'graded'" class="card-bottom">
-              <view class="rated-row" :class="gradedResult[task.id] ? 'rated-pass' : 'rated-fail'">
-                <text class="material-symbols-outlined rated-icon">
-                  {{ gradedResult[task.id] ? 'check_circle' : 'cancel' }}
-                </text>
-                <text class="rated-text">{{ gradedResult[task.id] ? '合格' : '不合格' }}</text>
+            <!-- Bottom Section -->
+            <view class="card-bottom">
+              <!-- Parent Comment -->
+              <view v-if="task.status === 'graded' && gradedComment[task.id]" class="comment-box">
+                <view class="comment-header">
+                  <text class="material-symbols-outlined comment-icon">chat_bubble</text>
+                  <text class="comment-label">家长评语</text>
+                </view>
+                <text class="comment-text">{{ gradedComment[task.id] }}</text>
               </view>
-              <text v-if="gradedComment[task.id]" class="rated-comment">{{ gradedComment[task.id] }}</text>
+
+              <!-- Status / Action Row -->
+              <view class="status-row">
+                <!-- Submitted: Pending Grade -->
+                <view v-if="task.status === 'submitted'" class="status-pending">
+                  <text class="pending-hint">{{ isStudentMode ? '等待家长评价' : '请评价' }}</text>
+                  <view v-if="!isStudentMode" class="grade-btns">
+                    <view class="grade-btn btn-pass" @tap="doGrade(task, true)">
+                      <text class="material-symbols-outlined grade-icon">check_circle</text>
+                      <text class="grade-text">合格</text>
+                    </view>
+                    <view class="grade-btn btn-fail" @tap="doGrade(task, false)">
+                      <text class="material-symbols-outlined grade-icon">cancel</text>
+                      <text class="grade-text">不合格</text>
+                    </view>
+                  </view>
+                </view>
+
+                <!-- Graded: Result Badge -->
+                <view v-else-if="task.status === 'graded'" class="status-graded">
+                  <view :class="['result-badge', gradedResult[task.id] ? 'badge-pass' : 'badge-fail']">
+                    <text class="material-symbols-outlined badge-icon">
+                      {{ gradedResult[task.id] ? 'check_circle' : 'cancel' }}
+                    </text>
+                    <text class="badge-text">{{ gradedResult[task.id] ? '合格' : '不合格' }}</text>
+                  </view>
+                </view>
+              </view>
             </view>
           </view>
         </view>
@@ -68,10 +109,19 @@
       <view class="bottom-spacer"></view>
     </scroll-view>
 
-    <!-- 评语弹窗 -->
-    <view v-if="commentModal.visible" class="modal-mask" @tap="cancelModal">
+    <!-- Family Code Modal -->
+    <view v-if="showCode" class="modal-overlay" @tap="showCode = false">
+      <view class="modal-content" @tap.stop>
+        <text class="modal-title">家庭连接码</text>
+        <text class="modal-code">{{ familyCode }}</text>
+        <text class="modal-hint">让学生输入此码完成绑定</text>
+      </view>
+    </view>
+
+    <!-- Comment Modal -->
+    <view v-if="commentModal.visible" class="modal-overlay" @tap="cancelModal">
       <view class="modal-box" @tap.stop>
-        <text class="modal-title">添加评语（可选）</text>
+        <text class="modal-box-title">添加评语（可选）</text>
         <textarea
           v-model="commentModal.text"
           class="modal-textarea"
@@ -92,15 +142,15 @@
     <!-- Bottom Nav -->
     <view class="bottom-nav" :style="{ paddingBottom: safeAreaBottom + 'px' }">
       <view class="nav-item" @tap="goDashboard">
-        <text class="material-symbols-outlined nav-icon">auto_stories</text>
+        <text class="material-symbols-outlined nav-icon">menu_book</text>
         <text class="nav-label">作业</text>
       </view>
-      <view class="nav-item" @tap="goCreate">
+      <view v-if="!isStudentMode" class="nav-item" @tap="goCreate">
         <text class="material-symbols-outlined nav-icon">add_circle</text>
         <text class="nav-label">布置</text>
       </view>
       <view class="nav-item nav-item-active">
-        <text class="material-symbols-outlined nav-icon nav-icon-fill">history</text>
+        <text class="material-symbols-outlined nav-icon">history</text>
         <text class="nav-label">历史</text>
       </view>
     </view>
@@ -110,20 +160,31 @@
 <script setup lang="ts">
 import { ref, computed, reactive, onMounted } from 'vue'
 import { onShow } from '@dcloudio/uni-app'
+import { useAuthStore } from '@/stores/auth'
 import { useTasksStore } from '@/stores/tasks'
 import { gradeSubmission, listSubmissions, submitTask as apiSubmitTask } from '@/api/submissions'
+import { getDictationItems } from '@/api/dictation'
 import type { TaskOut } from '@/api/tasks'
 
+const authStore = useAuthStore()
 const tasksStore = useTasksStore()
+const showCode = ref(false)
+const familyCode = ref('加载中')
+
 const statusBarHeight = ref(0)
 const safeAreaBottom = ref(0)
-const appbarHeight = ref(68)
+const appbarHeight = ref(64)
+
+// 是否为学生模式（只读）
+const isStudentMode = computed(() => authStore.isStudent())
 
 // taskId -> is_correct
 const gradedResult = reactive<Record<string, boolean>>({})
 // taskId -> comment
 const gradedComment = reactive<Record<string, string>>({})
-// 提交中的 taskId 集合，防止重复点击
+// taskId -> 听写词语列表
+const dictationWords = reactive<Record<string, string[]>>({})
+// 提交中的 taskId 集合
 const submitting = reactive<Record<string, boolean>>({})
 
 // 评语弹窗状态
@@ -133,6 +194,20 @@ const commentModal = reactive({
   isCorrect: false,
   text: '',
 })
+
+async function loadFamilyCode() {
+  if (!authStore.user?.family_id) {
+    familyCode.value = '未绑定'
+    return
+  }
+  try {
+    const { request } = await import('@/api/request')
+    const family = await request<{ code: string }>('/auth/family', 'GET')
+    familyCode.value = family.code
+  } catch {
+    familyCode.value = '获取失败'
+  }
+}
 
 const allTasks = computed(() =>
   (Array.isArray(tasksStore.tasks) ? tasksStore.tasks : [])
@@ -168,20 +243,30 @@ function formatTime(isoStr: string) {
 }
 
 async function loadGradedInfo() {
-  for (const task of allTasks.value.filter(t => t.status === 'graded')) {
-    if (task.id in gradedResult) continue
-    try {
-      const subs = await listSubmissions(task.id)
-      if (subs.length > 0) {
-        gradedResult[task.id] = subs[0].is_correct ?? false
-        gradedComment[task.id] = subs[0].comment ?? ''
+  for (const task of allTasks.value) {
+    // 加载批改结果
+    if (task.status === 'graded' && !(task.id in gradedResult)) {
+      try {
+        const subs = await listSubmissions(task.id)
+        if (subs.length > 0) {
+          gradedResult[task.id] = subs[0].is_correct ?? false
+          gradedComment[task.id] = subs[0].comment ?? ''
+        }
+      } catch { /* ignore */ }
+    }
+    // 加载听写词语
+    if (task.has_dictation && !(task.id in dictationWords)) {
+      try {
+        const items = await getDictationItems(task.id)
+        dictationWords[task.id] = items.map(i => i.content)
+      } catch {
+        dictationWords[task.id] = []
       }
-    } catch { /* ignore */ }
+    }
   }
 }
 
 async function doGrade(task: TaskOut, isCorrect: boolean) {
-  // 直接弹框，不做任何网络请求
   commentModal.task = task
   commentModal.isCorrect = isCorrect
   commentModal.text = ''
@@ -193,7 +278,6 @@ async function submitGrade(comment: string) {
   if (submitting[task.id]) return
   submitting[task.id] = true
   try {
-    // 查 submission，没有就创建（忽略创建失败，再查一次）
     let subs = await listSubmissions(task.id)
     if (subs.length === 0) {
       try {
@@ -207,11 +291,10 @@ async function submitGrade(comment: string) {
       uni.showToast({ title: '找不到提交记录', icon: 'none' })
       return
     }
-    // 调批改接口
     await gradeSubmission(subs[0].id, commentModal.isCorrect, comment || undefined)
     gradedResult[task.id] = commentModal.isCorrect
     gradedComment[task.id] = comment
-    await tasksStore.fetchTodayTasks()
+    await tasksStore.fetchAllTasks()
     uni.showToast({ title: commentModal.isCorrect ? '已标记合格' : '已标记不合格', icon: 'success' })
   } catch (e: any) {
     uni.showToast({ title: e.message || '提交失败', icon: 'none' })
@@ -230,181 +313,606 @@ function confirmModal() {
   submitGrade(commentModal.text.trim())
 }
 
-function goDashboard() { uni.redirectTo({ url: '/pages/parent/dashboard' }) }
-function goCreate() { uni.redirectTo({ url: '/pages/parent/task-create' }) }
+function showFamilyCode() {
+  if (!isStudentMode.value) {
+    showCode.value = true
+  }
+}
+
+function goDashboard() {
+  if (isStudentMode.value) {
+    uni.redirectTo({ url: '/pages/student/home' })
+  } else {
+    uni.redirectTo({ url: '/pages/parent/dashboard' })
+  }
+}
+
+function goCreate() {
+  uni.redirectTo({ url: '/pages/parent/task-create' })
+}
 
 onMounted(() => {
   const info = uni.getSystemInfoSync()
   statusBarHeight.value = info.statusBarHeight || 0
   safeAreaBottom.value = info.safeAreaInsets?.bottom || 0
+  loadFamilyCode()
   uni.createSelectorQuery().select('.appbar').boundingClientRect((rect: any) => {
     if (rect && rect.height) appbarHeight.value = rect.height
   }).exec()
 })
 
 onShow(() => {
-  tasksStore.fetchTodayTasks().then(loadGradedInfo)
+  tasksStore.fetchAllTasks().then(loadGradedInfo)
 })
 </script>
 
 <style lang="scss" scoped>
 @use '@/static/styles/variables.scss' as *;
 
+// 补充缺失的变量
+$color-on-primary-fixed: #001a41;
+$color-on-tertiary-fixed: #00201d;
+
 .material-symbols-outlined {
   font-family: 'Material Symbols Outlined';
-  font-weight: normal; font-style: normal; font-size: 24px; line-height: 1;
-  letter-spacing: normal; text-transform: none; display: inline-block;
-  white-space: nowrap; word-wrap: normal; direction: ltr;
+  font-weight: normal;
+  font-style: normal;
+  font-size: 24px;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
   font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
 }
 
-.page { min-height: 100vh; background: $color-surface; font-family: $font-family-body; }
-
-.appbar {
-  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
-  background: #fff; border-bottom: 2px solid #f1f5f9;
-  display: flex; align-items: center; justify-content: space-between;
-  padding-left: $spacing-margin; padding-right: $spacing-margin;
-  padding-bottom: 12px; min-height: 64px; box-sizing: border-box;
+.page {
+  min-height: 100vh;
+  background: $color-surface;
+  font-family: $font-family-body;
 }
-.appbar-left { display: flex; align-items: center; gap: $spacing-sm; }
-.avatar-circle {
-  width: 40px; height: 40px; border-radius: $radius-full;
-  background: $color-primary-fixed; display: flex; align-items: center; justify-content: center;
+
+// AppBar
+.appbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  background: #fff;
+  border-bottom: 1px solid $color-surface-container;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 $spacing-margin;
+  padding-bottom: 12px;
+  min-height: 64px;
+  box-sizing: border-box;
+}
+
+.avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: $radius-full;
+  background: $color-primary-fixed;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: $color-on-primary-fixed;
+  border: 2px solid $color-surface-container-highest;
+}
+
+.appbar-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.appbar-title {
+  font-family: $font-family;
+  font-size: 20px;
+  font-weight: 800;
   color: $color-primary;
 }
-.appbar-title { font-family: $font-family; font-size: 18px; font-weight: 800; color: #2563eb; }
+
+.appbar-code {
+  font-family: $font-family;
+  font-size: $font-label-sm;
+  font-weight: 500;
+  color: $color-on-surface-variant;
+  margin-top: 2px;
+}
+
 .appbar-icon-btn {
-  width: 40px; height: 40px; border-radius: $radius-full;
-  display: flex; align-items: center; justify-content: center; color: #3b82f6;
+  width: 40px;
+  height: 40px;
+  border-radius: $radius-full;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: $color-on-surface-variant;
 }
 
-.main { flex: 1; padding: 0 $spacing-margin; box-sizing: border-box; width: 100%; }
+// Main
+.main {
+  padding: 0 $spacing-margin;
+  box-sizing: border-box;
+}
 
-.date-group { margin-bottom: $spacing-lg; }
-.date-header { display: flex; align-items: center; gap: $spacing-sm; margin-bottom: $spacing-md; }
-.date-label { font-family: $font-family; font-size: $font-headline-lg; font-weight: 600; color: $color-on-surface; white-space: nowrap; }
-.date-line { flex: 1; height: 1px; background: rgba($color-outline-variant, 0.4); border-radius: 999px; }
+// Date Group
+.date-group {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-md;
+  margin-bottom: $spacing-sm;
+}
 
+.date-header {
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+}
+
+.date-label {
+  font-family: $font-family;
+  font-size: $font-headline-lg;
+  font-weight: 600;
+  color: $color-on-surface;
+  white-space: nowrap;
+}
+
+.date-line {
+  flex: 1;
+  height: 1px;
+  background: rgba($color-outline-variant, 0.3);
+  border-radius: $radius-full;
+}
+
+// Task Card
 .task-card {
-  background: $color-surface-container-lowest; border-radius: 24px;
-  border: 1px solid $color-surface-container-highest;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.03);
-  margin-bottom: $spacing-md; display: flex; overflow: hidden;
+  background: $color-surface-container-lowest;
+  border-radius: $radius-lg;
+  padding: $spacing-md;
+  border: 1px solid $color-surface-container;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
 }
-.accent-bar { width: 8px; flex-shrink: 0; }
-.accent-语文 { background: #4fdbcc; }
-.accent-数学 { background: $color-primary-fixed; }
-.accent-英语 { background: #edc157; }
+
+.accent-bar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 6px;
+  height: 100%;
+  border-radius: $radius-lg 0 0 $radius-lg;
+}
+
+.accent-语文 { background: $color-tertiary-fixed-dim; }
+.accent-数学 { background: $color-primary-fixed-dim; }
+.accent-英语 { background: $color-secondary-fixed-dim; }
 .accent-科学 { background: $color-outline; }
 .accent-default { background: $color-outline-variant; }
 
-.card-body { flex: 1; padding: $spacing-md; display: flex; flex-direction: column; gap: $spacing-sm; }
-.card-top { display: flex; flex-direction: column; gap: $spacing-xs; }
-.chip-row { display: flex; align-items: center; gap: $spacing-xs; }
-.subject-chip {
-  padding: 2px 12px; border-radius: 999px;
-  font-family: $font-family; font-size: $font-label-sm; font-weight: 600; white-space: nowrap;
+.card-content {
+  margin-left: $spacing-sm;
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-xs;
 }
-.chip-语文 { background: $color-tertiary-fixed; color: #00201d; }
-.chip-数学 { background: $color-primary-fixed; color: #001a41; }
-.chip-英语 { background: #ffdf9b; color: #251a00; }
+
+// Header
+.card-header {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-xs;
+}
+
+.chip-row {
+  display: flex;
+  align-items: center;
+  gap: $spacing-xs;
+}
+
+.subject-chip {
+  padding: 2px 12px;
+  border-radius: $radius-full;
+  font-family: $font-family;
+  font-size: $font-label-sm;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.chip-语文 { background: $color-tertiary-fixed; color: $color-on-tertiary-fixed; }
+.chip-数学 { background: $color-primary-fixed; color: $color-on-primary-fixed; }
+.chip-英语 { background: $color-secondary-fixed; color: #251a00; }
 .chip-科学 { background: $color-surface-container-highest; color: $color-on-surface-variant; }
 .chip-default { background: $color-surface-container-highest; color: $color-on-surface-variant; }
-.chip-text { color: inherit; }
-.finish-time { font-family: $font-family; font-size: $font-label-sm; color: $color-outline; }
-.task-title { font-family: $font-family-body; font-size: $font-body-lg; font-weight: 500; color: $color-on-surface; display: block; }
 
+.finish-time {
+  font-family: $font-family;
+  font-size: $font-label-sm;
+  color: $color-outline;
+}
+
+.task-title {
+  font-family: $font-family-body;
+  font-size: $font-body-lg;
+  font-weight: 500;
+  color: $color-on-surface;
+}
+
+// Task Description
+.task-desc-box {
+  margin-top: $spacing-xs;
+  background: $color-surface-container-low;
+  border-radius: $radius-lg;
+  padding: $spacing-sm;
+}
+
+.task-desc-text {
+  font-size: $font-body-md;
+  color: $color-on-surface-variant;
+  line-height: 1.5;
+}
+
+// Dictation Section
+.dictation-section {
+  margin-top: $spacing-xs;
+  background: $color-surface-container-low;
+  border-radius: $radius-lg;
+  padding: $spacing-sm;
+}
+
+.dictation-header {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-bottom: $spacing-xs;
+}
+
+.dictation-icon {
+  font-size: 16px;
+  color: $color-tertiary;
+}
+
+.dictation-label {
+  font-family: $font-family;
+  font-size: $font-label-sm;
+  font-weight: 600;
+  color: $color-tertiary;
+}
+
+.dictation-words {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-xs;
+}
+
+.dictation-word {
+  background: #fff;
+  padding: 4px 12px;
+  border-radius: $radius-md;
+  font-family: $font-family;
+  font-size: $font-body-md;
+  color: $color-on-surface;
+  border: 1px solid $color-surface-container-highest;
+}
+
+// Bottom Section
 .card-bottom {
-  padding-top: $spacing-sm; border-top: 1px solid $color-surface-container-highest;
-  display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: $spacing-xs;
+  margin-top: $spacing-xs;
+  padding-top: $spacing-sm;
+  border-top: 1px solid $color-surface-container;
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-sm;
 }
-.pending-hint { font-family: $font-family; font-size: $font-label-md; color: $color-primary; }
 
-// 评价按钮
-.grade-btns { display: flex; gap: $spacing-sm; }
+// Comment Box
+.comment-box {
+  background: $color-surface-container-low;
+  border-radius: $radius-lg;
+  padding: $spacing-sm;
+  border-left: 2px solid $color-primary;
+}
+
+.comment-header {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-bottom: 4px;
+}
+
+.comment-icon {
+  font-size: 14px;
+  color: $color-primary;
+}
+
+.comment-label {
+  font-family: $font-family;
+  font-size: $font-label-sm;
+  font-weight: 600;
+  color: $color-primary;
+}
+
+.comment-text {
+  font-size: $font-body-md;
+  color: $color-on-surface;
+  line-height: 1.5;
+}
+
+// Status Row
+.status-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.status-pending {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
+.pending-hint {
+  font-family: $font-family;
+  font-size: $font-label-md;
+  color: $color-primary;
+}
+
+.grade-btns {
+  display: flex;
+  gap: $spacing-sm;
+}
+
 .grade-btn {
-  display: flex; align-items: center; gap: 6px;
-  padding: 7px 16px; border-radius: $radius-xl;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 14px;
+  border-radius: $radius-full;
   border-bottom: 3px solid transparent;
-  &:active { border-bottom-width: 0; transform: translateY(3px); }
+  &:active {
+    border-bottom-width: 0;
+    transform: translateY(3px);
+  }
 }
+
 .btn-pass {
-  background: $color-tertiary; border-bottom-color: #004d45;
-  .grade-icon, .grade-text { color: #fff; }
+  background: $color-tertiary;
+  border-bottom-color: #004d45;
 }
+
 .btn-fail {
-  background: $color-error; border-bottom-color: #7d0f0f;
-  .grade-icon, .grade-text { color: #fff; }
+  background: $color-error;
+  border-bottom-color: #7d0f0f;
 }
-.grade-icon { font-size: 18px; font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
-.grade-text { font-family: $font-family; font-size: $font-label-md; font-weight: 600; }
 
-// 已评价
-.rated-row {
-  display: flex; align-items: center; gap: 6px;
-  padding: 5px 14px; border-radius: $radius-xl;
+.grade-icon {
+  font-size: 16px;
+  color: #fff;
 }
-.rated-pass { background: rgba(0,104,95,0.12); }
-.rated-fail { background: rgba(186,26,26,0.12); }
-.rated-icon {
-  font-size: 18px; font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
-  .rated-pass & { color: #00685f; }
-  .rated-fail & { color: #ba1a1a; }
-}
-.rated-text {
-  font-family: $font-family; font-size: $font-label-md; font-weight: 600;
-  .rated-pass & { color: #00685f; }
-  .rated-fail & { color: #ba1a1a; }
-}
-.rated-comment { font-size: $font-label-sm; color: $color-on-surface-variant; font-style: italic; }
 
-// 评语弹窗
-.modal-mask {
-  position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 200;
-  display: flex; align-items: center; justify-content: center;
+.grade-text {
+  font-family: $font-family;
+  font-size: $font-label-md;
+  font-weight: 600;
+  color: #fff;
 }
+
+// Result Badge
+.result-badge {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 12px;
+  border-radius: $radius-full;
+}
+
+.badge-pass {
+  background: rgba($color-tertiary-container, 0.2);
+}
+
+.badge-fail {
+  background: rgba($color-error, 0.12);
+}
+
+.badge-icon {
+  font-size: 16px;
+  .badge-pass & { color: $color-tertiary; }
+  .badge-fail & { color: $color-error; }
+}
+
+.badge-text {
+  font-family: $font-family;
+  font-size: $font-label-md;
+  font-weight: 600;
+  .badge-pass & { color: $color-tertiary; }
+  .badge-fail & { color: $color-error; }
+}
+
+// Empty State
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 0;
+  gap: $spacing-md;
+}
+
+.empty-icon {
+  font-size: 64px;
+  color: $color-outline-variant;
+}
+
+.empty-text {
+  font-size: $font-body-md;
+  color: $color-on-surface-variant;
+}
+
+.bottom-spacer {
+  height: 100px;
+}
+
+// Modals
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+}
+
+.modal-content {
+  background: #fff;
+  padding: $spacing-lg;
+  border-radius: $radius-2xl;
+  text-align: center;
+  width: 300px;
+}
+
+.modal-title {
+  font-size: $font-card-title;
+  font-weight: 600;
+  display: block;
+  margin-bottom: $spacing-md;
+}
+
+.modal-code {
+  font-size: 40px;
+  font-weight: 700;
+  color: $color-primary;
+  letter-spacing: 8px;
+  display: block;
+  margin-bottom: $spacing-sm;
+}
+
+.modal-hint {
+  font-size: $font-body-md;
+  color: $color-on-surface-variant;
+}
+
 .modal-box {
-  background: #fff; border-radius: 24px; padding: $spacing-md;
-  width: 320px; max-width: 90vw; display: flex; flex-direction: column; gap: $spacing-md;
+  background: #fff;
+  border-radius: $radius-2xl;
+  padding: $spacing-md;
+  width: 320px;
+  max-width: 90vw;
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-md;
 }
-.modal-title { font-family: $font-family; font-size: $font-body-lg; font-weight: 600; color: $color-on-surface; text-align: center; }
+
+.modal-box-title {
+  font-family: $font-family;
+  font-size: $font-body-lg;
+  font-weight: 600;
+  color: $color-on-surface;
+  text-align: center;
+}
+
 .modal-textarea {
-  background: $color-surface-container; border: 2px solid $color-outline-variant;
-  border-radius: $radius-xl; padding: $spacing-sm; font-size: $font-body-md;
-  color: $color-on-surface; height: 80px; width: 100%; box-sizing: border-box;
+  background: $color-surface-container;
+  border: 2px solid $color-outline-variant;
+  border-radius: $radius-xl;
+  padding: $spacing-sm;
+  font-size: $font-body-md;
+  color: $color-on-surface;
+  height: 80px;
+  width: 100%;
+  box-sizing: border-box;
 }
-.modal-btns { display: flex; gap: $spacing-sm; }
+
+.modal-btns {
+  display: flex;
+  gap: $spacing-sm;
+}
+
 .modal-btn {
-  flex: 1; display: flex; align-items: center; justify-content: center;
-  padding: $spacing-sm; border-radius: $radius-xl;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: $spacing-sm;
+  border-radius: $radius-xl;
   border-bottom: 3px solid transparent;
-  &:active { border-bottom-width: 0; transform: translateY(3px); }
+  &:active {
+    border-bottom-width: 0;
+    transform: translateY(3px);
+  }
 }
-.modal-btn-cancel { background: $color-surface-container; border-bottom-color: $color-outline-variant; }
-.modal-btn-cancel .modal-btn-text { color: $color-on-surface-variant; font-family: $font-family; font-size: $font-label-md; font-weight: 600; }
-.modal-btn-confirm { background: $color-primary; border-bottom-color: #004494; }
-.modal-btn-confirm .modal-btn-text { color: #fff; font-family: $font-family; font-size: $font-label-md; font-weight: 600; }
 
-.empty { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 80px 0; gap: $spacing-md; }
-.empty-icon { font-size: 64px; color: $color-outline-variant; }
-.empty-text { font-size: $font-body-md; color: $color-on-surface-variant; }
-.bottom-spacer { height: 100px; }
+.modal-btn-cancel {
+  background: $color-surface-container;
+  border-bottom-color: $color-outline-variant;
+}
 
+.modal-btn-confirm {
+  background: $color-primary;
+  border-bottom-color: #004494;
+}
+
+.modal-btn-text {
+  font-family: $font-family;
+  font-size: $font-label-md;
+  font-weight: 600;
+  .modal-btn-cancel & { color: $color-on-surface-variant; }
+  .modal-btn-confirm & { color: #fff; }
+}
+
+// Bottom Nav
 .bottom-nav {
-  position: fixed; bottom: 0; left: 0; right: 0; z-index: 100;
-  background: #fff; border-top: 2px solid #f1f5f9;
-  border-top-left-radius: 32px; border-top-right-radius: 32px;
-  display: flex; justify-content: space-around; align-items: center;
-  height: 80px; padding-top: 12px; padding-left: $spacing-md; padding-right: $spacing-md;
-  box-shadow: 0 -4px 10px rgba(58,134,255,0.05);
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  background: #fff;
+  border-top: 1px solid $color-surface-container;
+  border-top-left-radius: $radius-2xl;
+  border-top-right-radius: $radius-2xl;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  padding-top: 12px;
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.05);
 }
+
 .nav-item {
-  display: flex; flex-direction: column; align-items: center; justify-content: center;
-  padding: 6px 20px; color: #94a3b8;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 24px;
+  color: $color-outline;
 }
-.nav-item-active { background: #dbeafe; color: #1d4ed8; border-radius: $radius-2xl; }
-.nav-icon { font-size: 24px; }
-.nav-icon-fill { font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
-.nav-label { font-family: $font-family; font-size: 12px; font-weight: 500; margin-top: 4px; }
+
+.nav-item-active {
+  background: rgba($color-primary-container, 0.2);
+  color: $color-primary;
+  border-radius: $radius-full;
+}
+
+.nav-icon {
+  font-size: 24px;
+  margin-bottom: 2px;
+}
+
+.nav-label {
+  font-family: $font-family;
+  font-size: 10px;
+  font-weight: 500;
+}
 </style>

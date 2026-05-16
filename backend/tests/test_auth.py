@@ -77,3 +77,45 @@ def test_get_me(client):
 def test_get_me_no_token(client):
     resp = client.get("/api/v1/auth/me")
     assert resp.status_code == 401
+
+
+def test_login_returns_correct_role(client):
+    """验证登录后获取的用户信息角色正确，防止跨角色登录漏洞"""
+    # 注册家长账号
+    client.post("/api/v1/auth/register", json={
+        "phone": "13800000007",
+        "password": "test1234",
+        "role": "parent",
+    })
+    # 登录家长账号
+    login_resp = client.post("/api/v1/auth/login", json={
+        "phone": "13800000007",
+        "password": "test1234",
+    })
+    assert login_resp.status_code == 200
+    token = login_resp.json()["access_token"]
+
+    # 获取用户信息，验证角色确实是 parent
+    me_resp = client.get("/api/v1/auth/me", headers={"Authorization": f"Bearer {token}"})
+    assert me_resp.status_code == 200
+    assert me_resp.json()["role"] == "parent"
+
+
+def test_login_student_returns_student_role(client):
+    """验证学生账号登录后角色是 student"""
+    # 注册学生账号
+    client.post("/api/v1/auth/register", json={
+        "phone": "13800000008",
+        "password": "test1234",
+        "role": "student",
+    })
+    # 登录学生账号
+    login_resp = client.post("/api/v1/auth/login", json={
+        "phone": "13800000008",
+        "password": "test1234",
+    })
+    token = login_resp.json()["access_token"]
+
+    # 验证角色是 student
+    me_resp = client.get("/api/v1/auth/me", headers={"Authorization": f"Bearer {token}"})
+    assert me_resp.json()["role"] == "student"

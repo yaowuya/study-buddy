@@ -16,141 +16,415 @@
     </view>
 
     <!-- Main -->
-    <view class="main" :style="{ paddingTop: (statusBarHeight + 60) + 'px' }">
+    <view class="main" :style="{ paddingTop: (statusBarHeight + 100) + 'px' }">
       <!-- Intro Badge -->
       <view class="intro-badge">
         <text class="intro-star">⭐</text>
         <text class="intro-text">请准备好你的作业本，听写开始啦！</text>
       </view>
 
-      <!-- Giant Play Button -->
-      <view class="play-btn-wrap">
-        <view class="play-ripple"></view>
-        <view :class="['play-btn', tts.isPlaying.value ? 'play-btn-playing' : '']" @tap="handlePlay">
-          <text class="material-symbols-outlined play-icon">{{ tts.isPlaying.value ? 'pause' : 'play_arrow' }}</text>
-        </view>
+      <!-- Task Info (Continuous Mode) -->
+      <view v-if="isContinuousMode && taskTitles.length > 1" class="task-info">
+        <text class="task-info-text">任务 {{ currentTaskIndex + 1 }}/{{ taskIds.length }}</text>
       </view>
 
-      <!-- Instruction -->
-      <view class="instruction-wrap">
-        <text class="instruction-text">认真听发音，并在</text>
-        <view class="instruction-highlight-wrap">
-          <text class="instruction-highlight">作业本</text>
-          <view class="underline-wave">
-            <svg width="60" height="8" viewBox="0 0 60 8" fill="none">
-              <path d="M0,4 Q30,8 60,4" stroke="#edc157" stroke-width="3" fill="none"/>
-            </svg>
+      <!-- Word List -->
+      <view class="word-list-section">
+        <text class="section-title">听写词语</text>
+        <text v-if="taskTitle" class="task-title-display">{{ taskTitle }}</text>
+        <view class="word-list">
+          <view
+            v-for="(word, i) in words"
+            :key="i"
+            :class="['word-item', playedWords[i] ? 'word-item-played' : '', currentIndex === i ? 'word-item-playing' : '']"
+            @tap="playSingleWord(i)"
+          >
+            <view class="word-left">
+              <view :class="['play-btn', playedWords[i] ? 'play-btn-done' : '', currentIndex === i ? 'play-btn-active' : '']">
+                <text class="material-symbols-outlined play-icon">
+                  {{ currentIndex === i ? 'volume_up' : (playedWords[i] ? 'check' : 'play_arrow') }}
+                </text>
+              </view>
+              <text v-if="!showAnswers" class="word-number">第 {{ i + 1 }} 个词</text>
+              <text v-else class="word-text">{{ word }}</text>
+            </view>
+            <view v-if="!playedWords[i]" class="tap-hint">
+              <text class="tap-hint-text">点击播放</text>
+            </view>
+            <text v-else-if="!showAnswers" class="material-symbols-outlined status-icon">check_circle</text>
           </view>
-        </view>
-        <text class="instruction-text">上手写</text>
-      </view>
-
-      <!-- Reveal Hint Area -->
-      <view class="reveal-area" @tap="toggleReveal">
-        <view class="reveal-hint-row">
-          <text class="material-symbols-outlined reveal-icon">volume_up</text>
-          <text class="reveal-hint">点击再次播放或查看提示</text>
-        </view>
-        <view :class="['reveal-word', revealHint ? '' : 'reveal-word-blur']">
-          <text class="reveal-word-text">{{ currentWord || '...' }}</text>
         </view>
       </view>
     </view>
 
     <!-- Bottom Action -->
     <view class="bottom-action" :style="{ paddingBottom: (safeAreaBottom + 16) + 'px' }">
-      <view class="check-btn" @tap="handleFinish">
+      <view v-if="!allPlayed" class="action-btn-row">
+        <view v-if="!isPlaying" class="action-btn btn-start" @tap="startDictation">
+          <text class="material-symbols-outlined btn-icon">play_arrow</text>
+          <text class="action-btn-text">{{ hasPlayedAny ? '继续' : '开始听写' }}</text>
+        </view>
+        <view v-else class="action-btn btn-playing" @tap="pauseDictation">
+          <text class="material-symbols-outlined btn-icon">pause</text>
+          <text class="action-btn-text">暂停</text>
+        </view>
+      </view>
+      <view v-else-if="!showAnswers" class="check-btn" @tap="showAnswersAction">
         <text class="check-btn-text">检查答案</text>
         <text class="material-symbols-outlined check-arrow">arrow_forward</text>
+      </view>
+      <view v-else-if="isContinuousMode && hasNextTask" class="check-btn" @tap="nextTask">
+        <text class="check-btn-text">下一个听写任务</text>
+        <text class="material-symbols-outlined check-arrow">arrow_forward</text>
+      </view>
+      <view v-else class="check-btn check-btn-back" @tap="handleClose">
+        <text class="material-symbols-outlined check-arrow">arrow_back</text>
+        <text class="check-btn-text">返回</text>
       </view>
     </view>
   </view>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, reactive, onMounted, onUnmounted } from 'vue'
+import { onLoad } from '@dcloudio/uni-app'
 import { getDictationItems } from '@/api/dictation'
-import { useTTS } from '@/composables/useTTS'
 import { useTasksStore } from '@/stores/tasks'
 import type { DictationItemOut } from '@/api/dictation'
 
 const taskId = ref('')
+const taskIds = ref<string[]>([])
+const taskTitles = ref<string[]>([])
+const currentTaskIndex = ref(0)
+const isContinuousMode = ref(false)
+const taskTitle = ref('')
 const items = ref<DictationItemOut[]>([])
-const tts = useTTS()
 const tasksStore = useTasksStore()
 const statusBarHeight = ref(0)
 const safeAreaBottom = ref(0)
-const revealHint = ref(false)
+const playedWords = reactive<Record<number, boolean>>({})
+const showAnswers = ref(false)
+const currentIndex = ref(-1)
+const isPlaying = ref(false)
+const autoPlayTimer = ref<ReturnType<typeof setTimeout> | null>(null)
+const ttsReady = ref(false)
+const stopSpeaking = ref(false) // Flag to stop ongoing speakMultiple
 
-const currentWord = computed(() => {
-  if (tts.currentIndex.value < 0) return ''
-  return items.value[tts.currentIndex.value]?.content || ''
+const words = computed(() => items.value.map(i => i.content))
+
+const allPlayed = computed(() => {
+  if (words.value.length === 0) return false
+  return words.value.every((_, i) => playedWords[i])
+})
+
+const hasPlayedAny = computed(() => {
+  return Object.values(playedWords).some(Boolean)
+})
+
+const hasNextTask = computed(() => {
+  return isContinuousMode.value && currentTaskIndex.value < taskIds.value.length - 1
 })
 
 const progressPct = computed(() => {
-  if (items.value.length === 0) return 0
-  return Math.round(((tts.currentIndex.value + 1) / items.value.length) * 100)
+  if (words.value.length === 0) return 0
+  const playedCount = Object.values(playedWords).filter(Boolean).length
+  return Math.round((playedCount / words.value.length) * 100)
 })
 
 const progressLabel = computed(() => {
-  if (items.value.length === 0) return '0/0'
-  return `${tts.currentIndex.value + 1}/${items.value.length}`
+  if (words.value.length === 0) return '0/0'
+  const playedCount = Object.values(playedWords).filter(Boolean).length
+  return `${playedCount}/${words.value.length}`
 })
 
 async function loadItems() {
   try {
     items.value = await getDictationItems(taskId.value)
-    tts.setWords(items.value.map(i => i.content))
+    if (taskId.value) {
+      await tasksStore.updateStatus(taskId.value, 'in_progress')
+      // Get task title from tasksStore
+      const task = tasksStore.tasks.find(t => t.id === taskId.value)
+      if (task) {
+        taskTitle.value = task.title
+      }
+    }
   } catch (e: any) {
     uni.showToast({ title: e.message, icon: 'none' })
   }
 }
 
-function handlePlay() {
-  if (tts.isPlaying.value) {
-    tts.stop()
+function speak(text: string): Promise<void> {
+  return new Promise((resolve) => {
+    // Check if we should stop before even starting
+    if (stopSpeaking.value) {
+      resolve()
+      return
+    }
+
+    // #ifdef APP-PLUS
+    ;(plus.speech as any).startSpeak(text, {
+      rate: 1.0,
+      onComplete: () => resolve(),
+      onError: () => resolve(),
+    })
+    // #endif
+
+    // #ifdef H5
+    const utter = new SpeechSynthesisUtterance(text)
+    utter.rate = 1.0
+    utter.lang = 'zh-CN'
+
+    let resolved = false
+    let checkInterval: ReturnType<typeof setInterval> | null = null
+
+    const doResolve = () => {
+      if (!resolved) {
+        resolved = true
+        if (checkInterval) clearInterval(checkInterval)
+        resolve()
+      }
+    }
+
+    utter.onend = doResolve
+    utter.onerror = doResolve
+    speechSynthesis.speak(utter)
+
+    // Poll to check if we should stop (needed because cancel might not trigger onend immediately)
+    checkInterval = setInterval(() => {
+      if (stopSpeaking.value) {
+        speechSynthesis.cancel()
+        doResolve()
+      }
+    }, 50)
+    // #endif
+  })
+}
+
+// Speak a word multiple times with pauses between
+async function speakMultiple(text: string, times: number = 3, pauseMs: number = 800): Promise<void> {
+  for (let i = 0; i < times; i++) {
+    if (stopSpeaking.value) return // Check if we should stop
+    await speak(text)
+    if (stopSpeaking.value) return // Check after speak
+    if (i < times - 1) {
+      await delay(pauseMs)
+    }
+  }
+}
+
+function delay(ms: number): Promise<void> {
+  return new Promise(resolve => {
+    const startTime = Date.now()
+    const checkInterval = setInterval(() => {
+      if (stopSpeaking.value || Date.now() - startTime >= ms) {
+        clearInterval(checkInterval)
+        resolve()
+      }
+    }, 50)
+  })
+}
+
+function initTTS(): Promise<void> {
+  return new Promise((resolve) => {
+    // #ifdef H5
+    const voices = speechSynthesis.getVoices()
+    if (voices.length > 0) {
+      warmUpTTS()
+      ttsReady.value = true
+      resolve()
+    } else {
+      speechSynthesis.onvoiceschanged = () => {
+        warmUpTTS()
+        ttsReady.value = true
+        resolve()
+      }
+      setTimeout(() => {
+        warmUpTTS()
+        ttsReady.value = true
+        resolve()
+      }, 200)
+    }
+    // #endif
+
+    // #ifdef APP-PLUS
+    ttsReady.value = true
+    resolve()
+    // #endif
+  })
+}
+
+function warmUpTTS(): Promise<void> {
+  return new Promise((resolve) => {
+    // #ifdef H5
+    speechSynthesis.cancel()
+    const warmUp = new SpeechSynthesisUtterance('嗯')
+    warmUp.lang = 'zh-CN'
+    warmUp.rate = 10
+    warmUp.volume = 0.01
+    warmUp.onend = () => resolve()
+    warmUp.onerror = () => resolve()
+    speechSynthesis.speak(warmUp)
+    setTimeout(resolve, 100)
+    // #endif
+
+    // #ifdef APP-PLUS
+    resolve()
+    // #endif
+  })
+}
+
+function clearAutoPlayTimer() {
+  if (autoPlayTimer.value) {
+    clearTimeout(autoPlayTimer.value)
+    autoPlayTimer.value = null
+  }
+}
+
+async function playWord(index: number) {
+  if (index >= words.value.length) {
+    isPlaying.value = false
+    currentIndex.value = -1
+    return
+  }
+
+  resumeSpeech() // Reset stop flag
+  currentIndex.value = index
+  await speakMultiple(words.value[index], 3)
+  playedWords[index] = true
+
+  if (isPlaying.value && index + 1 < words.value.length) {
+    autoPlayTimer.value = setTimeout(() => {
+      if (isPlaying.value) {
+        playWord(index + 1)
+      }
+    }, 5000)
   } else {
-    const speed = items.value[0]?.speed || 1.0
-    const pause = items.value[0]?.pause_interval || 3
-    tts.playSequence(speed, pause)
+    isPlaying.value = false
+    currentIndex.value = -1
   }
 }
 
-function toggleReveal() {
-  revealHint.value = !revealHint.value
-  if (!tts.isPlaying.value && items.value.length > 0) {
-    const speed = items.value[tts.currentIndex.value]?.speed || 1.0
-    const pause = items.value[tts.currentIndex.value]?.pause_interval || 3
-    tts.playSequence(speed, pause)
+// User taps a word to play - this pauses auto-play
+async function playSingleWord(index: number) {
+  if (currentIndex.value === index) return
+
+  // Stop any current speech and auto-play timer
+  stopSpeech()
+  clearAutoPlayTimer()
+
+  // Wait for stop to take effect (speak() polls every 50ms, so 150ms should be enough)
+  await delay(150)
+
+  // Pause auto-play mode - user needs to click "继续" to resume
+  isPlaying.value = false
+
+  if (!ttsReady.value) {
+    await initTTS()
+  }
+
+  // Reset stop flag and play the clicked word
+  resumeSpeech()
+  currentIndex.value = index
+  await speakMultiple(words.value[index], 3)
+  playedWords[index] = true
+  currentIndex.value = -1
+  // Do NOT auto-continue - user is now in manual mode
+}
+
+async function startDictation() {
+  if (allPlayed.value) return
+
+  if (!ttsReady.value) {
+    uni.showToast({ title: '正在初始化语音...', icon: 'none' })
+    await initTTS()
+  }
+
+  await warmUpTTS()
+
+  isPlaying.value = true
+  // Always start from first unplayed word
+  const startIndex = words.value.findIndex((_, i) => !playedWords[i])
+
+  if (startIndex >= 0) {
+    playWord(startIndex)
   }
 }
 
-async function handleFinish() {
-  tts.stop()
-  if (taskId.value) {
-    try {
-      await tasksStore.submitTask(taskId.value)
-    } catch { /* ignore */ }
-  }
-  uni.navigateBack()
+function pauseDictation() {
+  isPlaying.value = false
+  clearAutoPlayTimer()
+  stopSpeech()
+}
+
+function showAnswersAction() {
+  showAnswers.value = true
+}
+
+async function nextTask() {
+  if (!hasNextTask.value) return
+
+  currentTaskIndex.value++
+  taskId.value = taskIds.value[currentTaskIndex.value]
+
+  // Reset state for new task
+  Object.keys(playedWords).forEach(key => delete playedWords[key])
+  showAnswers.value = false
+  currentIndex.value = -1
+  isPlaying.value = false
+  clearAutoPlayTimer()
+
+  await loadItems()
 }
 
 function handleClose() {
-  tts.stop()
+  isPlaying.value = false
+  clearAutoPlayTimer()
+  stopSpeech()
   uni.navigateBack()
 }
+
+function stopSpeech() {
+  stopSpeaking.value = true // Signal speakMultiple to stop
+
+  // #ifdef H5
+  speechSynthesis.cancel()
+  // #endif
+
+  // #ifdef APP-PLUS
+  try { (plus.speech as any).stopSpeak() } catch {}
+  // #endif
+}
+
+function resumeSpeech() {
+  stopSpeaking.value = false // Reset flag when starting new speech
+}
+
+onLoad(async (query) => {
+  // Check for continuous mode
+  if (query?.taskIds && query?.continuous === '1') {
+    isContinuousMode.value = true
+    taskIds.value = query.taskIds.split(',')
+    currentTaskIndex.value = 0
+    taskId.value = taskIds.value[0]
+  } else {
+    taskId.value = query?.taskId || ''
+  }
+
+  if (taskId.value) loadItems()
+  await initTTS()
+})
 
 onMounted(() => {
   const info = uni.getSystemInfoSync()
   statusBarHeight.value = info.statusBarHeight || 0
   safeAreaBottom.value = info.safeAreaInsets?.bottom || 0
-  const pages = getCurrentPages()
-  const page = pages[pages.length - 1] as any
-  taskId.value = page.$page?.options?.taskId || page.options?.taskId || ''
-  if (taskId.value) loadItems()
 })
 
-onUnmounted(() => tts.stop())
+onUnmounted(() => {
+  isPlaying.value = false
+  clearAutoPlayTimer()
+  stopSpeech()
+})
 </script>
 
 <style lang="scss" scoped>
@@ -175,6 +449,7 @@ onUnmounted(() => tts.stop())
   background: rgba($color-surface, 0.9); backdrop-filter: blur(8px);
   display: flex; align-items: center; justify-content: space-between;
   padding-left: $spacing-margin; padding-right: $spacing-margin; padding-bottom: $spacing-md;
+  margin-top: 20px;
 }
 .close-btn {
   width: 48px; height: 48px; border-radius: $radius-full;
@@ -214,56 +489,91 @@ onUnmounted(() => tts.stop())
   display: flex; align-items: center; gap: $spacing-base;
   padding: $spacing-sm $spacing-md; background: $color-surface-container-low;
   border-radius: $radius-full; border: 1px solid $color-surface-container;
-  margin-bottom: $spacing-xl; box-shadow: 0 2px 4px rgba(0,0,0,0.04);
+  margin-bottom: $spacing-md; box-shadow: 0 2px 4px rgba(0,0,0,0.04);
 }
 .intro-star { font-size: 20px; }
 .intro-text { font-size: $font-body-md; color: $color-on-surface-variant; }
 
-// Play button
-.play-btn-wrap {
-  position: relative; margin-bottom: $spacing-xl;
+// Task info
+.task-info {
+  padding: $spacing-xs $spacing-md;
+  background: $color-primary-fixed;
+  border-radius: $radius-full;
+  margin-bottom: $spacing-md;
 }
-.play-ripple {
-  position: absolute; inset: 0; border-radius: $radius-full;
-  background: $color-primary-fixed; transform: scale(1.1); opacity: 0.5;
+.task-info-text {
+  font-family: $font-family; font-size: $font-label-md; font-weight: 600;
+  color: $color-primary;
+}
+
+// Word list section
+.word-list-section {
+  width: 100%; max-width: 320px;
+}
+.section-title {
+  font-family: $font-family; font-size: $font-headline-lg; font-weight: 600;
+  color: $color-on-surface; text-align: center; display: block; margin-bottom: $spacing-xs;
+}
+.task-title-display {
+  font-family: $font-family; font-size: $font-body-md; font-weight: 500;
+  color: $color-on-surface-variant; text-align: center; display: block; margin-bottom: $spacing-md;
+}
+.word-list {
+  display: flex; flex-direction: column; gap: $spacing-sm;
+}
+.word-item {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: $spacing-md; background: $color-surface-container;
+  border-radius: $radius-xl; border: 2px solid transparent;
+  transition: all 0.2s;
+  &:active {
+    background: $color-surface-container-high;
+    transform: scale(0.98);
+  }
+}
+.word-item-played {
+  border-color: $color-tertiary;
+}
+.word-item-playing {
+  border-color: $color-primary;
+  background: $color-primary-fixed;
+}
+.word-left {
+  display: flex; align-items: center; gap: $spacing-md;
 }
 .play-btn {
-  position: relative; width: 180px; height: 180px; border-radius: $radius-full;
-  background: $color-primary; display: flex; align-items: center; justify-content: center;
-  border-bottom: 8px solid $color-on-primary-fixed-variant;
-  box-shadow: 0 8px 24px rgba(0, 88, 189, 0.25); z-index: 1;
-  &:active { border-bottom-width: 0; transform: translateY(8px); }
+  width: 44px; height: 44px; border-radius: $radius-full;
+  background: $color-surface-container-high; display: flex; align-items: center; justify-content: center;
+  transition: all 0.2s;
 }
-.play-icon { font-size: 100px; color: $color-on-primary; margin-left: 8px; }
-
-// Instruction
-.instruction-wrap {
-  display: flex; align-items: center; flex-wrap: wrap; justify-content: center;
-  margin-bottom: $spacing-xl; max-width: 280px; text-align: center;
+.play-btn-done {
+  background: $color-tertiary;
 }
-.instruction-text { font-family: $font-family; font-size: $font-headline-lg; font-weight: 600; color: $color-on-surface; }
-.instruction-highlight-wrap { position: relative; display: inline-block; margin: 0 4px; }
-.instruction-highlight { font-family: $font-family; font-size: $font-headline-lg; font-weight: 600; color: $color-primary; }
-.underline-wave { position: absolute; bottom: -8px; left: 0; right: 0; display: flex; justify-content: center; }
-
-// Reveal area
-.reveal-area {
-  width: 100%; max-width: 320px; background: $color-surface-container;
-  border-radius: $radius-xl; padding: $spacing-md;
-  border: 2px dashed $color-outline-variant;
-  display: flex; flex-direction: column; align-items: center; gap: $spacing-base;
-  margin-top: auto;
+.play-btn-active {
+  background: $color-primary;
+  box-shadow: 0 0 0 4px rgba(0, 88, 189, 0.2);
 }
-.reveal-hint-row { display: flex; align-items: center; gap: $spacing-base; color: $color-on-surface-variant; }
-.reveal-icon { font-size: 20px; }
-.reveal-hint { font-family: $font-family; font-size: $font-label-sm; }
-.reveal-word {
-  background: #fff; border-radius: $radius-lg; padding: $spacing-base $spacing-xl;
-  width: 100%; text-align: center; border: 1px solid $color-surface-container-high;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.04); transition: filter 0.3s;
+.play-icon { font-size: 26px; color: $color-on-surface-variant; }
+.play-btn-done .play-icon { color: $color-on-tertiary; }
+.play-btn-active .play-icon { color: $color-on-primary; }
+.word-number {
+  font-family: $font-family; font-size: $font-body-lg; font-weight: 500;
+  color: $color-on-surface;
 }
-.reveal-word-blur { filter: blur(4px); opacity: 0.7; }
-.reveal-word-text { font-family: $font-family; font-size: 32px; font-weight: 700; color: $color-on-surface; letter-spacing: 0.1em; }
+.word-text {
+  font-family: $font-family; font-size: $font-body-lg; font-weight: 500;
+  color: $color-on-surface;
+}
+.tap-hint {
+  padding: 4px 12px; background: $color-primary-fixed; border-radius: $radius-full;
+}
+.tap-hint-text {
+  font-family: $font-family; font-size: $font-label-sm; font-weight: 600;
+  color: $color-primary;
+}
+.status-icon {
+  font-size: 24px; color: $color-tertiary;
+}
 
 // Bottom action
 .bottom-action {
@@ -271,6 +581,26 @@ onUnmounted(() => tts.stop())
   padding-left: $spacing-margin; padding-right: $spacing-margin; padding-top: $spacing-xl;
   background: linear-gradient(to top, $color-surface 60%, transparent);
 }
+.action-btn-row {
+  display: flex; justify-content: center;
+}
+.action-btn {
+  display: flex; align-items: center; justify-content: center; gap: $spacing-sm;
+  min-width: 200px; padding: 18px $spacing-xl; border-radius: $radius-xl;
+  font-family: $font-family; font-size: $font-headline-lg; font-weight: 600;
+  border-bottom: 6px solid transparent;
+  &:active { border-bottom-width: 0; transform: translateY(6px); }
+}
+.btn-start {
+  background: $color-tertiary-container; color: $color-on-tertiary-container;
+  border-bottom-color: $color-on-tertiary-fixed-variant;
+}
+.btn-playing {
+  background: $color-primary; color: $color-on-primary;
+  border-bottom-color: $color-on-primary-fixed-variant;
+}
+.btn-icon { font-size: 28px; }
+.action-btn-text { color: inherit; }
 .check-btn {
   display: flex; align-items: center; justify-content: center; gap: $spacing-md;
   background: $color-tertiary-container; color: $color-on-tertiary-container;
@@ -280,6 +610,11 @@ onUnmounted(() => tts.stop())
   box-shadow: 0 4px 12px rgba(0, 131, 121, 0.2);
   &:active { border-bottom-width: 0; transform: translateY(6px); }
 }
-.check-btn-text { color: $color-on-tertiary-container; }
-.check-arrow { font-size: 28px; font-variation-settings: 'wght' 600; color: $color-on-tertiary-container; }
+.check-btn-back {
+  background: $color-primary; color: $color-on-primary;
+  border-bottom-color: $color-on-primary-fixed-variant;
+  box-shadow: 0 4px 12px rgba(0, 88, 189, 0.2);
+}
+.check-btn-text { color: inherit; }
+.check-arrow { font-size: 28px; font-variation-settings: 'wght' 600; color: inherit; }
 </style>

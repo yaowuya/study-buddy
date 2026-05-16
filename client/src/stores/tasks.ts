@@ -8,6 +8,15 @@ export const useTasksStore = defineStore('tasks', () => {
   const tasks = ref<TaskOut[]>([])
   const loading = ref(false)
 
+    async function fetchAllTasks() {
+    loading.value = true
+    try {
+      tasks.value = await tasksApi.listTasks()
+    } finally {
+      loading.value = false
+    }
+  }
+
   async function fetchTodayTasks() {
     loading.value = true
     try {
@@ -41,5 +50,5 @@ export const useTasksStore = defineStore('tasks', () => {
   const pendingTasks = () => tasks.value.filter(t => t.status === 'pending')
   const allCompleted = () => tasks.value.length > 0 && tasks.value.every(t => t.status === 'submitted' || t.status === 'graded')
 
-  return { tasks, loading, fetchTodayTasks, updateStatus, submitTask, loadCached, pendingTasks, allCompleted }
+  return { tasks, loading, fetchTodayTasks, fetchAllTasks, updateStatus, submitTask, loadCached, pendingTasks, allCompleted }
 })

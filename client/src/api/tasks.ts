@@ -9,7 +9,7 @@ export interface TaskOut {
   status: 'pending' | 'in_progress' | 'submitted' | 'graded'
   date: string
   subject: string | null
-  updated_at: string | null
+  has_dictation: boolean
 }
 
 export interface TaskCreateParams {
@@ -21,16 +21,29 @@ export interface TaskCreateParams {
   subject?: string
 }
 
+export interface TaskUpdateParams {
+  title?: string
+  desc?: string
+  duration?: number
+  date?: string
+  subject?: string
+}
+
 export function createTask(data: TaskCreateParams) {
   return request<TaskOut>('/tasks/', 'POST', data)
 }
 
-export function listTasks(date: string) {
-  return request<TaskOut[]>(`/tasks/?task_date=${date}`, 'GET')
+export function listTasks(date?: string) {
+  const params = date ? `?task_date=${date}` : ''
+  return request<TaskOut[]>(`/tasks/${params}`, 'GET')
 }
 
 export function getTask(id: string) {
   return request<TaskOut>(`/tasks/${id}`, 'GET')
+}
+
+export function updateTask(id: string, data: TaskUpdateParams) {
+  return request<TaskOut>(`/tasks/${id}`, 'PATCH', data)
 }
 
 export function updateTaskStatus(id: string, status: string) {

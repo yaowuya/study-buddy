@@ -21,7 +21,6 @@
           <text class="hero-sub">今天也要加油鸭～</text>
         </view>
         <view class="progress-circle-wrap">
-          <!-- SVG circular progress (H5 only) -->
           <svg class="progress-svg" viewBox="0 0 100 100" width="96" height="96">
             <circle class="progress-bg" cx="50" cy="50" r="40" fill="none" stroke-width="12"></circle>
             <circle class="progress-fg" cx="50" cy="50" r="40" fill="none" stroke-width="12"
@@ -38,7 +37,7 @@
       </view>
 
       <!-- Dictation CTA -->
-      <view class="dictation-cta" @tap="goDictation">
+      <view v-if="dictationTask" class="dictation-cta" @tap="goDictationContinuous">
         <view class="cta-deco"></view>
         <view class="cta-left">
           <view class="cta-icon-box">
@@ -46,7 +45,7 @@
           </view>
           <view class="cta-text">
             <text class="cta-title">听写作业</text>
-            <text class="cta-sub">进入今天的听写练习</text>
+            <text class="cta-sub">点击开始今日听写</text>
           </view>
         </view>
         <text class="material-symbols-outlined cta-arrow">arrow_forward_ios</text>
@@ -58,31 +57,63 @@
         <view v-if="tasks.length === 0" class="empty-state">
           <text class="empty-text">今天没有任务，休息一下吧！</text>
         </view>
-        <view v-for="task in tasks" :key="task.id" :class="['task-card', task.status === 'graded' ? 'task-done' : 'task-pending']" @tap="handleTaskTap(task)">
+        <view v-for="task in tasks" :key="task.id" :class="['task-card', task.status === 'graded' ? 'task-done' : 'task-pending']">
           <view class="task-card-inner">
             <view :class="['task-icon-box', `icon-${task.subject || 'default'}`]">
               <text class="material-symbols-outlined">{{ subjectIcon(task.subject) }}</text>
             </view>
             <view class="task-info">
               <view class="task-title-row">
-                <text :class="['task-title', task.status === 'graded' ? 'task-title-done' : '']">{{ task.title }}</text>
-                <view v-if="task.status === 'graded'" class="check-circle">
+                <view class="title-left">
+                  <text :class="['task-title', task.status === 'graded' ? 'task-title-done' : '']">{{ task.title }}</text>
+                  <view v-if="task.has_dictation" class="dictation-tag">
+                    <text class="material-symbols-outlined tag-icon">record_voice_over</text>
+                    <text class="tag-text">听写</text>
+                  </view>
+                </view>
+                <view v-if="task.status === 'submitted'" class="check-circle check-circle-cancel" @tap.stop="cancelSubmit(task)">
+                  <text class="material-symbols-outlined check-icon">check</text>
+                </view>
+                <view v-else-if="task.status === 'graded'" class="check-circle check-circle-done">
                   <text class="material-symbols-outlined check-icon">check</text>
                 </view>
                 <view v-else class="empty-circle"></view>
               </view>
               <text v-if="task.desc" :class="['task-desc', task.status === 'graded' ? 'task-desc-done' : '']">{{ task.desc }}</text>
+
+              <!-- Dictation words preview -->
+              <view v-if="task.has_dictation && task.status !== 'graded'" class="dictation-preview">
+                <view class="dictation-words-loading" v-if="!taskDictationWords[task.id]">
+                  <text>加载中...</text>
+                </view>
+                <view class="dictation-words" v-else>
+                  <text class="dictation-word" v-for="(word, i) in taskDictationWords[task.id]" :key="i">{{ word }}</text>
+                </view>
+              </view>
             </view>
           </view>
           <!-- Action row -->
           <view class="task-action">
-            <view v-if="task.status === 'pending'" class="action-btn btn-start" @tap.stop="startTask(task)">
-              <text class="action-btn-text">开始</text>
+            <view v-if="task.status === 'pending'" class="action-row">
+              <view v-if="task.has_dictation" class="action-btn btn-dictation" @tap.stop="goDictation(task)">
+                <text class="material-symbols-outlined btn-icon">mic</text>
+                <text class="action-btn-text">开始听写</text>
+              </view>
+              <view v-else class="action-btn btn-start" @tap.stop="startTask(task)">
+                <text class="action-btn-text">开始</text>
+              </view>
             </view>
-            <view v-if="task.status === 'in_progress'" class="action-btn btn-done" @tap.stop="doneTask(task)">
-              <text class="action-btn-text">完成</text>
+            <view v-if="task.status === 'in_progress'" class="action-row">
+              <view class="action-btn btn-done" @tap.stop="doneTask(task)">
+                <text class="action-btn-text">完成</text>
+              </view>
+              <view v-if="task.has_dictation" class="action-btn btn-dictation" @tap.stop="goDictation(task)">
+                <text class="material-symbols-outlined btn-icon">mic</text>
+                <text class="action-btn-text">继续听写</text>
+              </view>
             </view>
             <text v-if="task.status === 'submitted'" class="action-wait">等待批改</text>
+            <text v-if="task.status === 'graded'" class="action-done">已完成</text>
           </view>
         </view>
       </view>
@@ -111,10 +142,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted, watch } from 'vue'
 import { onShow } from '@dcloudio/uni-app'
 import { useTasksStore } from '@/stores/tasks'
 import { useSyncStore } from '@/stores/sync'
+import { getDictationItems } from '@/api/dictation'
 import type { TaskOut } from '@/api/tasks'
 
 const tasksStore = useTasksStore()
@@ -122,19 +154,25 @@ const syncStore = useSyncStore()
 const statusBarHeight = ref(0)
 const safeAreaBottom = ref(0)
 const showCelebration = ref(false)
+const taskDictationWords = reactive<Record<string, string[]>>({})
 
 const tasks = computed(() => tasksStore.tasks)
 const doneCount = computed(() => tasks.value.filter(t => t.status === 'graded').length)
 const progressRatio = computed(() => tasks.value.length === 0 ? 0 : doneCount.value / tasks.value.length)
+const dictationTask = computed(() => tasks.value.find(t => t.has_dictation && t.status !== 'graded'))
 
 function subjectIcon(subject: string | null) {
   const map: Record<string, string> = { '语文': 'edit_note', '数学': 'calculate', '英语': 'translate', '科学': 'science' }
   return map[subject || ''] || 'assignment'
 }
 
-function handleTaskTap(task: TaskOut) {
-  if (task.type === 'school' && task.status !== 'graded') {
-    uni.navigateTo({ url: `/pages/student/dictation?taskId=${task.id}` })
+async function loadDictationWords(task: TaskOut) {
+  if (!task.has_dictation || taskDictationWords[task.id]) return
+  try {
+    const items = await getDictationItems(task.id)
+    taskDictationWords[task.id] = items.map(i => i.content)
+  } catch {
+    taskDictationWords[task.id] = []
   }
 }
 
@@ -149,18 +187,48 @@ async function doneTask(task: TaskOut) {
   }
 }
 
-function goDictation() {
-  const dictationTask = tasks.value.find(t => t.status !== 'graded')
-  if (dictationTask) {
-    uni.navigateTo({ url: `/pages/student/dictation?taskId=${dictationTask.id}` })
-  } else {
-    uni.showToast({ title: '没有待完成的听写任务', icon: 'none' })
-  }
+async function cancelSubmit(task: TaskOut) {
+  uni.showModal({
+    title: '取消提交',
+    content: '确定要取消提交吗？取消后可以重新完成作业。',
+    success: async (res) => {
+      if (res.confirm) {
+        await tasksStore.updateStatus(task.id, 'in_progress')
+      }
+    }
+  })
+}
+
+function goDictation(task: TaskOut | undefined) {
+  if (!task) return
+  uni.navigateTo({ url: `/pages/student/dictation?taskId=${task.id}` })
+}
+
+function goDictationContinuous() {
+  // Get the first (earliest) dictation task by date
+  const sortedDictationTasks = tasks.value
+    .filter(t => t.has_dictation && t.status !== 'graded')
+    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+
+  if (sortedDictationTasks.length === 0) return
+
+  // Pass all task IDs for continuous mode
+  const taskIds = sortedDictationTasks.map(t => t.id).join(',')
+  uni.navigateTo({ url: `/pages/student/dictation?taskIds=${taskIds}&continuous=1` })
 }
 
 function goHistory() {
-  uni.showToast({ title: '历史记录（开发中）', icon: 'none' })
+  uni.redirectTo({ url: '/pages/parent/grading' })
 }
+
+// Load dictation words for tasks that have dictation
+watch(tasks, (newTasks) => {
+  newTasks.forEach(task => {
+    if (task.has_dictation && task.status !== 'graded') {
+      loadDictationWords(task)
+    }
+  })
+}, { immediate: true })
 
 onMounted(() => {
   const info = uni.getSystemInfoSync()
@@ -281,14 +349,30 @@ onShow(() => {
 .icon-英语 { background: $color-secondary-fixed; color: $color-secondary; }
 .icon-default { background: $color-surface-container; color: $color-on-surface-variant; }
 .task-info { flex: 1; }
-.task-title-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+.task-title-row { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 4px; }
+.title-left { display: flex; align-items: center; gap: $spacing-xs; flex-wrap: wrap; }
 .task-title { font-family: $font-family; font-size: 20px; font-weight: 600; color: $color-on-surface; }
 .task-title-done { text-decoration: line-through; opacity: 0.7; }
+.dictation-tag {
+  display: inline-flex; align-items: center; gap: 2px;
+  background: $color-tertiary-container; padding: 2px 8px; border-radius: $radius-full;
+}
+.tag-icon { font-size: 14px; color: $color-on-tertiary-container; }
+.tag-text { font-size: 12px; font-weight: 600; color: $color-on-tertiary-container; }
 .check-circle {
   width: 32px; height: 32px; border-radius: $radius-full;
-  background: $color-tertiary; display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
 }
-.check-icon { color: $color-on-tertiary; font-size: 18px; }
+.check-circle-done {
+  background: $color-outline-variant;
+}
+.check-circle-cancel {
+  background: $color-tertiary;
+  &:active { opacity: 0.7; }
+}
+.check-icon { font-size: 18px; }
+.check-circle-done .check-icon { color: #fff; }
+.check-circle-cancel .check-icon { color: $color-on-tertiary; }
 .empty-circle {
   width: 32px; height: 32px; border-radius: $radius-full;
   border: 2px solid $color-outline-variant; flex-shrink: 0;
@@ -296,16 +380,33 @@ onShow(() => {
 .task-desc { font-size: $font-body-md; color: $color-on-surface-variant; display: block; }
 .task-desc-done { text-decoration: line-through; opacity: 0.7; }
 
+// Dictation preview
+.dictation-preview { margin-top: $spacing-sm; }
+.dictation-words-loading { font-size: $font-label-sm; color: $color-on-surface-variant; }
+.dictation-words { display: flex; flex-wrap: wrap; gap: $spacing-xs; }
+.dictation-word {
+  background: $color-surface-container; padding: 4px 12px; border-radius: $radius-md;
+  font-family: $font-family; font-size: $font-body-md; color: $color-on-surface;
+}
+
+// Action
 .task-action { display: flex; align-items: center; }
+.action-row { display: flex; gap: $spacing-sm; }
 .action-btn {
-  display: flex; align-items: center; justify-content: center;
+  display: flex; align-items: center; justify-content: center; gap: 6px;
   min-height: $touch-min; padding: 0 $spacing-md; border-radius: $radius-xl;
   font-family: $font-family; font-size: $font-body-md; font-weight: 600;
+  border-bottom: 3px solid transparent;
+  &:active { border-bottom-width: 0; transform: translateY(3px); }
 }
-.btn-start { background: $color-primary; }
-.btn-done { background: $color-tertiary; }
+.btn-start { background: $color-primary; border-bottom-color: $color-on-primary-fixed-variant; }
+.btn-done { background: $color-tertiary; border-bottom-color: $color-on-tertiary-fixed-variant; }
+.btn-dictation { background: $color-tertiary-container; color: $color-on-tertiary-container; border-bottom-color: $color-on-tertiary-fixed-variant; }
+.btn-icon { font-size: 18px; }
 .action-btn-text { color: #fff; }
+.btn-dictation .action-btn-text { color: $color-on-tertiary-container; }
 .action-wait { font-size: $font-body-md; color: $color-primary; font-weight: 500; }
+.action-done { font-size: $font-body-md; color: $color-tertiary; font-weight: 500; }
 
 .empty-state { padding: 48px 0; text-align: center; }
 .empty-text { font-size: $font-body-lg; color: $color-on-surface-variant; }

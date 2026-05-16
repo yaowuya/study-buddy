@@ -1,5 +1,5 @@
 import uuid
-from datetime import date
+from datetime import date as DateType
 
 from pydantic import BaseModel
 
@@ -11,7 +11,15 @@ class TaskCreate(BaseModel):
     title: str
     desc: str | None = None
     duration: int | None = None
-    date: date
+    date: DateType
+    subject: str | None = None
+
+
+class TaskUpdate(BaseModel):
+    title: str | None = None
+    desc: str | None = None
+    duration: int | None = None
+    date: DateType | None = None
     subject: str | None = None
 
 
@@ -26,7 +34,8 @@ class TaskOut(BaseModel):
     desc: str | None = None
     duration: int | None = None
     status: TaskStatus
-    date: date
+    date: DateType
     subject: str | None = None
+    has_dictation: bool = False
 
     model_config = {"from_attributes": True}
