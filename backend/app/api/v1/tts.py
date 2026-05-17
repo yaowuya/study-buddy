@@ -17,8 +17,8 @@ TMP_DIR = Path(__file__).parent.parent.parent.parent / "tmp"
 TMP_DIR.mkdir(exist_ok=True)
 
 # 百度 TTS 配置
-BAIDU_TTS_URL = "http://tsn.baidu.com/text2audio"
-BAIDU_TOKEN_URL = "http://aip.baidubce.com/oauth/2.0/token"
+BAIDU_TTS_URL = "https://tsn.baidu.com/text2audio"
+BAIDU_TOKEN_URL = "https://aip.baidubce.com/oauth/2.0/token"
 
 # 音色映射
 VOICE_MAP = {
@@ -33,7 +33,7 @@ VOICE_MAP = {
     "xiaomeng": 111,  # 度小萌 - 儿童音
 }
 
-DEFAULT_VOICE = "xiaoyao"  # 默认使用度逍遥
+DEFAULT_VOICE = "xiaoyao"
 
 # Token 缓存
 _token_cache = {"token": None, "expires_at": 0}
@@ -43,7 +43,6 @@ def _get_baidu_token() -> str:
     """获取百度 TTS access_token"""
     import time
 
-    # 检查缓存的 token 是否有效
     if _token_cache["token"] and _token_cache["expires_at"] > time.time() + 60:
         return _token_cache["token"]
 
@@ -55,17 +54,15 @@ def _get_baidu_token() -> str:
         "client_id": settings.BAIDU_TTS_API_KEY,
         "client_secret": settings.BAIDU_TTS_SECRET_KEY,
     }
-    post_data = urlencode(params).encode("utf-8")
 
     try:
-        req = Request(BAIDU_TOKEN_URL, post_data)
+        req = Request(BAIDU_TOKEN_URL + "?" + urlencode(params))
         with urlopen(req, timeout=10) as f:
             result = json.loads(f.read().decode("utf-8"))
 
         if "access_token" not in result:
             raise HTTPException(500, f"Baidu token error: {result}")
 
-        # 缓存 token（提前 60 秒过期）
         _token_cache["token"] = result["access_token"]
         _token_cache["expires_at"] = time.time() + result.get("expires_in", 86400)
 
@@ -103,55 +100,48 @@ def _get_voice_description(voice_id: str) -> str:
 def speak(text: str, voice: str = DEFAULT_VOICE, rate: float = 1.0):
     """
     将文本转换为语音并返回音频文件
-
-    - text: 要朗读的文本
-    - voice: 音色ID (默认度逍遥)
-    - rate: 语速 (0.5-2.0, 默认1.0)
     """
     if not text:
         raise HTTPException(400, "text is required")
 
     if len(text) > 1024:
-        raise HTTPException(400, "text too long (max 1024 chars for Baidu TTS)")
+        raise HTTPException(400, "text too long (max 1024 chars)")
 
-    # 获取 token
     token = _get_baidu_token()
-
-    # 音色参数
     per = VOICE_MAP.get(voice, VOICE_MAP[DEFAULT_VOICE])
 
-    # 语速转换 (rate 0.5-2.0 -> spd 0-15, 1.0 对应 5)
+    # 语速转换 (rate 0.5-2.0 -> spd 0-15)
     spd = int(max(0, min(15, (rate - 0.5) * 10)))
 
-    # 构建请求参数
-    params = {
+    # 使用 POST 请求，参数放在 body 中
+    payload = urlencode({
+        "tex": text,
         "tok": token,
-        "tex": quote_plus(quote_plus(text)),  # 需要两次 urlencode
-        "per": per,
-        "spd": spd,
-        "pit": 5,   # 音调
-        "vol": 9,   # 音量
-        "aue": 3,   # mp3 格式
         "cuid": "studybuddy",
-        "lan": "zh",
         "ctp": 1,
+        "lan": "zh",
+        "spd": spd,
+        "pit": 5,
+        "vol": 9,
+        "per": per,
+        "aue": 3,
+    }).encode("utf-8")
+
+    headers = {
+        "Content-Type": "application/x-www-form-urlencoded",
     }
 
-    url = f"{BAIDU_TTS_URL}?{urlencode(params)}"
-
     try:
-        req = Request(url)
+        req = Request(BAIDU_TTS_URL, data=payload, headers=headers)
         with urlopen(req, timeout=30) as f:
             content = f.read()
-            headers = dict((name.lower(), value) for name, value in f.headers.items())
+            response_headers = dict((name.lower(), value) for name, value in f.headers.items())
 
-        # 检查是否返回音频
-        content_type = headers.get("content-type", "")
+        content_type = response_headers.get("content-type", "")
         if "audio" not in content_type:
             error_msg = content.decode("utf-8") if isinstance(content, bytes) else content
             raise HTTPException(500, f"Baidu TTS error: {error_msg}")
 
-        # 保存音频文件
         filename = f"tts_{uuid.uuid4().hex}.mp3"
         temp_path = TMP_DIR / filename
         with open(temp_path, "wb") as f:
