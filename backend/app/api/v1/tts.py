@@ -100,39 +100,35 @@ def _get_voice_description(voice_id: str) -> str:
 def speak(text: str, voice: str = DEFAULT_VOICE, rate: float = 1.0):
     """
     将文本转换为语音并返回音频文件
+
+    - text: 要朗读的文本（不超过60个汉字）
+    - voice: 音色ID (默认度逍遥)
+    - rate: 语速 (0.5-2.0, 默认1.0)
     """
     if not text:
         raise HTTPException(400, "text is required")
 
-    if len(text) > 1024:
-        raise HTTPException(400, "text too long (max 1024 chars)")
+    if len(text) > 60:
+        raise HTTPException(400, "text too long (max 60 Chinese characters for Baidu TTS)")
 
     token = _get_baidu_token()
     per = VOICE_MAP.get(voice, VOICE_MAP[DEFAULT_VOICE])
 
-    # 语速转换 (rate 0.5-2.0 -> spd 0-15)
+    # 语速转换 (rate 0.5-2.0 -> spd 0-15, 1.0 对应 5)
     spd = int(max(0, min(15, (rate - 0.5) * 10)))
 
-    # 使用 POST 请求，参数放在 body 中
-    payload = urlencode({
-        "tex": text,
-        "tok": token,
-        "cuid": "studybuddy",
-        "ctp": 1,
-        "lan": "zh",
-        "spd": spd,
-        "pit": 5,
-        "vol": 9,
-        "per": per,
-        "aue": 3,
-    }).encode("utf-8")
+    # tex 需要 2 次 urlencode
+    tex_encoded = quote_plus(quote_plus(text))
+
+    # POST 请求，参数放在 body 中
+    payload = f"tex={tex_encoded}&tok={token}&cuid=studybuddy&ctp=1&lan=zh&spd={spd}&pit=5&vol=9&per={per}&aue=3"
 
     headers = {
         "Content-Type": "application/x-www-form-urlencoded",
     }
 
     try:
-        req = Request(BAIDU_TTS_URL, data=payload, headers=headers)
+        req = Request(BAIDU_TTS_URL, data=payload.encode("utf-8"), headers=headers)
         with urlopen(req, timeout=30) as f:
             content = f.read()
             response_headers = dict((name.lower(), value) for name, value in f.headers.items())
