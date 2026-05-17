@@ -247,6 +247,13 @@ function closeDictationModal() {
   stopSpeech()
 }
 
+let dashboardAudioContext: UniApp.InnerAudioContext | null = null
+
+function getTTSAudioUrl(text: string): string {
+  const encodedText = encodeURIComponent(text)
+  return `https://tts.baidu.com/text2audio?tex=${encodedText}&cuid=baike&lan=zh&ctp=1&pdt=301&vol=9&rate=32&per=0`
+}
+
 function speak(text: string): Promise<void> {
   return new Promise((resolve) => {
     // #ifdef H5
@@ -259,11 +266,23 @@ function speak(text: string): Promise<void> {
     // #endif
 
     // #ifdef APP-PLUS
-    ;(plus.speech as any).startSpeak(text, {
-      rate: 1.0,
-      onComplete: () => resolve(),
-      onError: () => resolve(),
-    })
+    try {
+      dashboardAudioContext = uni.createInnerAudioContext()
+      dashboardAudioContext.src = getTTSAudioUrl(text)
+      dashboardAudioContext.onEnded(() => {
+        dashboardAudioContext?.destroy()
+        dashboardAudioContext = null
+        resolve()
+      })
+      dashboardAudioContext.onError(() => {
+        dashboardAudioContext?.destroy()
+        dashboardAudioContext = null
+        resolve()
+      })
+      dashboardAudioContext.play()
+    } catch (e) {
+      resolve()
+    }
     // #endif
   })
 }
@@ -275,7 +294,13 @@ function stopSpeech() {
   // #endif
 
   // #ifdef APP-PLUS
-  try { (plus.speech as any).stopSpeak() } catch {}
+  try {
+    if (dashboardAudioContext) {
+      dashboardAudioContext.stop()
+      dashboardAudioContext.destroy()
+      dashboardAudioContext = null
+    }
+  } catch {}
   // #endif
 }
 
