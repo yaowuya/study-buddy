@@ -9,8 +9,8 @@
         <text class="appbar-title">{{ isStudentMode ? '作业伙伴' : '家长助手' }}</text>
         <text v-if="!isStudentMode" class="appbar-code">家庭连接码：{{ familyCode }}</text>
       </view>
-      <view class="appbar-icon-btn">
-        <text class="material-symbols-outlined">notifications</text>
+      <view class="appbar-icon-btn" @tap="handleLogout">
+        <text class="material-symbols-outlined">logout</text>
       </view>
     </view>
 
@@ -173,7 +173,7 @@ const familyCode = ref('加载中')
 
 const statusBarHeight = ref(0)
 const safeAreaBottom = ref(0)
-const appbarHeight = ref(64)
+const appbarHeight = ref(88) // 增加默认值
 
 // 是否为学生模式（只读）
 const isStudentMode = computed(() => authStore.isStudent())
@@ -207,6 +207,10 @@ async function loadFamilyCode() {
   } catch {
     familyCode.value = '获取失败'
   }
+}
+
+function handleLogout() {
+  authStore.logout()
 }
 
 const allTasks = computed(() =>
@@ -335,10 +339,9 @@ onMounted(() => {
   const info = uni.getSystemInfoSync()
   statusBarHeight.value = info.statusBarHeight || 0
   safeAreaBottom.value = info.safeAreaInsets?.bottom || 0
+  // AppBar 高度 = statusBarHeight + 顶部padding + 内容高度(56) + 底部padding
+  appbarHeight.value = Math.max(statusBarHeight.value, 12) + 56 + 12
   loadFamilyCode()
-  uni.createSelectorQuery().select('.appbar').boundingClientRect((rect: any) => {
-    if (rect && rect.height) appbarHeight.value = rect.height
-  }).exec()
 })
 
 onShow(() => {
