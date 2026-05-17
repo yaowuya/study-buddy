@@ -58,6 +58,9 @@ export function useTTS() {
     // #ifdef H5
     speechSynthesis.cancel()
     // #endif
+    // #ifdef APP-PLUS
+    ;(plus.speech as any).stopSpeak()
+    // #endif
   }
 
   function skipNext() {
