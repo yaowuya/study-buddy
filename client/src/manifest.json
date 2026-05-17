@@ -2,7 +2,7 @@
     "name" : "作业陪伴",
     "appid" : "__UNI__0979881",
     "description" : "",
-    "versionName" : "1.0.0",
+    "versionName" : "0.1.0",
     "versionCode" : "100",
     "transformPx" : false,
     /* 5+App特有相关 */
@@ -18,7 +18,8 @@
         },
         /* 模块配置 */
         "modules" : {
-            "Speech": {}
+            "Speech" : {},
+            "Record" : {}
         },
         /* 应用发布信息 */
         "distribute" : {
@@ -47,7 +48,11 @@
                 "dSYMs" : false
             },
             /* SDK配置 */
-            "sdkConfigs" : {},
+            "sdkConfigs" : {
+                "speech" : {
+                    "ifly" : {}
+                }
+            },
             "icons" : {
                 "android" : {
                     "hdpi" : "unpackage/res/icons/72x72.png",
