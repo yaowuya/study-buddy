@@ -1,4 +1,5 @@
 import json
+import logging
 import uuid
 from pathlib import Path
 from urllib.parse import quote_plus, urlencode
@@ -9,6 +10,10 @@ from fastapi import APIRouter, HTTPException
 from fastapi.responses import FileResponse
 
 from app.core.config import settings
+
+# 配置日志
+logger = logging.getLogger(__name__)
+logging.basicConfig(level=logging.INFO)
 
 router = APIRouter(prefix="/tts", tags=["tts"])
 
@@ -62,7 +67,7 @@ VOICE_MAP = {
     "xiaoyun": 20101,      # 度晓芸
 }
 
-DEFAULT_VOICE = "yaya"  # 代码默认值，可通过环境变量 BAIDU_TTS_DEFAULT_VOICE 覆盖
+DEFAULT_VOICE = "yaya"
 
 # Token 缓存
 _token_cache = {"token": None, "expires_at": 0}
@@ -72,32 +77,53 @@ def _get_baidu_token() -> str:
     """获取百度 TTS access_token"""
     import time
 
+    logger.info("[TTS] 获取百度 Token...")
+
     if _token_cache["token"] and _token_cache["expires_at"] > time.time() + 60:
+        logger.info("[TTS] 使用缓存的 Token")
         return _token_cache["token"]
 
-    if not settings.BAIDU_TTS_API_KEY or not settings.BAIDU_TTS_SECRET_KEY:
+    api_key = settings.BAIDU_TTS_API_KEY
+    secret_key = settings.BAIDU_TTS_SECRET_KEY
+
+    logger.info(f"[TTS] API_KEY 配置状态: {'已配置' if api_key else '未配置'}")
+    logger.info(f"[TTS] SECRET_KEY 配置状态: {'已配置' if secret_key else '未配置'}")
+
+    if not api_key or not secret_key:
+        logger.error("[TTS] 百度 TTS API Key 或 Secret Key 未配置")
         raise HTTPException(500, "Baidu TTS API key not configured")
 
     params = {
         "grant_type": "client_credentials",
-        "client_id": settings.BAIDU_TTS_API_KEY,
-        "client_secret": settings.BAIDU_TTS_SECRET_KEY,
+        "client_id": api_key,
+        "client_secret": secret_key,
     }
 
     try:
-        req = Request(BAIDU_TOKEN_URL + "?" + urlencode(params))
+        url = BAIDU_TOKEN_URL + "?" + urlencode(params)
+        logger.info(f"[TTS] 请求 Token URL: {BAIDU_TOKEN_URL}")
+
+        req = Request(url)
         with urlopen(req, timeout=10) as f:
             result = json.loads(f.read().decode("utf-8"))
 
+        logger.info(f"[TTS] Token 响应: {result}")
+
         if "access_token" not in result:
+            logger.error(f"[TTS] Token 获取失败: {result}")
             raise HTTPException(500, f"Baidu token error: {result}")
 
         _token_cache["token"] = result["access_token"]
         _token_cache["expires_at"] = time.time() + result.get("expires_in", 86400)
 
+        logger.info("[TTS] Token 获取成功")
         return result["access_token"]
 
     except URLError as e:
+        logger.error(f"[TTS] Token 请求网络错误: {e}")
+        raise HTTPException(500, f"Baidu token request failed: {e}")
+    except Exception as e:
+        logger.error(f"[TTS] Token 请求异常: {e}")
         raise HTTPException(500, f"Baidu token request failed: {e}")
 
 
@@ -163,18 +189,30 @@ def speak(text: str, voice: str = None, rate: float = 1.0):
     - voice: 音色ID (可选，默认使用环境变量配置)
     - rate: 语速 (0.5-2.0, 默认1.0)
     """
+    logger.info(f"[TTS] 收到请求 - text: {text}, voice: {voice}, rate: {rate}")
+
     if not text:
+        logger.error("[TTS] text 参数为空")
         raise HTTPException(400, "text is required")
 
     if len(text) > 60:
+        logger.error(f"[TTS] text 长度超限: {len(text)}")
         raise HTTPException(400, "text too long (max 60 Chinese characters for Baidu TTS)")
 
     # 使用环境变量配置的默认语音
     default_voice = settings.BAIDU_TTS_DEFAULT_VOICE or DEFAULT_VOICE
     voice = voice or default_voice
+    logger.info(f"[TTS] 使用语音: {voice} (默认: {default_voice})")
 
-    token = _get_baidu_token()
+    # 获取 token
+    try:
+        token = _get_baidu_token()
+    except Exception as e:
+        logger.error(f"[TTS] 获取 Token 失败: {e}")
+        raise
+
     per = VOICE_MAP.get(voice, VOICE_MAP.get(default_voice, 4))
+    logger.info(f"[TTS] 音色编号 per: {per}")
 
     # 语速转换 (rate 0.5-2.0 -> spd 0-15, 1.0 对应 5)
     spd = int(max(0, min(15, (rate - 0.5) * 10)))
@@ -184,6 +222,7 @@ def speak(text: str, voice: str = None, rate: float = 1.0):
 
     # POST 请求，参数放在 body 中
     payload = f"tex={tex_encoded}&tok={token}&cuid=studybuddy&ctp=1&lan=zh&spd={spd}&pit=5&vol=9&per={per}&aue=3"
+    logger.info(f"[TTS] 请求百度 API - per={per}, spd={spd}")
 
     headers = {
         "Content-Type": "application/x-www-form-urlencoded",
@@ -191,13 +230,19 @@ def speak(text: str, voice: str = None, rate: float = 1.0):
 
     try:
         req = Request(BAIDU_TTS_URL, data=payload.encode("utf-8"), headers=headers)
+        logger.info(f"[TTS] 发送请求到百度 TTS API...")
+
         with urlopen(req, timeout=30) as f:
             content = f.read()
             response_headers = dict((name.lower(), value) for name, value in f.headers.items())
 
         content_type = response_headers.get("content-type", "")
+        content_length = len(content)
+        logger.info(f"[TTS] 百度响应 - Content-Type: {content_type}, Length: {content_length}")
+
         if "audio" not in content_type:
             error_msg = content.decode("utf-8") if isinstance(content, bytes) else content
+            logger.error(f"[TTS] 百度 TTS 返回错误: {error_msg}")
             raise HTTPException(500, f"Baidu TTS error: {error_msg}")
 
         filename = f"tts_{uuid.uuid4().hex}.mp3"
@@ -205,6 +250,7 @@ def speak(text: str, voice: str = None, rate: float = 1.0):
         with open(temp_path, "wb") as f:
             f.write(content)
 
+        logger.info(f"[TTS] 音频文件生成成功: {filename}")
         return FileResponse(
             path=str(temp_path),
             media_type="audio/mpeg",
@@ -212,4 +258,8 @@ def speak(text: str, voice: str = None, rate: float = 1.0):
         )
 
     except URLError as e:
+        logger.error(f"[TTS] 百度 API 网络错误: {e}")
+        raise HTTPException(500, f"Baidu TTS request failed: {e}")
+    except Exception as e:
+        logger.error(f"[TTS] 百度 API 请求异常: {e}")
         raise HTTPException(500, f"Baidu TTS request failed: {e}")
