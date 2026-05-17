@@ -6,6 +6,7 @@ from app.api.v1.tasks import router as tasks_router
 from app.api.v1.dictation import router as dictation_router
 from app.api.v1.submissions import router as submissions_router
 from app.api.v1.mistakes import router as mistakes_router
+from app.api.v1.tts import router as tts_router
 
 from app.core.config import settings
 
@@ -24,6 +25,7 @@ app.include_router(tasks_router, prefix="/api/v1")
 app.include_router(dictation_router, prefix="/api/v1")
 app.include_router(submissions_router, prefix="/api/v1")
 app.include_router(mistakes_router, prefix="/api/v1")
+app.include_router(tts_router, prefix="/api/v1")
 
 
 @app.get("/health")

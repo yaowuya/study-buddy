@@ -1,4 +1,5 @@
 import { ref } from 'vue'
+import { BASE_URL } from '@/api/config'
 
 export function useTTS() {
   const isPlaying = ref(false)
@@ -7,11 +8,17 @@ export function useTTS() {
   let timer: ReturnType<typeof setTimeout> | null = null
   let audioContext: UniApp.InnerAudioContext | null = null
 
-  // 使用在线 TTS 服务
-  function getTTSAudioUrl(text: string): string {
-    const encodedText = encodeURIComponent(text)
-    // 使用有道 TTS
-    return `https://tts.youdao.com/listen?le=zh&text=${encodedText}&keyfrom=studybuddy`
+  // 默认使用云扬音色，适合听写
+  const defaultVoice = 'yunxiang'
+
+  function getTTSAudioUrl(text: string, rate: number = 1.0): string {
+    // 使用后端 Edge-TTS API
+    const params = new URLSearchParams({
+      text,
+      voice: defaultVoice,
+      rate: rate.toString(),
+    })
+    return `${BASE_URL}/tts/speak?${params.toString()}`
   }
 
   function speak(text: string, rate: number = 1.0): Promise<void> {
@@ -26,8 +33,8 @@ export function useTTS() {
         }
 
         audioContext = uni.createInnerAudioContext()
-        audioContext.volume = 1.0 // 最大音量
-        audioContext.src = getTTSAudioUrl(text)
+        audioContext.volume = 1.0
+        audioContext.src = getTTSAudioUrl(text, rate)
 
         let resolved = false
         const doResolve = () => {
@@ -66,7 +73,7 @@ export function useTTS() {
       // #endif
 
       // #ifdef H5
-      // H5 端使用 Web Speech API
+      // H5 端使用 Web Speech API（更流畅）
       const utter = new SpeechSynthesisUtterance(text)
       utter.rate = rate
       utter.lang = 'zh-CN'

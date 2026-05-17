@@ -155,10 +155,22 @@ async function loadItems() {
 
 let dictationAudioContext: UniApp.InnerAudioContext | null = null
 
-function getTTSAudioUrl(text: string): string {
-  const encodedText = encodeURIComponent(text)
-  // 使用有道 TTS，更稳定
-  return `https://tts.youdao.com/listen?le=zh&text=${encodedText}&keyfrom=studybuddy`
+function getTTSAudioUrl(text: string, rate: number = 1.0): string {
+  // #ifdef H5
+  // H5 使用 Web Speech API，不需要后端 TTS
+  return ''
+  // #endif
+
+  // #ifndef H5
+  // App 端使用后端 Edge-TTS API
+  const params = new URLSearchParams({
+    text,
+    voice: 'yunxiang',
+    rate: rate.toString(),
+  })
+  // 使用生产环境 API 地址
+  return `http://106.55.249.101:8000/api/v1/tts/speak?${params.toString()}`
+  // #endif
 }
 
 function speak(text: string): Promise<void> {
@@ -173,29 +185,32 @@ function speak(text: string): Promise<void> {
     try {
       console.log('[TTS] 开始播放:', text)
 
-      // 尝试使用 plus.speech（需要自定义基座或云打包）
-      if (plus.speech && typeof plus.speech.startSpeak === 'function') {
-        plus.speech.startSpeak(
-          text,
-          {
-            rate: 1.0,
-            pitch: 1.0,
-            volume: 1.0,
-          },
-          () => {
-            console.log('[TTS] 播放完成')
-            resolve()
-          },
-          (e: any) => {
-            console.error('[TTS] 播放失败:', e)
-            // 降级到音频播放
-            playWithAudio(text, resolve)
-          }
-        )
-      } else {
-        // 降级方案：使用音频播放
-        playWithAudio(text, resolve)
+      if (dictationAudioContext) {
+        dictationAudioContext.destroy()
       }
+
+      dictationAudioContext = uni.createInnerAudioContext()
+      dictationAudioContext.volume = 1.0
+      dictationAudioContext.src = getTTSAudioUrl(text)
+
+      dictationAudioContext.onCanplay(() => {
+        console.log('[TTS] 音频可播放')
+        dictationAudioContext?.play()
+      })
+
+      dictationAudioContext.onEnded(() => {
+        console.log('[TTS] 播放完成')
+        dictationAudioContext?.destroy()
+        dictationAudioContext = null
+        resolve()
+      })
+
+      dictationAudioContext.onError((e) => {
+        console.error('[TTS] 播放失败:', e)
+        dictationAudioContext?.destroy()
+        dictationAudioContext = null
+        resolve()
+      })
     } catch (e) {
       console.error('[TTS] 异常:', e)
       resolve()
@@ -203,6 +218,7 @@ function speak(text: string): Promise<void> {
     // #endif
 
     // #ifdef H5
+    // H5 使用 Web Speech API（更快）
     const utter = new SpeechSynthesisUtterance(text)
     utter.rate = 1.0
     utter.lang = 'zh-CN'
@@ -222,7 +238,7 @@ function speak(text: string): Promise<void> {
     utter.onerror = doResolve
     speechSynthesis.speak(utter)
 
-    // Poll to check if we should stop (needed because cancel might not trigger onend immediately)
+    // Poll to check if we should stop
     checkInterval = setInterval(() => {
       if (stopSpeaking.value) {
         speechSynthesis.cancel()
@@ -232,37 +248,6 @@ function speak(text: string): Promise<void> {
     // #endif
   })
 }
-
-// #ifdef APP-PLUS
-function playWithAudio(text: string, resolve: () => void) {
-  console.log('[TTS] 使用音频播放')
-
-  if (dictationAudioContext) {
-    dictationAudioContext.destroy()
-  }
-
-  dictationAudioContext = uni.createInnerAudioContext()
-  dictationAudioContext.volume = 1.0
-  dictationAudioContext.src = getTTSAudioUrl(text)
-
-  dictationAudioContext.onCanplay(() => {
-    dictationAudioContext?.play()
-  })
-
-  dictationAudioContext.onEnded(() => {
-    dictationAudioContext?.destroy()
-    dictationAudioContext = null
-    resolve()
-  })
-
-  dictationAudioContext.onError((e) => {
-    console.error('[TTS] 音频播放失败:', e)
-    dictationAudioContext?.destroy()
-    dictationAudioContext = null
-    resolve()
-  })
-}
-// #endif
 
 // Speak a word multiple times with pauses between
 async function speakMultiple(text: string, times: number = 3, pauseMs: number = 800): Promise<void> {
@@ -456,11 +441,6 @@ function stopSpeech() {
 
   // #ifdef APP-PLUS
   try {
-    // 停止 plus.speech
-    if (plus.speech && typeof plus.speech.stopSpeak === 'function') {
-      plus.speech.stopSpeak()
-    }
-    // 停止音频播放
     if (dictationAudioContext) {
       dictationAudioContext.stop()
       dictationAudioContext.destroy()

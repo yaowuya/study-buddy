@@ -249,15 +249,28 @@ function closeDictationModal() {
 
 let dashboardAudioContext: UniApp.InnerAudioContext | null = null
 
-function getTTSAudioUrl(text: string): string {
-  const encodedText = encodeURIComponent(text)
-  // 使用有道 TTS，更稳定
-  return `https://tts.youdao.com/listen?le=zh&text=${encodedText}&keyfrom=studybuddy`
+function getTTSAudioUrl(text: string, rate: number = 1.0): string {
+  // #ifdef H5
+  // H5 使用 Web Speech API，不需要后端 TTS
+  return ''
+  // #endif
+
+  // #ifndef H5
+  // App 端使用后端 Edge-TTS API
+  const params = new URLSearchParams({
+    text,
+    voice: 'yunxiang',
+    rate: rate.toString(),
+  })
+  // 使用生产环境 API 地址
+  return `http://106.55.249.101:8000/api/v1/tts/speak?${params.toString()}`
+  // #endif
 }
 
 function speak(text: string): Promise<void> {
   return new Promise((resolve) => {
     // #ifdef H5
+    // H5 使用 Web Speech API（更快）
     const utter = new SpeechSynthesisUtterance(text)
     utter.rate = 1.0
     utter.lang = 'zh-CN'
@@ -270,29 +283,32 @@ function speak(text: string): Promise<void> {
     try {
       console.log('[TTS] 开始播放:', text)
 
-      // 尝试使用 plus.speech（需要自定义基座或云打包）
-      if (plus.speech && typeof plus.speech.startSpeak === 'function') {
-        plus.speech.startSpeak(
-          text,
-          {
-            rate: 1.0,
-            pitch: 1.0,
-            volume: 1.0,
-          },
-          () => {
-            console.log('[TTS] 播放完成')
-            resolve()
-          },
-          (e: any) => {
-            console.error('[TTS] 播放失败:', e)
-            // 降级到音频播放
-            playWithAudio(text, resolve)
-          }
-        )
-      } else {
-        // 降级方案：使用音频播放
-        playWithAudio(text, resolve)
+      if (dashboardAudioContext) {
+        dashboardAudioContext.destroy()
       }
+
+      dashboardAudioContext = uni.createInnerAudioContext()
+      dashboardAudioContext.volume = 1.0
+      dashboardAudioContext.src = getTTSAudioUrl(text)
+
+      dashboardAudioContext.onCanplay(() => {
+        console.log('[TTS] 音频可播放')
+        dashboardAudioContext?.play()
+      })
+
+      dashboardAudioContext.onEnded(() => {
+        console.log('[TTS] 播放完成')
+        dashboardAudioContext?.destroy()
+        dashboardAudioContext = null
+        resolve()
+      })
+
+      dashboardAudioContext.onError((e) => {
+        console.error('[TTS] 播放失败:', e)
+        dashboardAudioContext?.destroy()
+        dashboardAudioContext = null
+        resolve()
+      })
     } catch (e) {
       console.error('[TTS] 异常:', e)
       resolve()
@@ -300,37 +316,6 @@ function speak(text: string): Promise<void> {
     // #endif
   })
 }
-
-// #ifdef APP-PLUS
-function playWithAudio(text: string, resolve: () => void) {
-  console.log('[TTS] 使用音频播放')
-
-  if (dashboardAudioContext) {
-    dashboardAudioContext.destroy()
-  }
-
-  dashboardAudioContext = uni.createInnerAudioContext()
-  dashboardAudioContext.volume = 1.0
-  dashboardAudioContext.src = getTTSAudioUrl(text)
-
-  dashboardAudioContext.onCanplay(() => {
-    dashboardAudioContext?.play()
-  })
-
-  dashboardAudioContext.onEnded(() => {
-    dashboardAudioContext?.destroy()
-    dashboardAudioContext = null
-    resolve()
-  })
-
-  dashboardAudioContext.onError((e) => {
-    console.error('[TTS] 音频播放失败:', e)
-    dashboardAudioContext?.destroy()
-    dashboardAudioContext = null
-    resolve()
-  })
-}
-// #endif
 
 function stopSpeech() {
   playingIndex.value = -1
@@ -340,11 +325,6 @@ function stopSpeech() {
 
   // #ifdef APP-PLUS
   try {
-    // 停止 plus.speech
-    if (plus.speech && typeof plus.speech.stopSpeak === 'function') {
-      plus.speech.stopSpeak()
-    }
-    // 停止音频播放
     if (dashboardAudioContext) {
       dashboardAudioContext.stop()
       dashboardAudioContext.destroy()
@@ -352,7 +332,6 @@ function stopSpeech() {
     }
   } catch {}
   // #endif
-}
 }
 
 async function playWord(word: string, index: number) {
