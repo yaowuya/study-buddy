@@ -251,7 +251,7 @@ function closeDictationModal() {
 let dashboardAudioContext: UniApp.InnerAudioContext | null = null
 
 function getTTSAudioUrl(text: string, rate: number = 1.0): string {
-  return `${BASE_URL}/tts/speak?text=${encodeURIComponent(text)}&voice=xiaoyao&rate=${rate}`
+  return `${BASE_URL}/tts/speak?text=${encodeURIComponent(text)}&voice=yaya&rate=${rate}`
 }
 
 function speak(text: string): Promise<void> {

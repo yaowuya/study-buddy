@@ -33,7 +33,7 @@ VOICE_MAP = {
     "xiaomeng": 111,  # 度小萌 - 儿童音
 }
 
-DEFAULT_VOICE = "xiaoyao"
+DEFAULT_VOICE = "yaya"
 
 # Token 缓存
 _token_cache = {"token": None, "expires_at": 0}
