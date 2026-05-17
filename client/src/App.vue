@@ -1,10 +1,8 @@
 <script setup lang="ts">
 import { onLaunch } from '@dcloudio/uni-app'
-import { useAuthStore } from '@/stores/auth'
 
-onLaunch(async () => {
-  const authStore = useAuthStore()
-  await authStore.init()
+onLaunch(() => {
+  // 登录状态检查已移至登录页 onMounted 中处理
 })
 </script>
 

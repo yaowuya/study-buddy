@@ -4,7 +4,19 @@
     <view class="bg-decoration-1"></view>
     <view class="bg-decoration-2"></view>
 
-    <view class="content-wrapper">
+    <!-- 加载中状态 -->
+    <view v-if="checking" class="content-wrapper">
+      <view class="logo-section">
+        <view class="logo-icon">
+          <text class="logo-emoji">📚</text>
+        </view>
+        <text class="app-title">作业伙伴</text>
+        <text class="loading-text">正在加载...</text>
+      </view>
+    </view>
+
+    <!-- 登录表单 -->
+    <view v-else class="content-wrapper">
       <!-- Logo 区域 -->
       <view class="logo-section">
         <view class="logo-icon">
@@ -90,7 +102,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 
 const authStore = useAuthStore()
@@ -99,6 +111,18 @@ const password = ref('')
 const showPassword = ref(false)
 const isRegisterMode = ref(false)
 const selectedRole = ref<'parent' | 'student'>('student')
+const checking = ref(true)
+
+onMounted(async () => {
+  // 等待 auth 初始化完成
+  await authStore.init()
+  // 如果已登录，直接跳转
+  if (authStore.user) {
+    navigateByRole()
+  } else {
+    checking.value = false
+  }
+})
 
 async function handleLogin() {
   if (!phone.value || !password.value) {
@@ -218,6 +242,13 @@ function navigateByRole() {
   display: block;
   font-size: 18px;
   color: #414754;
+}
+
+.loading-text {
+  display: block;
+  font-size: 16px;
+  color: #727785;
+  margin-top: 16px;
 }
 
 // 表单卡片
