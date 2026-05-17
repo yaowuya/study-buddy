@@ -8,11 +8,10 @@ export function useTTS() {
   let timer: ReturnType<typeof setTimeout> | null = null
   let audioContext: UniApp.InnerAudioContext | null = null
 
-  // 默认使用云扬音色，适合听写
-  const defaultVoice = 'yunxiang'
+  // 默认使用度逍遥音色
+  const defaultVoice = 'xiaoyao'
 
   function getTTSAudioUrl(text: string, rate: number = 1.0): string {
-    // 使用后端 Edge-TTS API
     return `${BASE_URL}/tts/speak?text=${encodeURIComponent(text)}&voice=${defaultVoice}&rate=${rate}`
   }
 
@@ -20,9 +19,7 @@ export function useTTS() {
     return new Promise((resolve) => {
       console.log('[TTS] 开始朗读:', text)
 
-      // #ifdef APP-PLUS
       try {
-        // 先销毁之前的实例
         if (audioContext) {
           audioContext.destroy()
         }
@@ -44,10 +41,6 @@ export function useTTS() {
           audioContext?.play()
         })
 
-        audioContext.onPlay(() => {
-          console.log('[TTS] 音频开始播放')
-        })
-
         audioContext.onEnded(() => {
           console.log('[TTS] 朗读完成')
           audioContext?.destroy()
@@ -62,24 +55,9 @@ export function useTTS() {
           doResolve()
         })
       } catch (e) {
-        console.error('[TTS] App 朗读异常:', e)
+        console.error('[TTS] 朗读异常:', e)
         resolve()
       }
-      // #endif
-
-      // #ifdef H5
-      // H5 端使用 Web Speech API（更流畅）
-      const utter = new SpeechSynthesisUtterance(text)
-      utter.rate = rate
-      utter.lang = 'zh-CN'
-      utter.onend = () => resolve()
-      utter.onerror = () => resolve()
-      speechSynthesis.speak(utter)
-      // #endif
-
-      // #ifndef APP-PLUS || H5
-      resolve()
-      // #endif
     })
   }
 
@@ -112,24 +90,12 @@ export function useTTS() {
     currentIndex.value = -1
     if (timer) { clearTimeout(timer); timer = null }
 
-    // #ifdef H5
-    speechSynthesis.cancel()
-    // #endif
-
-    // #ifdef APP-PLUS
     if (audioContext) {
       audioContext.stop()
       audioContext.destroy()
       audioContext = null
     }
-    // #endif
   }
 
-  function skipNext() {
-    // #ifdef H5
-    speechSynthesis.cancel()
-    // #endif
-  }
-
-  return { isPlaying, currentIndex, words, setWords, playSequence, stop, skipNext }
+  return { isPlaying, currentIndex, words, setWords, playSequence, speak, stop }
 }

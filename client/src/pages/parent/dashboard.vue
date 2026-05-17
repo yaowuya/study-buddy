@@ -251,33 +251,14 @@ function closeDictationModal() {
 let dashboardAudioContext: UniApp.InnerAudioContext | null = null
 
 function getTTSAudioUrl(text: string, rate: number = 1.0): string {
-  // #ifdef H5
-  // H5 使用 Web Speech API，不需要后端 TTS
-  return ''
-  // #endif
-
-  // #ifndef H5
-  // App 端使用后端 Edge-TTS API
-  return `${BASE_URL}/tts/speak?text=${encodeURIComponent(text)}&voice=yunxiang&rate=${rate}`
-  // #endif
+  return `${BASE_URL}/tts/speak?text=${encodeURIComponent(text)}&voice=xiaoyao&rate=${rate}`
 }
 
 function speak(text: string): Promise<void> {
   return new Promise((resolve) => {
-    // #ifdef H5
-    // H5 使用 Web Speech API（更快）
-    const utter = new SpeechSynthesisUtterance(text)
-    utter.rate = 1.0
-    utter.lang = 'zh-CN'
-    utter.onend = () => resolve()
-    utter.onerror = () => resolve()
-    speechSynthesis.speak(utter)
-    // #endif
+    console.log('[TTS] 开始播放:', text)
 
-    // #ifdef APP-PLUS
     try {
-      console.log('[TTS] 开始播放:', text)
-
       if (dashboardAudioContext) {
         dashboardAudioContext.destroy()
       }
@@ -308,17 +289,11 @@ function speak(text: string): Promise<void> {
       console.error('[TTS] 异常:', e)
       resolve()
     }
-    // #endif
   })
 }
 
 function stopSpeech() {
   playingIndex.value = -1
-  // #ifdef H5
-  speechSynthesis.cancel()
-  // #endif
-
-  // #ifdef APP-PLUS
   try {
     if (dashboardAudioContext) {
       dashboardAudioContext.stop()
@@ -326,7 +301,6 @@ function stopSpeech() {
       dashboardAudioContext = null
     }
   } catch {}
-  // #endif
 }
 
 async function playWord(word: string, index: number) {

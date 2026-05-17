@@ -157,29 +157,19 @@ async function loadItems() {
 let dictationAudioContext: UniApp.InnerAudioContext | null = null
 
 function getTTSAudioUrl(text: string, rate: number = 1.0): string {
-  // #ifdef H5
-  // H5 使用 Web Speech API，不需要后端 TTS
-  return ''
-  // #endif
-
-  // #ifndef H5
-  // App 端使用后端 Edge-TTS API
-  return `${BASE_URL}/tts/speak?text=${encodeURIComponent(text)}&voice=yunxiang&rate=${rate}`
-  // #endif
+  return `${BASE_URL}/tts/speak?text=${encodeURIComponent(text)}&voice=xiaoyao&rate=${rate}`
 }
 
 function speak(text: string): Promise<void> {
   return new Promise((resolve) => {
-    // Check if we should stop before even starting
     if (stopSpeaking.value) {
       resolve()
       return
     }
 
-    // #ifdef APP-PLUS
-    try {
-      console.log('[TTS] 开始播放:', text)
+    console.log('[TTS] 开始播放:', text)
 
+    try {
       if (dictationAudioContext) {
         dictationAudioContext.destroy()
       }
@@ -210,37 +200,6 @@ function speak(text: string): Promise<void> {
       console.error('[TTS] 异常:', e)
       resolve()
     }
-    // #endif
-
-    // #ifdef H5
-    // H5 使用 Web Speech API（更快）
-    const utter = new SpeechSynthesisUtterance(text)
-    utter.rate = 1.0
-    utter.lang = 'zh-CN'
-
-    let resolved = false
-    let checkInterval: ReturnType<typeof setInterval> | null = null
-
-    const doResolve = () => {
-      if (!resolved) {
-        resolved = true
-        if (checkInterval) clearInterval(checkInterval)
-        resolve()
-      }
-    }
-
-    utter.onend = doResolve
-    utter.onerror = doResolve
-    speechSynthesis.speak(utter)
-
-    // Poll to check if we should stop
-    checkInterval = setInterval(() => {
-      if (stopSpeaking.value) {
-        speechSynthesis.cancel()
-        doResolve()
-      }
-    }, 50)
-    // #endif
   })
 }
 
@@ -428,13 +387,7 @@ function handleClose() {
 }
 
 function stopSpeech() {
-  stopSpeaking.value = true // Signal speakMultiple to stop
-
-  // #ifdef H5
-  speechSynthesis.cancel()
-  // #endif
-
-  // #ifdef APP-PLUS
+  stopSpeaking.value = true
   try {
     if (dictationAudioContext) {
       dictationAudioContext.stop()
@@ -442,7 +395,6 @@ function stopSpeech() {
       dictationAudioContext = null
     }
   } catch {}
-  // #endif
 }
 
 function resumeSpeech() {
