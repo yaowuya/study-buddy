@@ -22,15 +22,44 @@ BAIDU_TOKEN_URL = "https://aip.baidubce.com/oauth/2.0/token"
 
 # 音色映射
 VOICE_MAP = {
-    "xiaomei": 0,     # 度小美 - 女声
-    "xiaoyu": 1,      # 度小宇 - 男声
-    "xiaoyao": 3,     # 度逍遥 - 男声
-    "yaya": 4,        # 度丫丫 - 女声
-    "xiaojiao": 5,    # 度小娇 - 女声
-    "miduo": 103,     # 度米朵
-    "bowen": 106,     # 度博文
-    "xiaotong": 110,  # 度小童 - 儿童音
-    "xiaomeng": 111,  # 度小萌 - 儿童音
+    # 基础音库
+    "xiaomei": 0,       # 度小美 - 女声
+    "xiaoyu": 1,        # 度小宇 - 男声
+    "xiaoyao": 3,       # 度逍遥 - 男声
+    "yaya": 4,          # 度丫丫 - 女声
+    # 精品音库
+    "xiaoyao_pro": 5003,  # 度逍遥（精品）
+    "xiaolu": 5118,       # 度小鹿
+    "bowen": 106,         # 度博文
+    "xiaotong": 110,      # 度小童 - 儿童音
+    "xiaomeng": 111,      # 度小萌 - 儿童音
+    "miduo": 103,         # 度米朵
+    "xiaojiao": 5,        # 度小娇
+    # 臻品音库
+    "xiaoyao_best": 4003,  # 度逍遥（臻品）
+    "bowen_best": 4106,    # 度博文（臻品）
+    "xiaoxian": 4115,      # 度小贤
+    "xiaolu_best": 4119,   # 度小鹿（臻品）
+    "linger": 4105,        # 度灵儿
+    "xiaoqiao": 4117,      # 度小乔
+    "xiaowen": 4100,       # 度小雯
+    "miduo_best": 4103,    # 度米朵（臻品）
+    "shanshan": 4144,      # 度姗姗
+    "xiaobei": 4278,       # 度小贝
+    "qingfeng": 4143,      # 度清风
+    "xiaoxin": 4140,       # 度小新
+    "xiaoyan": 4129,       # 度小彦
+    "xinghe": 4149,        # 度星河
+    "xiaoqing": 4254,      # 度小清
+    # 大模型音库
+    "hanzhu": 4189,        # 度涵竹
+    "yanran": 4194,        # 度嫣然
+    "zeyan": 4193,         # 度泽言
+    "huaian": 4195,        # 度怀安
+    "qingying": 4196,      # 度清影
+    "qinyao": 4197,        # 度沁遥
+    "xiaoyue": 20100,      # 度小粤
+    "xiaoyun": 20101,      # 度晓芸
 }
 
 DEFAULT_VOICE = "yaya"  # 代码默认值，可通过环境变量 BAIDU_TTS_DEFAULT_VOICE 覆盖
@@ -83,15 +112,44 @@ def list_voices():
 
 def _get_voice_description(voice_id: str) -> str:
     descriptions = {
+        # 基础音库
         "xiaomei": "度小美 - 女声，温柔",
         "xiaoyu": "度小宇 - 男声，年轻",
         "xiaoyao": "度逍遥 - 男声，磁性",
         "yaya": "度丫丫 - 女声，活泼",
-        "xiaojiao": "度小娇 - 女声，甜美",
-        "miduo": "度米朵 - 女声",
+        # 精品音库
+        "xiaoyao_pro": "度逍遥（精品）- 男声",
+        "xiaolu": "度小鹿 - 女声",
         "bowen": "度博文 - 男声",
         "xiaotong": "度小童 - 儿童音",
         "xiaomeng": "度小萌 - 儿童音",
+        "miduo": "度米朵 - 女声",
+        "xiaojiao": "度小娇 - 女声，甜美",
+        # 臻品音库
+        "xiaoyao_best": "度逍遥（臻品）- 男声",
+        "bowen_best": "度博文（臻品）- 男声",
+        "xiaoxian": "度小贤 - 女声",
+        "xiaolu_best": "度小鹿（臻品）- 女声",
+        "linger": "度灵儿 - 女声",
+        "xiaoqiao": "度小乔 - 女声",
+        "xiaowen": "度小雯 - 女声",
+        "miduo_best": "度米朵（臻品）- 女声",
+        "shanshan": "度姗姗 - 女声",
+        "xiaobei": "度小贝 - 男声",
+        "qingfeng": "度清风 - 男声",
+        "xiaoxin": "度小新 - 男声",
+        "xiaoyan": "度小彦 - 男声",
+        "xinghe": "度星河 - 男声",
+        "xiaoqing": "度小清 - 女声",
+        # 大模型音库
+        "hanzhu": "度涵竹 - 女声",
+        "yanran": "度嫣然 - 女声",
+        "zeyan": "度泽言 - 男声",
+        "huaian": "度怀安 - 男声",
+        "qingying": "度清影 - 女声",
+        "qinyao": "度沁遥 - 女声",
+        "xiaoyue": "度小粤 - 粤语女声",
+        "xiaoyun": "度晓芸 - 女声",
     }
     return descriptions.get(voice_id, voice_id)
 
