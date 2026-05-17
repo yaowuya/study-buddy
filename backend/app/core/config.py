@@ -7,6 +7,10 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 7  # 7 days
     CORS_ORIGINS: list[str] = ["http://localhost:5173"]
 
+    # 百度 TTS 配置
+    BAIDU_TTS_API_KEY: str = ""
+    BAIDU_TTS_SECRET_KEY: str = ""
+
     model_config = {"env_file": ".env"}
 
 
