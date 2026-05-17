@@ -171,6 +171,7 @@ import { useTasksStore } from '@/stores/tasks'
 import { useSyncStore } from '@/stores/sync'
 import { getDictationItems } from '@/api/dictation'
 import type { TaskOut } from '@/api/tasks'
+import { BASE_URL } from '@/api/config'
 
 const authStore = useAuthStore()
 const tasksStore = useTasksStore()
@@ -262,8 +263,7 @@ function getTTSAudioUrl(text: string, rate: number = 1.0): string {
     voice: 'yunxiang',
     rate: rate.toString(),
   })
-  // 使用生产环境 API 地址
-  return `http://106.55.249.101:8000/api/v1/tts/speak?${params.toString()}`
+  return `${BASE_URL}/tts/speak?${params.toString()}`
   // #endif
 }
 

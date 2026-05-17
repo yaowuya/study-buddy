@@ -91,6 +91,7 @@ import { onLoad } from '@dcloudio/uni-app'
 import { getDictationItems } from '@/api/dictation'
 import { useTasksStore } from '@/stores/tasks'
 import type { DictationItemOut } from '@/api/dictation'
+import { BASE_URL } from '@/api/config'
 
 const taskId = ref('')
 const taskIds = ref<string[]>([])
@@ -168,8 +169,7 @@ function getTTSAudioUrl(text: string, rate: number = 1.0): string {
     voice: 'yunxiang',
     rate: rate.toString(),
   })
-  // 使用生产环境 API 地址
-  return `http://106.55.249.101:8000/api/v1/tts/speak?${params.toString()}`
+  return `${BASE_URL}/tts/speak?${params.toString()}`
   // #endif
 }
 
