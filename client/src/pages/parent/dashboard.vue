@@ -181,7 +181,7 @@ const familyCode = ref('加载中')
 
 const statusBarHeight = ref(0)
 const safeAreaBottom = ref(0)
-const appbarHeight = ref(68)
+const appbarHeight = ref(88) // 增加默认值，确保不被遮住
 
 // Dictation preview
 const dictationModal = reactive({
@@ -263,13 +263,20 @@ function speak(text: string): Promise<void> {
         dashboardAudioContext.destroy()
       }
 
+      const url = getTTSAudioUrl(text)
+      console.log('[TTS] 请求 URL:', url)
+
       dashboardAudioContext = uni.createInnerAudioContext()
       dashboardAudioContext.volume = 1.0
-      dashboardAudioContext.src = getTTSAudioUrl(text)
+      dashboardAudioContext.src = url
 
       dashboardAudioContext.onCanplay(() => {
         console.log('[TTS] 音频可播放')
         dashboardAudioContext?.play()
+      })
+
+      dashboardAudioContext.onPlay(() => {
+        console.log('[TTS] 正在播放')
       })
 
       dashboardAudioContext.onEnded(() => {
@@ -281,6 +288,7 @@ function speak(text: string): Promise<void> {
 
       dashboardAudioContext.onError((e) => {
         console.error('[TTS] 播放失败:', e)
+        console.error('[TTS] 失败 URL:', url)
         dashboardAudioContext?.destroy()
         dashboardAudioContext = null
         resolve()
@@ -332,12 +340,10 @@ onMounted(() => {
   const info = uni.getSystemInfoSync()
   statusBarHeight.value = info.statusBarHeight || 0
   safeAreaBottom.value = info.safeAreaInsets?.bottom || 0
+  // AppBar 高度 = statusBarHeight + 顶部padding + 内容高度(56) + 底部padding
+  appbarHeight.value = Math.max(statusBarHeight.value, 12) + 56 + 12
   tasksStore.loadCached()
   loadFamilyCode()
-  // 动态读取 AppBar 实际高度
-  uni.createSelectorQuery().select('.appbar').boundingClientRect((rect: any) => {
-    if (rect && rect.height) appbarHeight.value = rect.height
-  }).exec()
 })
 
 onShow(() => {
