@@ -33,7 +33,7 @@ VOICE_MAP = {
     "xiaomeng": 111,  # 度小萌 - 儿童音
 }
 
-DEFAULT_VOICE = "yaya"
+DEFAULT_VOICE = "yaya"  # 代码默认值，可通过环境变量 BAIDU_TTS_DEFAULT_VOICE 覆盖
 
 # Token 缓存
 _token_cache = {"token": None, "expires_at": 0}
@@ -97,12 +97,12 @@ def _get_voice_description(voice_id: str) -> str:
 
 
 @router.get("/speak")
-def speak(text: str, voice: str = DEFAULT_VOICE, rate: float = 1.0):
+def speak(text: str, voice: str = None, rate: float = 1.0):
     """
     将文本转换为语音并返回音频文件
 
     - text: 要朗读的文本（不超过60个汉字）
-    - voice: 音色ID (默认度逍遥)
+    - voice: 音色ID (可选，默认使用环境变量配置)
     - rate: 语速 (0.5-2.0, 默认1.0)
     """
     if not text:
@@ -111,8 +111,12 @@ def speak(text: str, voice: str = DEFAULT_VOICE, rate: float = 1.0):
     if len(text) > 60:
         raise HTTPException(400, "text too long (max 60 Chinese characters for Baidu TTS)")
 
+    # 使用环境变量配置的默认语音
+    default_voice = settings.BAIDU_TTS_DEFAULT_VOICE or DEFAULT_VOICE
+    voice = voice or default_voice
+
     token = _get_baidu_token()
-    per = VOICE_MAP.get(voice, VOICE_MAP[DEFAULT_VOICE])
+    per = VOICE_MAP.get(voice, VOICE_MAP.get(default_voice, 4))
 
     # 语速转换 (rate 0.5-2.0 -> spd 0-15, 1.0 对应 5)
     spd = int(max(0, min(15, (rate - 0.5) * 10)))

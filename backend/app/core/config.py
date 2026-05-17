@@ -10,6 +10,7 @@ class Settings(BaseSettings):
     # 百度 TTS 配置
     BAIDU_TTS_API_KEY: str = ""
     BAIDU_TTS_SECRET_KEY: str = ""
+    BAIDU_TTS_DEFAULT_VOICE: str = "yaya"  # 默认语音：yaya(度丫丫), xiaoyao(度逍遥) 等
 
     model_config = {"env_file": ".env"}
 
