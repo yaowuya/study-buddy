@@ -270,45 +270,29 @@ function speak(text: string): Promise<void> {
     try {
       console.log('[TTS] 开始播放:', text)
 
-      // 先销毁之前的实例
-      if (dashboardAudioContext) {
-        dashboardAudioContext.destroy()
+      // 尝试使用 plus.speech（需要自定义基座或云打包）
+      if (plus.speech && typeof plus.speech.startSpeak === 'function') {
+        plus.speech.startSpeak(
+          text,
+          {
+            rate: 1.0,
+            pitch: 1.0,
+            volume: 1.0,
+          },
+          () => {
+            console.log('[TTS] 播放完成')
+            resolve()
+          },
+          (e: any) => {
+            console.error('[TTS] 播放失败:', e)
+            // 降级到音频播放
+            playWithAudio(text, resolve)
+          }
+        )
+      } else {
+        // 降级方案：使用音频播放
+        playWithAudio(text, resolve)
       }
-
-      dashboardAudioContext = uni.createInnerAudioContext()
-      dashboardAudioContext.volume = 1.0 // 最大音量
-      dashboardAudioContext.src = getTTSAudioUrl(text)
-
-      let resolved = false
-      const doResolve = () => {
-        if (!resolved) {
-          resolved = true
-          resolve()
-        }
-      }
-
-      dashboardAudioContext.onCanplay(() => {
-        console.log('[TTS] 音频可播放')
-        dashboardAudioContext?.play()
-      })
-
-      dashboardAudioContext.onPlay(() => {
-        console.log('[TTS] 音频开始播放')
-      })
-
-      dashboardAudioContext.onEnded(() => {
-        console.log('[TTS] 播放结束')
-        dashboardAudioContext?.destroy()
-        dashboardAudioContext = null
-        doResolve()
-      })
-
-      dashboardAudioContext.onError((e) => {
-        console.error('[TTS] 播放错误:', e)
-        dashboardAudioContext?.destroy()
-        dashboardAudioContext = null
-        doResolve()
-      })
     } catch (e) {
       console.error('[TTS] 异常:', e)
       resolve()
@@ -316,6 +300,37 @@ function speak(text: string): Promise<void> {
     // #endif
   })
 }
+
+// #ifdef APP-PLUS
+function playWithAudio(text: string, resolve: () => void) {
+  console.log('[TTS] 使用音频播放')
+
+  if (dashboardAudioContext) {
+    dashboardAudioContext.destroy()
+  }
+
+  dashboardAudioContext = uni.createInnerAudioContext()
+  dashboardAudioContext.volume = 1.0
+  dashboardAudioContext.src = getTTSAudioUrl(text)
+
+  dashboardAudioContext.onCanplay(() => {
+    dashboardAudioContext?.play()
+  })
+
+  dashboardAudioContext.onEnded(() => {
+    dashboardAudioContext?.destroy()
+    dashboardAudioContext = null
+    resolve()
+  })
+
+  dashboardAudioContext.onError((e) => {
+    console.error('[TTS] 音频播放失败:', e)
+    dashboardAudioContext?.destroy()
+    dashboardAudioContext = null
+    resolve()
+  })
+}
+// #endif
 
 function stopSpeech() {
   playingIndex.value = -1
@@ -325,6 +340,11 @@ function stopSpeech() {
 
   // #ifdef APP-PLUS
   try {
+    // 停止 plus.speech
+    if (plus.speech && typeof plus.speech.stopSpeak === 'function') {
+      plus.speech.stopSpeak()
+    }
+    // 停止音频播放
     if (dashboardAudioContext) {
       dashboardAudioContext.stop()
       dashboardAudioContext.destroy()
@@ -332,6 +352,7 @@ function stopSpeech() {
     }
   } catch {}
   // #endif
+}
 }
 
 async function playWord(word: string, index: number) {

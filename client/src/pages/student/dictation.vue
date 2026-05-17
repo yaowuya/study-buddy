@@ -173,45 +173,29 @@ function speak(text: string): Promise<void> {
     try {
       console.log('[TTS] 开始播放:', text)
 
-      // 先销毁之前的实例
-      if (dictationAudioContext) {
-        dictationAudioContext.destroy()
+      // 尝试使用 plus.speech（需要自定义基座或云打包）
+      if (plus.speech && typeof plus.speech.startSpeak === 'function') {
+        plus.speech.startSpeak(
+          text,
+          {
+            rate: 1.0,
+            pitch: 1.0,
+            volume: 1.0,
+          },
+          () => {
+            console.log('[TTS] 播放完成')
+            resolve()
+          },
+          (e: any) => {
+            console.error('[TTS] 播放失败:', e)
+            // 降级到音频播放
+            playWithAudio(text, resolve)
+          }
+        )
+      } else {
+        // 降级方案：使用音频播放
+        playWithAudio(text, resolve)
       }
-
-      dictationAudioContext = uni.createInnerAudioContext()
-      dictationAudioContext.volume = 1.0 // 最大音量
-      dictationAudioContext.src = getTTSAudioUrl(text)
-
-      let resolved = false
-      const doResolve = () => {
-        if (!resolved) {
-          resolved = true
-          resolve()
-        }
-      }
-
-      dictationAudioContext.onCanplay(() => {
-        console.log('[TTS] 音频可播放')
-        dictationAudioContext?.play()
-      })
-
-      dictationAudioContext.onPlay(() => {
-        console.log('[TTS] 音频开始播放')
-      })
-
-      dictationAudioContext.onEnded(() => {
-        console.log('[TTS] 播放结束')
-        dictationAudioContext?.destroy()
-        dictationAudioContext = null
-        doResolve()
-      })
-
-      dictationAudioContext.onError((e) => {
-        console.error('[TTS] 播放错误:', e)
-        dictationAudioContext?.destroy()
-        dictationAudioContext = null
-        doResolve()
-      })
     } catch (e) {
       console.error('[TTS] 异常:', e)
       resolve()
@@ -248,6 +232,37 @@ function speak(text: string): Promise<void> {
     // #endif
   })
 }
+
+// #ifdef APP-PLUS
+function playWithAudio(text: string, resolve: () => void) {
+  console.log('[TTS] 使用音频播放')
+
+  if (dictationAudioContext) {
+    dictationAudioContext.destroy()
+  }
+
+  dictationAudioContext = uni.createInnerAudioContext()
+  dictationAudioContext.volume = 1.0
+  dictationAudioContext.src = getTTSAudioUrl(text)
+
+  dictationAudioContext.onCanplay(() => {
+    dictationAudioContext?.play()
+  })
+
+  dictationAudioContext.onEnded(() => {
+    dictationAudioContext?.destroy()
+    dictationAudioContext = null
+    resolve()
+  })
+
+  dictationAudioContext.onError((e) => {
+    console.error('[TTS] 音频播放失败:', e)
+    dictationAudioContext?.destroy()
+    dictationAudioContext = null
+    resolve()
+  })
+}
+// #endif
 
 // Speak a word multiple times with pauses between
 async function speakMultiple(text: string, times: number = 3, pauseMs: number = 800): Promise<void> {
@@ -441,6 +456,11 @@ function stopSpeech() {
 
   // #ifdef APP-PLUS
   try {
+    // 停止 plus.speech
+    if (plus.speech && typeof plus.speech.stopSpeak === 'function') {
+      plus.speech.stopSpeak()
+    }
+    // 停止音频播放
     if (dictationAudioContext) {
       dictationAudioContext.stop()
       dictationAudioContext.destroy()
