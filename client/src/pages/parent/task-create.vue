@@ -250,11 +250,15 @@ onMounted(() => {
 .field-icon { font-size: 18px; color: $color-outline; }
 .label-text { font-family: $font-family; font-size: $font-label-md; font-weight: 600; color: $color-on-surface; }
 .field-input {
+  width: 100%;
+  box-sizing: border-box;
   background: $color-surface-bright; border: 2px solid $color-outline-variant;
   border-radius: $radius-xl; padding: $spacing-sm; font-size: $font-body-md; color: $color-on-surface;
   min-height: $touch-min;
 }
 .field-textarea {
+  width: 100%;
+  box-sizing: border-box;
   background: $color-surface-bright; border: 2px solid $color-outline-variant;
   border-radius: $radius-xl; padding: $spacing-sm; font-size: $font-body-md; color: $color-on-surface;
   height: 80px;
