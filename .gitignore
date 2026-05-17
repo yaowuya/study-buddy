@@ -45,6 +45,10 @@ htmlcov/
 # Alembic
 backend/test.db
 
+# TTS temp audio files
+backend/tmp/*.mp3
+!backend/tmp/.gitkeep
+
 # === Node.js (client) ===
 node_modules/
 dist/

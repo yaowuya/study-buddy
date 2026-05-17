@@ -11,3 +11,4 @@ alembic/versions/__pycache__
 tests
 .pytest_cache
 .mypy_cache
+tmp

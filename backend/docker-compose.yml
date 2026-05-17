@@ -11,3 +11,4 @@ services:
       - "host.docker.internal:host-gateway"
     volumes:
       - ./logs:/app/logs
+      - ./tmp:/app/tmp
