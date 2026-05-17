@@ -13,12 +13,7 @@ export function useTTS() {
 
   function getTTSAudioUrl(text: string, rate: number = 1.0): string {
     // 使用后端 Edge-TTS API
-    const params = new URLSearchParams({
-      text,
-      voice: defaultVoice,
-      rate: rate.toString(),
-    })
-    return `${BASE_URL}/tts/speak?${params.toString()}`
+    return `${BASE_URL}/tts/speak?text=${encodeURIComponent(text)}&voice=${defaultVoice}&rate=${rate}`
   }
 
   function speak(text: string, rate: number = 1.0): Promise<void> {

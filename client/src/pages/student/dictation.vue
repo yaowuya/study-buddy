@@ -164,12 +164,7 @@ function getTTSAudioUrl(text: string, rate: number = 1.0): string {
 
   // #ifndef H5
   // App 端使用后端 Edge-TTS API
-  const params = new URLSearchParams({
-    text,
-    voice: 'yunxiang',
-    rate: rate.toString(),
-  })
-  return `${BASE_URL}/tts/speak?${params.toString()}`
+  return `${BASE_URL}/tts/speak?text=${encodeURIComponent(text)}&voice=yunxiang&rate=${rate}`
   // #endif
 }
 
