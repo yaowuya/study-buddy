@@ -13,9 +13,9 @@ const BASE_URL = import.meta.env.DEV ? '/api/v1' : PROD_API_URL
 // #endif
 
 // #ifndef H5
-// App 端：开发调试用本地地址，生产用线上地址
-// 真机调试时改为你的电脑局域网 IP
-const BASE_URL = DEV_API_URL
+// App 端：打包后用生产地址，调试时用本地地址
+// 正式打包时 import.meta.env.DEV 为 false
+const BASE_URL = import.meta.env.DEV ? DEV_API_URL : PROD_API_URL
 // #endif
 
 export { BASE_URL }
