@@ -7,10 +7,11 @@ export function useTTS() {
   let timer: ReturnType<typeof setTimeout> | null = null
   let audioContext: UniApp.InnerAudioContext | null = null
 
-  // 使用在线 TTS 服务（百度）
+  // 使用在线 TTS 服务
   function getTTSAudioUrl(text: string): string {
     const encodedText = encodeURIComponent(text)
-    return `https://tts.baidu.com/text2audio?tex=${encodedText}&cuid=baike&lan=zh&ctp=1&pdt=301&vol=9&rate=32&per=0`
+    // 使用有道 TTS
+    return `https://tts.youdao.com/listen?le=zh&text=${encodedText}&keyfrom=studybuddy`
   }
 
   function speak(text: string, rate: number = 1.0): Promise<void> {

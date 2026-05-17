@@ -157,7 +157,8 @@ let dictationAudioContext: UniApp.InnerAudioContext | null = null
 
 function getTTSAudioUrl(text: string): string {
   const encodedText = encodeURIComponent(text)
-  return `https://tts.baidu.com/text2audio?tex=${encodedText}&cuid=baike&lan=zh&ctp=1&pdt=301&vol=9&rate=32&per=0`
+  // 使用有道 TTS，更稳定
+  return `https://tts.youdao.com/listen?le=zh&text=${encodedText}&keyfrom=studybuddy`
 }
 
 function speak(text: string): Promise<void> {
