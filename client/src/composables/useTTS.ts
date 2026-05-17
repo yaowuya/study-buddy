@@ -8,11 +8,8 @@ export function useTTS() {
   let timer: ReturnType<typeof setTimeout> | null = null
   let audioContext: UniApp.InnerAudioContext | null = null
 
-  // 默认使用度丫丫音色
-  const defaultVoice = 'yaya'
-
   function getTTSAudioUrl(text: string, rate: number = 1.0): string {
-    return `${BASE_URL}/tts/speak?text=${encodeURIComponent(text)}&voice=${defaultVoice}&rate=${rate}`
+    return `${BASE_URL}/tts/speak?text=${encodeURIComponent(text)}&rate=${rate}`
   }
 
   function speak(text: string, rate: number = 1.0): Promise<void> {

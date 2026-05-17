@@ -157,7 +157,7 @@ async function loadItems() {
 let dictationAudioContext: UniApp.InnerAudioContext | null = null
 
 function getTTSAudioUrl(text: string, rate: number = 1.0): string {
-  return `${BASE_URL}/tts/speak?text=${encodeURIComponent(text)}&voice=yaya&rate=${rate}`
+  return `${BASE_URL}/tts/speak?text=${encodeURIComponent(text)}&rate=${rate}`
 }
 
 function speak(text: string): Promise<void> {
