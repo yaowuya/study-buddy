@@ -267,20 +267,49 @@ function speak(text: string): Promise<void> {
 
     // #ifdef APP-PLUS
     try {
+      console.log('[TTS] 开始播放:', text)
+
+      // 先销毁之前的实例
+      if (dashboardAudioContext) {
+        dashboardAudioContext.destroy()
+      }
+
       dashboardAudioContext = uni.createInnerAudioContext()
+      dashboardAudioContext.volume = 1.0 // 最大音量
       dashboardAudioContext.src = getTTSAudioUrl(text)
+
+      let resolved = false
+      const doResolve = () => {
+        if (!resolved) {
+          resolved = true
+          resolve()
+        }
+      }
+
+      dashboardAudioContext.onCanplay(() => {
+        console.log('[TTS] 音频可播放')
+        dashboardAudioContext?.play()
+      })
+
+      dashboardAudioContext.onPlay(() => {
+        console.log('[TTS] 音频开始播放')
+      })
+
       dashboardAudioContext.onEnded(() => {
+        console.log('[TTS] 播放结束')
         dashboardAudioContext?.destroy()
         dashboardAudioContext = null
-        resolve()
+        doResolve()
       })
-      dashboardAudioContext.onError(() => {
+
+      dashboardAudioContext.onError((e) => {
+        console.error('[TTS] 播放错误:', e)
         dashboardAudioContext?.destroy()
         dashboardAudioContext = null
-        resolve()
+        doResolve()
       })
-      dashboardAudioContext.play()
     } catch (e) {
+      console.error('[TTS] 异常:', e)
       resolve()
     }
     // #endif

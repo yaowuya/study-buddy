@@ -9,7 +9,6 @@ export function useTTS() {
 
   // 使用在线 TTS 服务（百度）
   function getTTSAudioUrl(text: string): string {
-    // 百度 TTS API（免费，无需密钥的简单接口）
     const encodedText = encodeURIComponent(text)
     return `https://tts.baidu.com/text2audio?tex=${encodedText}&cuid=baike&lan=zh&ctp=1&pdt=301&vol=9&rate=32&per=0`
   }
@@ -19,27 +18,46 @@ export function useTTS() {
       console.log('[TTS] 开始朗读:', text)
 
       // #ifdef APP-PLUS
-      // App 端使用在线 TTS 音频播放
       try {
+        // 先销毁之前的实例
+        if (audioContext) {
+          audioContext.destroy()
+        }
+
         audioContext = uni.createInnerAudioContext()
+        audioContext.volume = 1.0 // 最大音量
         audioContext.src = getTTSAudioUrl(text)
-        audioContext.playbackRate = rate
+
+        let resolved = false
+        const doResolve = () => {
+          if (!resolved) {
+            resolved = true
+            resolve()
+          }
+        }
+
+        audioContext.onCanplay(() => {
+          console.log('[TTS] 音频可播放')
+          audioContext?.play()
+        })
+
+        audioContext.onPlay(() => {
+          console.log('[TTS] 音频开始播放')
+        })
 
         audioContext.onEnded(() => {
           console.log('[TTS] 朗读完成')
           audioContext?.destroy()
           audioContext = null
-          resolve()
+          doResolve()
         })
 
         audioContext.onError((e) => {
           console.error('[TTS] 播放失败:', e)
           audioContext?.destroy()
           audioContext = null
-          resolve()
+          doResolve()
         })
-
-        audioContext.play()
       } catch (e) {
         console.error('[TTS] App 朗读异常:', e)
         resolve()

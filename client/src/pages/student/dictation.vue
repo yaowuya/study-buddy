@@ -170,20 +170,49 @@ function speak(text: string): Promise<void> {
 
     // #ifdef APP-PLUS
     try {
+      console.log('[TTS] 开始播放:', text)
+
+      // 先销毁之前的实例
+      if (dictationAudioContext) {
+        dictationAudioContext.destroy()
+      }
+
       dictationAudioContext = uni.createInnerAudioContext()
+      dictationAudioContext.volume = 1.0 // 最大音量
       dictationAudioContext.src = getTTSAudioUrl(text)
+
+      let resolved = false
+      const doResolve = () => {
+        if (!resolved) {
+          resolved = true
+          resolve()
+        }
+      }
+
+      dictationAudioContext.onCanplay(() => {
+        console.log('[TTS] 音频可播放')
+        dictationAudioContext?.play()
+      })
+
+      dictationAudioContext.onPlay(() => {
+        console.log('[TTS] 音频开始播放')
+      })
+
       dictationAudioContext.onEnded(() => {
+        console.log('[TTS] 播放结束')
         dictationAudioContext?.destroy()
         dictationAudioContext = null
-        resolve()
+        doResolve()
       })
-      dictationAudioContext.onError(() => {
+
+      dictationAudioContext.onError((e) => {
+        console.error('[TTS] 播放错误:', e)
         dictationAudioContext?.destroy()
         dictationAudioContext = null
-        resolve()
+        doResolve()
       })
-      dictationAudioContext.play()
     } catch (e) {
+      console.error('[TTS] 异常:', e)
       resolve()
     }
     // #endif
