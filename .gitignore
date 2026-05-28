@@ -36,7 +36,8 @@ __pycache__/
 dist-backup/
 *.whl
 .venv/
-backend/venv/
+venv/
+tmp/
 
 # Python test / coverage
 .pytest_cache/
@@ -45,11 +46,11 @@ htmlcov/
 .mypy_cache/
 
 # Alembic
-backend/test.db
+test.db
 
 # TTS temp audio files
-backend/tmp/*.mp3
-!backend/tmp/.gitkeep
+tmp/*.mp3
+!tmp/.gitkeep
 
 # === Node.js (client) ===
 node_modules/
@@ -67,7 +68,7 @@ pnpm-debug.log*
 lerna-debug.log*
 
 # === OpenAPI (auto-generated, re-export on demand) ===
-backend/openapi.json
+openapi.json
 
 # === Docs build artifacts ===
 docs/_build/

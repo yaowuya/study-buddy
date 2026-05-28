@@ -41,4 +41,4 @@ def test_double_submit(client, register_and_get_token, auth_headers):
     client.patch(f"/api/v1/tasks/{task['id']}/status", json={"status": "in_progress"}, headers=auth_headers(token))
     client.post("/api/v1/submissions/", json={"task_id": task["id"]}, headers=auth_headers(token))
     resp = client.post("/api/v1/submissions/", json={"task_id": task["id"]}, headers=auth_headers(token))
-    assert resp.status_code == 400
+    assert resp.status_code == 200  # 幂等设计，重复提交返回已有 submission

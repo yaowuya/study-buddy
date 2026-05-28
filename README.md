@@ -22,25 +22,24 @@
 
 ```
 study-buddy/
-├── backend/                # FastAPI 后端
-│   ├── app/
-│   │   ├── api/v1/         # 路由（auth, tasks, dictation, submissions, mistakes）
-│   │   ├── core/           # 配置、JWT、依赖注入
-│   │   ├── models/         # SQLAlchemy 模型
-│   │   ├── schemas/        # Pydantic 请求/响应模型
-│   │   ├── crud/           # 数据库操作
-│   │   └── main.py         # 入口
-│   ├── tests/              # 单元测试（SQLite 内存数据库）
-│   ├── alembic/            # 数据库迁移
-│   └── requirements.txt
-├── client/                 # UniApp 客户端
+├── app/
+│   ├── api/v1/         # 路由（auth, tasks, dictation, submissions, mistakes）
+│   ├── core/           # 配置、JWT、依赖注入
+│   ├── models/         # SQLAlchemy 模型
+│   ├── schemas/        # Pydantic 请求/响应模型
+│   ├── crud/           # 数据库操作
+│   └── main.py         # 入口
+├── tests/              # 单元测试（SQLite 内存数据库）
+├── alembic/            # 数据库迁移
+├── requirements.txt
+├── client/             # UniApp 客户端
 │   └── src/
 │       ├── api/            # 请求封装与接口模块
 │       ├── stores/         # Pinia 状态管理
 │       ├── composables/    # 组合式函数（useTTS）
 │       ├── pages/          # 页面（auth/parent/student）
 │       └── utils/          # 工具函数
-└── docs/                   # 需求文档与设计规范
+└── docs/               # 需求文档与设计规范
 ```
 
 ## 快速开始
@@ -54,25 +53,23 @@ study-buddy/
 ### 后端
 
 ```bash
-cd backend
-
 # 创建虚拟环境
 python -m venv venv
 
 # 安装依赖
-./venv/Scripts/pip install -r requirements.txt    # Windows
-# source venv/bin/pip install -r requirements.txt  # Linux/Mac
+pip install -r requirements.txt         # Windows
+# source venv/bin/activate && pip install -r requirements.txt  # Linux/Mac
 
 # 数据库迁移
-./venv/Scripts/alembic upgrade head
+alembic upgrade head
 
 # 启动开发服务器
-./venv/Scripts/python -m app.main
+python -m app.main
 # 或
-./venv/Scripts/uvicorn app.main:app --reload
+uvicorn app.main:app --reload
 
 # 运行测试
-rm -f test.db && ./venv/Scripts/python -m pytest tests/ -v
+rm -f test.db && python -m pytest tests/ -v
 ```
 
 启动后访问 http://localhost:8000/docs 查看 API 文档。

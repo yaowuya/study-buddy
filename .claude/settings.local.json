@@ -59,7 +59,10 @@
       "Bash(./venv/Scripts/python -m pytest tests/test_auth.py tests/test_submissions.py -q)",
       "Bash(./venv/Scripts/python -m pytest tests/test_auth.py tests/test_dictation.py -q)",
       "Bash(git config *)",
-      "Bash(git remote *)"
+      "Bash(git remote *)",
+      "Bash(python -m pytest tests/ -v)",
+      "Bash(cd )",
+      "Bash(.venv/Scripts/python -m pytest tests/ -v)"
     ]
   },
   "enableAllProjectMcpServers": true,

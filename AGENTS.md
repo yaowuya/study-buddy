@@ -15,36 +15,34 @@ This file provides guidance to Codex (Codex.ai/code) when working with code in t
 ### Backend (FastAPI)
 
 ```bash
-cd backend
-
-# Install deps (venv already at backend/venv)
-./venv/Scripts/pip install -r requirements.txt
+# Install deps (venv already at venv/)
+pip install -r requirements.txt
 
 # Run dev server
-./venv/Scripts/uvicorn app.main:app --reload
+uvicorn app.main:app --reload
 
 # Run all tests (uses SQLite in-memory, no PG needed)
-rm -f test.db && ./venv/Scripts/python -m pytest tests/ -v
+rm -f test.db && python -m pytest tests/ -v
 
 # Run single test
-./venv/Scripts/python -m pytest tests/test_api.py::test_register_parent -v
+python -m pytest tests/test_api.py::test_register_parent -v
 
 # Database migration
-./venv/Scripts/alembic revision --autogenerate -m "description"
-./venv/Scripts/alembic upgrade head
+alembic revision --autogenerate -m "description"
+alembic upgrade head
 ```
 
 ### PostgreSQL Connection
 
 - User: `postgres`, Password: `root`, DB: `studybuddy`, Port: 5432
-- Config in `backend/app/core/config.py` (overridable via `.env`)
+- Config in `app/core/config.py` (overridable via `.env`)
 
 ## Backend Architecture
 
 Layered structure with strict separation: **models → schemas → crud → api**
 
 ```
-backend/app/
+app/
 ├── api/v1/        # FastAPI routers (auth, tasks, dictation, submissions, mistakes)
 ├── core/          # config.py, security.py (JWT/bcrypt), deps.py (DI)
 ├── models/        # SQLAlchemy 2.x models (User, Family, Task, DictationItem, Submission, Mistake)
@@ -81,6 +79,6 @@ Project: **学伴app** (ID: `8244027`), configured in `.mcp.json` as `apifox-new
 2. **Cannot omit `body` parameter** — at minimum provide `method`, `name`, `path`, `tags`
 3. **`requestBody`, `parameters`, `responses` fields accept JSON strings** (not objects) — stringify complex schemas before passing
 4. **Locale**: add `queryParams: {"locale": "zh-CN"}` for Chinese UI
-5. **Created endpoints are skeletons** — they get path/method/tags but request/response schemas are empty. To populate full schemas, import `backend/openapi.json` via Apifox UI (导入 → OpenAPI/Swagger) instead of creating one-by-one
+5. **Created endpoints are skeletons** — they get path/method/tags but request/response schemas are empty. To populate full schemas, import `openapi.json` via Apifox UI (导入 → OpenAPI/Swagger) instead of creating one-by-one
 6. **Parallel calls fail** — `headers` param gets dropped when multiple `createHttpEndpoint` calls are made in parallel. Create endpoints one at a time sequentially
 7. **500 errors** on complex `requestBody`/`responses` — simplify to minimal body first, then update with `updateHttpEndpoint` if needed
