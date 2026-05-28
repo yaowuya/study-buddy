@@ -62,7 +62,10 @@
       "Bash(git remote *)",
       "Bash(python -m pytest tests/ -v)",
       "Bash(cd )",
-      "Bash(.venv/Scripts/python -m pytest tests/ -v)"
+      "Bash(.venv/Scripts/python -m pytest tests/ -v)",
+      "Bash(.venv/Scripts/pip install *)",
+      "Bash(mysql -u root -proot -e \"CREATE DATABASE IF NOT EXISTS studybuddy DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;\")",
+      "Bash(.venv/Scripts/alembic upgrade *)"
     ]
   },
   "enableAllProjectMcpServers": true,
