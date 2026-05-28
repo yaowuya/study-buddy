@@ -17,6 +17,7 @@ Desktop.ini
 # === Claude ===
 .claude.json
 .claude/settings.local.json
+.codex
 
 # === Environment & Secrets ===
 .env
