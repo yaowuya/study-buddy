@@ -33,9 +33,12 @@ export function createTask(data: TaskCreateParams) {
   return request<TaskOut>('/tasks/', 'POST', data)
 }
 
-export function listTasks(date?: string) {
-  const params = date ? `?task_date=${date}` : ''
-  return request<TaskOut[]>(`/tasks/${params}`, 'GET')
+export function listTasks(dateFrom?: string, dateTo?: string) {
+  const params = new URLSearchParams()
+  if (dateFrom) params.set('date_from', dateFrom)
+  if (dateTo) params.set('date_to', dateTo)
+  const qs = params.toString()
+  return request<TaskOut[]>(`/tasks/${qs ? '?' + qs : ''}`, 'GET')
 }
 
 export function getTask(id: string) {

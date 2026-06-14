@@ -42,7 +42,7 @@ function handleTap(item: NavItem) {
   font-family: 'Material Symbols Outlined';
   font-weight: normal;
   font-style: normal;
-  font-size: 28px;
+  font-size: 22px;
   line-height: 1;
   letter-spacing: normal;
   text-transform: none;
@@ -50,11 +50,11 @@ function handleTap(item: NavItem) {
   white-space: nowrap;
   word-wrap: normal;
   direction: ltr;
-  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 20;
 }
 
 .ms-fill {
-  font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+  font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 20;
 }
 
 .bottom-nav-float {
@@ -69,7 +69,7 @@ function handleTap(item: NavItem) {
   display: flex;
   align-items: center;
   justify-content: space-around;
-  padding: 8px;
+  padding: 4px;
   box-shadow: 0 8px 32px rgba(185, 240, 166, 0.3);
   border: 1px solid rgba($color-mint-green-bright, 0.3);
   min-width: 280px;
@@ -80,15 +80,15 @@ function handleTap(item: NavItem) {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 4px;
-  padding: 8px 16px;
+  gap: 1px;
+  padding: 4px 12px;
   border-radius: 9999px;
   transition: all 0.2s;
   &:active { transform: scale(0.95); }
 }
 
 .nav-icon-wrap {
-  width: 48px; height: 48px;
+  width: 36px; height: 36px;
   border-radius: $radius-full;
   display: flex; align-items: center; justify-content: center;
   transition: all 0.2s;

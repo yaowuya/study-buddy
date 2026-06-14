@@ -8,10 +8,10 @@ export const useTasksStore = defineStore('tasks', () => {
   const tasks = ref<TaskOut[]>([])
   const loading = ref(false)
 
-    async function fetchAllTasks() {
+    async function fetchAllTasks(dateFrom?: string, dateTo?: string) {
     loading.value = true
     try {
-      tasks.value = await tasksApi.listTasks()
+      tasks.value = await tasksApi.listTasks(dateFrom, dateTo)
     } finally {
       loading.value = false
     }
@@ -21,7 +21,7 @@ export const useTasksStore = defineStore('tasks', () => {
     loading.value = true
     try {
       const today = new Date().toISOString().slice(0, 10)
-      tasks.value = await tasksApi.listTasks(today)
+      tasks.value = await tasksApi.listTasks(today, today)
       setCache('today_tasks', tasks.value)
     } finally {
       loading.value = false

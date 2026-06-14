@@ -14,10 +14,12 @@ def create_task(db: Session, family_id: uuid.UUID, **kwargs) -> Task:
     return task
 
 
-def get_family_tasks_by_date(db: Session, family_id: uuid.UUID, task_date: date | None = None) -> list[Task]:
+def get_family_tasks_by_date(db: Session, family_id: uuid.UUID, date_from: date | None = None, date_to: date | None = None) -> list[Task]:
     query = db.query(Task).filter(Task.family_id == family_id)
-    if task_date:
-        query = query.filter(Task.date == task_date)
+    if date_from:
+        query = query.filter(Task.date >= date_from)
+    if date_to:
+        query = query.filter(Task.date <= date_to)
     return query.order_by(Task.date.desc()).all()
 
 

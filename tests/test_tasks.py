@@ -27,7 +27,7 @@ def test_list_tasks(client, register_and_get_token, auth_headers):
     client.post("/api/v1/tasks/", json={
         "type": "home", "title": "任务2", "date": today,
     }, headers=auth_headers(token))
-    resp = client.get(f"/api/v1/tasks/?task_date={today}", headers=auth_headers(token))
+    resp = client.get(f"/api/v1/tasks/?date_from={today}&date_to={today}", headers=auth_headers(token))
     assert resp.status_code == 200
     assert len(resp.json()) == 2
 
