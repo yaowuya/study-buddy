@@ -127,17 +127,20 @@
       <view class="bottom-spacer"></view>
     </scroll-view>
 
+    <!-- 取消提交确认弹窗 -->
+    <ConfirmModal
+      v-model:visible="showCancelConfirm"
+      type="warning"
+      icon="undo"
+      title="取消提交"
+      desc="确定要取消提交吗？取消后可以重新完成作业。"
+      cancel-text="再想想"
+      confirm-text="确定取消"
+      @confirm="confirmCancel"
+    />
+
     <!-- Bottom Nav -->
-    <view class="bottom-nav" :style="{ paddingBottom: safeAreaBottom + 'px' }">
-      <view class="nav-item nav-item-active">
-        <text class="material-symbols-outlined nav-icon">assignment</text>
-        <text class="nav-label">作业</text>
-      </view>
-      <view class="nav-item" @tap="goHistory">
-        <text class="material-symbols-outlined nav-icon">history</text>
-        <text class="nav-label">历史</text>
-      </view>
-    </view>
+    <BottomNav active="home" :navItems="studentNavItems" />
   </view>
 </template>
 
@@ -148,12 +151,22 @@ import { useTasksStore } from '@/stores/tasks'
 import { useSyncStore } from '@/stores/sync'
 import { getDictationItems } from '@/api/dictation'
 import type { TaskOut } from '@/api/tasks'
+import BottomNav from '@/components/BottomNav.vue'
+import ConfirmModal from '@/components/ConfirmModal.vue'
+import type { NavItem } from '@/components/BottomNav.vue'
+
+const studentNavItems: NavItem[] = [
+  { key: 'home', icon: 'assignment', label: '作业', url: '/pages/student/home' },
+  { key: 'history', icon: 'history', label: '历史', url: '/pages/parent/grading' },
+]
 
 const tasksStore = useTasksStore()
 const syncStore = useSyncStore()
 const statusBarHeight = ref(0)
 const safeAreaBottom = ref(0)
 const showCelebration = ref(false)
+const showCancelConfirm = ref(false)
+const cancelTarget = ref<TaskOut | null>(null)
 const taskDictationWords = reactive<Record<string, string[]>>({})
 
 const tasks = computed(() => tasksStore.tasks)
@@ -188,15 +201,15 @@ async function doneTask(task: TaskOut) {
 }
 
 async function cancelSubmit(task: TaskOut) {
-  uni.showModal({
-    title: '取消提交',
-    content: '确定要取消提交吗？取消后可以重新完成作业。',
-    success: async (res) => {
-      if (res.confirm) {
-        await tasksStore.updateStatus(task.id, 'in_progress')
-      }
-    }
-  })
+  cancelTarget.value = task
+  showCancelConfirm.value = true
+}
+
+async function confirmCancel() {
+  if (cancelTarget.value) {
+    await tasksStore.updateStatus(cancelTarget.value.id, 'in_progress')
+  }
+  cancelTarget.value = null
 }
 
 function goDictation(task: TaskOut | undefined) {
@@ -217,9 +230,6 @@ function goDictationContinuous() {
   uni.navigateTo({ url: `/pages/student/dictation?taskIds=${taskIds}&continuous=1` })
 }
 
-function goHistory() {
-  uni.redirectTo({ url: '/pages/parent/grading' })
-}
 
 // Load dictation words for tasks that have dictation
 watch(tasks, (newTasks) => {
@@ -421,21 +431,4 @@ onShow(() => {
 
 .bottom-spacer { height: 100px; }
 
-.bottom-nav {
-  position: fixed; bottom: 0; left: 0; right: 0; z-index: 100;
-  background: #fff; border-top: 2px solid #f1f5f9;
-  border-top-left-radius: 32px; border-top-right-radius: 32px;
-  display: flex; justify-content: space-around; align-items: center;
-  height: 80px; padding-top: 12px; padding-left: $spacing-md; padding-right: $spacing-md;
-}
-.nav-item {
-  display: flex; flex-direction: column; align-items: center; justify-content: center;
-  padding: 8px 32px; color: #94a3b8;
-}
-.nav-item-active {
-  background: #dbeafe; color: #2563eb; border-radius: $radius-2xl;
-  box-shadow: inset 0 -2px 0 0 rgba(58,134,255,0.3);
-}
-.nav-icon { font-size: 24px; margin-bottom: 4px; }
-.nav-label { font-family: $font-family; font-size: 12px; font-weight: 500; }
 </style>

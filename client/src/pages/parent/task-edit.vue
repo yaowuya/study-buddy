@@ -93,27 +93,18 @@
       <view class="bottom-spacer"></view>
     </scroll-view>
 
-    <!-- ========== 删除确认弹窗 (Soft Organic 风格) ========== -->
-    <view v-if="showDeleteConfirm" class="modal-overlay" @tap="showDeleteConfirm = false">
-      <view class="confirm-modal" @tap.stop>
-        <!-- 警告图标 -->
-        <view class="confirm-icon-circle">
-          <text class="material-symbols-outlined confirm-icon">warning</text>
-        </view>
-        <text class="confirm-title">确认删除</text>
-        <text class="confirm-desc">删除后无法恢复，确定要删除这个任务吗？</text>
-        <!-- 按钮组 -->
-        <view class="confirm-actions">
-          <view class="confirm-cancel-btn" @tap="showDeleteConfirm = false">
-            <text class="confirm-cancel-text">再想想</text>
-          </view>
-          <view class="confirm-danger-btn" @tap="confirmDelete">
-            <text class="material-symbols-outlined confirm-danger-icon">delete</text>
-            <text class="confirm-danger-text">确认删除</text>
-          </view>
-        </view>
-      </view>
-    </view>
+    <!-- ========== 删除确认弹窗 ========== -->
+    <ConfirmModal
+      v-model:visible="showDeleteConfirm"
+      type="danger"
+      icon="delete"
+      title="确认删除？"
+      desc="删除后作业内容将无法找回，确定要继续吗？"
+      cancel-text="取消"
+      confirm-text="确定删除"
+      confirm-icon="delete"
+      @confirm="confirmDelete"
+    />
 
     <!-- Bottom Nav -->
     <BottomNav active="dashboard" :navItems="parentNavItems" />
@@ -126,6 +117,7 @@ import { onLoad } from '@dcloudio/uni-app'
 import { getTask, updateTask, deleteTask } from '@/api/tasks'
 import { getDictationItems, createDictationItems, deleteDictationItems } from '@/api/dictation'
 import BottomNav from '@/components/BottomNav.vue'
+import ConfirmModal from '@/components/ConfirmModal.vue'
 import type { NavItem } from '@/components/BottomNav.vue'
 
 const parentNavItems: NavItem[] = [
@@ -467,58 +459,4 @@ $on-secondary-fixed-variant: #225119;
 .delete-text { font-size: 16px; font-weight: 600; color: #93000a; }
 
 .bottom-spacer { height: 80px; }
-
-// ================================================================
-// Delete Confirm Modal (Soft Organic 风格)
-// ================================================================
-.modal-overlay {
-  position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-  background: rgba(28, 27, 28, 0.25); backdrop-filter: blur(6px);
-  display: flex; align-items: center; justify-content: center;
-  z-index: 999; padding: 24px;
-}
-.confirm-modal {
-  background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(16px);
-  border-radius: 32px; width: 100%; max-width: 320px;
-  padding: 32px 24px 24px; text-align: center;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.4);
-}
-.confirm-icon-circle {
-  width: 64px; height: 64px; border-radius: 9999px;
-  background: rgba(255, 218, 214, 0.6);
-  display: flex; align-items: center; justify-content: center;
-  margin: 0 auto 20px;
-}
-.confirm-icon {
-  font-size: 32px; color: #93000a;
-  font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
-}
-.confirm-title {
-  font-family: 'Inter', sans-serif; font-size: 22px; font-weight: 700;
-  color: #1c1b1c; display: block; margin-bottom: 12px; line-height: 28px;
-}
-.confirm-desc {
-  font-size: 14px; color: #6B7280; display: block;
-  margin-bottom: 28px; line-height: 20px;
-}
-.confirm-actions { display: flex; gap: 12px; }
-.confirm-cancel-btn {
-  flex: 1; padding: 14px 0; border-radius: 9999px;
-  background: $color-organic-surface-container; text-align: center;
-  transition: all 0.15s;
-  &:active { transform: scale(0.97); }
-}
-.confirm-cancel-text {
-  font-size: 15px; font-weight: 600; color: $on-surface-variant;
-}
-.confirm-danger-btn {
-  flex: 1.2; display: flex; align-items: center; justify-content: center; gap: 6px;
-  padding: 14px 0; border-radius: 9999px;
-  background: #93000a; transition: all 0.15s;
-  box-shadow: 0 4px 12px rgba(147, 0, 10, 0.25);
-  &:active { transform: scale(0.97); }
-}
-.confirm-danger-icon { font-size: 18px; color: #fff; }
-.confirm-danger-text { font-size: 15px; font-weight: 600; color: #fff; }
 </style>

@@ -163,6 +163,19 @@
       <view class="bottom-spacer"></view>
     </scroll-view>
 
+    <!-- 退出登录确认弹窗 -->
+    <ConfirmModal
+      v-model:visible="showLogoutConfirm"
+      type="warning"
+      icon="logout"
+      title="退出登录"
+      desc="确定要退出吗？"
+      cancel-text="取消"
+      confirm-text="确定"
+      :flat="true"
+      @confirm="confirmLogout"
+    />
+
     <!-- Bottom Nav -->
     <BottomNav active="dashboard" :navItems="parentNavItems" />
   </view>
@@ -178,6 +191,7 @@ import { getDictationItems } from '@/api/dictation'
 import type { TaskOut } from '@/api/tasks'
 import { BASE_URL } from '@/api/config'
 import BottomNav from '@/components/BottomNav.vue'
+import ConfirmModal from '@/components/ConfirmModal.vue'
 import type { NavItem } from '@/components/BottomNav.vue'
 
 const parentNavItems: NavItem[] = [
@@ -204,6 +218,7 @@ const dictationModal = reactive({
   words: [] as string[],
 })
 const playingIndex = ref(-1)
+const showLogoutConfirm = ref(false)
 
 async function loadFamilyCode() {
   if (!authStore.user?.family_id) {
@@ -227,16 +242,12 @@ function copyFamilyCode() {
 }
 
 function handleLogout() {
-  uni.showModal({
-    title: '退出登录',
-    content: '确定要退出吗？',
-    success: (res) => {
-      if (res.confirm) {
-        authStore.logout()
-        uni.reLaunch({ url: '/pages/auth/login' })
-      }
-    }
-  })
+  showLogoutConfirm.value = true
+}
+
+function confirmLogout() {
+  authStore.logout()
+  uni.reLaunch({ url: '/pages/auth/login' })
 }
 
 const tasks = computed(() => Array.isArray(tasksStore.tasks) ? tasksStore.tasks : [])
