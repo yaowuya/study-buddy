@@ -76,5 +76,53 @@ $radius-xl: 1rem;
 $radius-2xl: 1.5rem;
 $radius-full: 9999px;
 
+// ============================================
+// Soft Organic Cards Theme (stitch_v2)
+// ============================================
+
+// Colors - Soft Organic Accent
+$color-mint-green: #b7eea5;
+$color-mint-green-dim: #9fd58d;
+$color-mint-green-focus: #a8e6cf;
+$color-soft-lilac: #E5D9F2;
+$color-pale-peach: #FFE4D6;
+
+// Colors - Soft Organic Surface
+$color-organic-bg: #F8F9FB;
+$color-organic-surface: #fcf8f8;
+$color-organic-surface-container-lowest: #ffffff;
+$color-organic-surface-container-low: #f6f3f3;
+$color-organic-surface-container: #f1eded;
+$color-organic-surface-container-high: #ebe7e7;
+$color-organic-surface-container-highest: #e5e2e2;
+$color-organic-surface-variant: #e5e2e2;
+
+// Colors - Soft Organic Text
+$color-organic-on-surface: #1c1b1c;
+$color-organic-on-surface-variant: #45474a;
+$color-organic-text-secondary: #6B7280;
+$color-organic-outline-variant: #c5c6cb;
+
+// Colors - Soft Organic Brand
+$color-organic-primary: #000000;
+$color-organic-on-primary: #ffffff;
+$color-organic-secondary: #3a692e;
+$color-organic-on-secondary: #ffffff;
+$color-organic-on-secondary-container: #3e6e32;
+
+// Colors - Soft Organic Dark Green (parent dashboard brand)
+$color-dark-green: #1D3B16;
+$color-mint-green-bright: #B9F0A6;
+$color-mint-light: #E8F8E2;
+$color-on-secondary-fixed-variant: #225119;
+
+// Organic Shadows
+$shadow-soft: 0px 8px 24px rgba(0, 0, 0, 0.04);
+$shadow-diffused: 0px 16px 48px rgba(0, 0, 0, 0.06);
+
+// Organic Border Radius
+$radius-organic: 24px;
+$radius-organic-lg: 32px;
+
 // Touch
 $touch-min: 48px;
