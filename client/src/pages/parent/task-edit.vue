@@ -85,13 +85,35 @@
       </view>
 
       <!-- ========== 删除按钮 ========== -->
-      <view class="delete-btn" @tap="handleDelete">
+      <view class="delete-btn" @tap="showDeleteConfirm = true">
         <text class="material-symbols-outlined delete-icon">delete</text>
         <text class="delete-text">删除任务</text>
       </view>
 
       <view class="bottom-spacer"></view>
     </scroll-view>
+
+    <!-- ========== 删除确认弹窗 (Soft Organic 风格) ========== -->
+    <view v-if="showDeleteConfirm" class="modal-overlay" @tap="showDeleteConfirm = false">
+      <view class="confirm-modal" @tap.stop>
+        <!-- 警告图标 -->
+        <view class="confirm-icon-circle">
+          <text class="material-symbols-outlined confirm-icon">warning</text>
+        </view>
+        <text class="confirm-title">确认删除</text>
+        <text class="confirm-desc">删除后无法恢复，确定要删除这个任务吗？</text>
+        <!-- 按钮组 -->
+        <view class="confirm-actions">
+          <view class="confirm-cancel-btn" @tap="showDeleteConfirm = false">
+            <text class="confirm-cancel-text">再想想</text>
+          </view>
+          <view class="confirm-danger-btn" @tap="confirmDelete">
+            <text class="material-symbols-outlined confirm-danger-icon">delete</text>
+            <text class="confirm-danger-text">确认删除</text>
+          </view>
+        </view>
+      </view>
+    </view>
 
     <!-- Bottom Nav -->
     <BottomNav active="dashboard" :navItems="parentNavItems" />
@@ -118,6 +140,7 @@ const safeAreaBottom = ref(0)
 const dictationEnabled = ref(false)
 const dictationWords = ref<string[]>([])
 const wordInput = ref('')
+const showDeleteConfirm = ref(false)
 
 const subjects = [
   { value: '语文', label: '语文', icon: 'menu_book' },
@@ -196,23 +219,17 @@ async function handleSubmit() {
   }
 }
 
-async function handleDelete() {
-  uni.showModal({
-    title: '确认删除',
-    content: '删除后无法恢复，确定要删除这个任务吗？',
-    success: async (res) => {
-      if (res.confirm) {
-        try {
-          await deleteDictationItems(taskId.value)
-          await deleteTask(taskId.value)
-          uni.showToast({ title: '删除成功', icon: 'success' })
-          setTimeout(() => uni.redirectTo({ url: '/pages/parent/dashboard' }), 500)
-        } catch (e: any) {
-          uni.showToast({ title: e.message || '删除失败', icon: 'none' })
-        }
-      }
-    }
-  })
+async function confirmDelete() {
+  try {
+    await deleteDictationItems(taskId.value)
+    await deleteTask(taskId.value)
+    showDeleteConfirm.value = false
+    uni.showToast({ title: '删除成功', icon: 'success' })
+    setTimeout(() => uni.redirectTo({ url: '/pages/parent/dashboard' }), 500)
+  } catch (e: any) {
+    showDeleteConfirm.value = false
+    uni.showToast({ title: e.message || '删除失败', icon: 'none' })
+  }
 }
 
 onLoad((query) => {
@@ -450,4 +467,58 @@ $on-secondary-fixed-variant: #225119;
 .delete-text { font-size: 16px; font-weight: 600; color: #93000a; }
 
 .bottom-spacer { height: 80px; }
+
+// ================================================================
+// Delete Confirm Modal (Soft Organic 风格)
+// ================================================================
+.modal-overlay {
+  position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(28, 27, 28, 0.25); backdrop-filter: blur(6px);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 999; padding: 24px;
+}
+.confirm-modal {
+  background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(16px);
+  border-radius: 32px; width: 100%; max-width: 320px;
+  padding: 32px 24px 24px; text-align: center;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+}
+.confirm-icon-circle {
+  width: 64px; height: 64px; border-radius: 9999px;
+  background: rgba(255, 218, 214, 0.6);
+  display: flex; align-items: center; justify-content: center;
+  margin: 0 auto 20px;
+}
+.confirm-icon {
+  font-size: 32px; color: #93000a;
+  font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+}
+.confirm-title {
+  font-family: 'Inter', sans-serif; font-size: 22px; font-weight: 700;
+  color: #1c1b1c; display: block; margin-bottom: 12px; line-height: 28px;
+}
+.confirm-desc {
+  font-size: 14px; color: #6B7280; display: block;
+  margin-bottom: 28px; line-height: 20px;
+}
+.confirm-actions { display: flex; gap: 12px; }
+.confirm-cancel-btn {
+  flex: 1; padding: 14px 0; border-radius: 9999px;
+  background: $color-organic-surface-container; text-align: center;
+  transition: all 0.15s;
+  &:active { transform: scale(0.97); }
+}
+.confirm-cancel-text {
+  font-size: 15px; font-weight: 600; color: $on-surface-variant;
+}
+.confirm-danger-btn {
+  flex: 1.2; display: flex; align-items: center; justify-content: center; gap: 6px;
+  padding: 14px 0; border-radius: 9999px;
+  background: #93000a; transition: all 0.15s;
+  box-shadow: 0 4px 12px rgba(147, 0, 10, 0.25);
+  &:active { transform: scale(0.97); }
+}
+.confirm-danger-icon { font-size: 18px; color: #fff; }
+.confirm-danger-text { font-size: 15px; font-weight: 600; color: #fff; }
 </style>
