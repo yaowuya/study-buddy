@@ -19,6 +19,7 @@ Desktop.ini
 .claude/settings.local.json
 .codex
 .mcp.json
+.planning
 
 # === Environment & Secrets ===
 .env

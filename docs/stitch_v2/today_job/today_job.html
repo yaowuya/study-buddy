@@ -1,0 +1,546 @@
+<!-- 今日作业概览 - 布局调整版 -->
+<!DOCTYPE html><html lang="en" style="width: 390px; height: 1879px; overflow: hidden; position: relative;"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Today's Tasks</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "secondary-container": "#b7eea5",
+                      "surface-variant": "#e5e2e2",
+                      "secondary-fixed": "#baf1a7",
+                      "inverse-on-surface": "#f3f0f0",
+                      "primary-fixed": "#e1e2e8",
+                      "on-surface": "#1c1b1c",
+                      "surface-container-highest": "#e5e2e2",
+                      "on-surface-variant": "#45474a",
+                      "primary-container": "#191c20",
+                      "on-primary-fixed-variant": "#44474c",
+                      "secondary-fixed-dim": "#9fd58d",
+                      "pale-peach": "#FFE4D6",
+                      "background-alt": "#F8F9FB",
+                      "surface-container-high": "#ebe7e7",
+                      "tertiary-fixed-dim": "#d1c4b9",
+                      "on-primary-container": "#818489",
+                      "surface-container": "#f1eded",
+                      "tertiary-fixed": "#eee0d4",
+                      "on-primary-fixed": "#191c20",
+                      "soft-lilac": "#E5D9F2",
+                      "text-secondary": "#6B7280",
+                      "tertiary-container": "#211a13",
+                      "inverse-primary": "#c5c6cc",
+                      "surface-dim": "#dcd9d9",
+                      "primary-fixed-dim": "#c5c6cc",
+                      "on-secondary-container": "#3e6e32",
+                      "error-container": "#ffdad6",
+                      "on-tertiary-container": "#8d8278",
+                      "on-tertiary": "#ffffff",
+                      "on-secondary-fixed": "#012200",
+                      "inverse-surface": "#313030",
+                      "surface-bright": "#ffffff",
+                      "on-primary": "#ffffff",
+                      "secondary": "#3a692e",
+                      "on-tertiary-fixed": "#211a13",
+                      "outline-variant": "#c5c6cb",
+                      "background": "#ffffff",
+                      "on-background": "#1c1b1c",
+                      "on-error-container": "#93000a",
+                      "surface-container-low": "#f6f3f3",
+                      "outline": "#75777b",
+                      "on-error": "#ffffff",
+                      "on-tertiary-fixed-variant": "#4e453c",
+                      "on-secondary-fixed-variant": "#225119",
+                      "error": "#ba1a1a",
+                      "on-secondary": "#ffffff",
+                      "surface-tint": "#5c5e63",
+                      "primary": "#000000",
+                      "tertiary": "#000000",
+                      "surface-container-lowest": "#ffffff",
+                      "surface": "#ffffff",
+                      "mint-green": "#B9F0A6",
+                      "mint-light": "#E8F8E2",
+                      "dark-green": "#1D3B16"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "gap-xs": "0.5rem",
+                      "card-padding": "1.25rem",
+                      "gap-sm": "1rem",
+                      "gap-md": "2rem",
+                      "container-margin": "1.5rem"
+              },
+              "fontFamily": {
+                      "headline-h2": [
+                              "Inter"
+                      ],
+                      "headline-h1-mobile": [
+                              "Inter"
+                      ],
+                      "display-num": [
+                              "Inter"
+                      ],
+                      "label-sm": [
+                              "Inter"
+                      ],
+                      "headline-h1": [
+                              "Inter"
+                      ],
+                      "body-md": [
+                              "Inter"
+                      ],
+                      "display-num-mobile": [
+                              "Inter"
+                      ]
+              },
+              "fontSize": {
+                      "headline-h2": [
+                              "18px",
+                              {
+                                      "lineHeight": "24px",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "headline-h1-mobile": [
+                              "24px",
+                              {
+                                      "lineHeight": "32px",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "display-num": [
+                              "48px",
+                              {
+                                      "lineHeight": "56px",
+                                      "letterSpacing": "-0.02em",
+                                      "fontWeight": "700"
+                              }
+                      ],
+                      "label-sm": [
+                              "12px",
+                              {
+                                      "lineHeight": "16px",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "headline-h1": [
+                              "28px",
+                              {
+                                      "lineHeight": "36px",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "body-md": [
+                              "14px",
+                              {
+                                      "lineHeight": "20px",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "display-num-mobile": [
+                              "36px",
+                              {
+                                      "lineHeight": "44px",
+                                      "letterSpacing": "-0.02em",
+                                      "fontWeight": "700"
+                              }
+                      ]
+              }
+      },
+          },
+        }
+      </script>
+<style>
+        body {
+            background-color: #FFFFFF;
+        }
+        /* Custom progress bar styles to match the mint green requirement */
+        progress::-webkit-progress-bar {
+            background-color: rgba(29, 59, 22, 0.1);
+            border-radius: 9999px;
+        }
+        progress::-webkit-progress-value {
+            background-color: #1D3B16;
+            border-radius: 9999px;
+        }
+        progress::-moz-progress-bar {
+            background-color: #1D3B16;
+            border-radius: 9999px;
+        }
+        .organic-shape {
+            border-radius: 40px 120px 40px 120px;
+        }
+      </style>
+</head>
+<body class="bg-white text-on-background font-body-md min-h-screen pb-32" style="background-color: rgb(248, 249, 251);">
+<!-- TopAppBar -->
+<header class="w-full top-0 bg-white dark:bg-background flex items-center justify-between px-container-margin py-4 shadow-none sticky z-40">
+<div class="flex items-center gap-sm">
+<div class="w-10 h-10 rounded-full bg-mint-light flex items-center justify-center overflow-hidden">
+<span class="material-symbols-outlined text-dark-green" data-icon="person">person</span>
+</div>
+<h1 class="font-headline-h1-mobile text-headline-h1-mobile text-dark-green dark:text-primary-fixed">今日作业</h1>
+</div>
+<button class="active:scale-95 transition-transform duration-200 hover:bg-mint-light transition-colors p-2 rounded-full text-dark-green"><span class="material-symbols-outlined" data-icon="logout">logout</span></button>
+</header>
+<main class="px-container-margin mt-4 flex flex-col gap-md max-w-2xl mx-auto">
+<!-- Hero Progress Card -->
+<div class="bg-mint-light text-dark-green p-8 shadow-sm relative overflow-hidden organic-shape">
+<div class="relative z-10">
+<div class="flex items-center gap-2 mb-2 text-dark-green">
+<span class="material-symbols-outlined text-dark-green" data-icon="mood">mood</span>
+<h2 class="font-headline-h1-mobile text-headline-h1-mobile font-bold text-dark-green">今日作业概览</h2>
+</div>
+<p class="font-body-md text-dark-green/80 mb-6 font-medium">今天共有 <span class="font-bold text-lg">4</span> 项作业，已完成 <span class="font-bold text-lg">1</span> 项。</p>
+<div class="flex flex-col gap-2">
+<div class="flex justify-between items-end">
+<span class="font-label-sm text-label-sm font-semibold text-dark-green/80">整体进度</span>
+<span class="font-body-md text-body-md font-bold text-dark-green">25%</span>
+</div>
+<!-- Using standard div for custom styling flexibility -->
+<div class="w-full h-3 bg-dark-green/10 rounded-full overflow-hidden">
+<div class="h-full bg-dark-green w-[25%] rounded-full"></div>
+</div>
+</div>
+</div>
+</div><div class="flex items-center justify-between bg-white/50 rounded-[24px] p-4 border border-outline-variant/10 mt-4">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-dark-green/60 text-[20px]" data-icon="family_restroom">family_restroom</span>
+<span class="font-label-sm text-dark-green/70 font-medium">家庭码:</span>
+<span class="font-body-md text-dark-green font-bold tracking-wider">888 666</span>
+</div>
+<button class="text-dark-green/60 hover:text-dark-green transition-colors">
+<span class="material-symbols-outlined text-[18px]" data-icon="content_copy">content_copy</span>
+</button>
+</div>
+<div class="mt-6">
+<h3 class="font-headline-h2 text-headline-h2 font-bold text-dark-green mb-6">待完成 (3)</h3>
+<!-- Task List -->
+<div class="flex flex-col gap-10">
+<!-- Task Card 1: Chinese -->
+<div class="bg-surface-container-lowest rounded-[24px] p-6 shadow-[0px_12px_32px_rgba(0,0,0,0.06)] border-none relative">
+<div class="flex items-center gap-4 mb-5 pt-2">
+<div class="w-12 h-12 rounded-full bg-soft-lilac flex items-center justify-center"><span class="material-symbols-outlined text-[#4e453c]" data-icon="menu_book">menu_book</span></div>
+<h4 class="font-headline-h1-mobile text-headline-h1-mobile font-bold text-dark-green flex-1">语文</h4>
+<div class="bg-on-secondary-fixed-variant text-on-error px-3 py-1 rounded-full flex items-center gap-1 font-label-sm text-label-sm font-bold"><span class="material-symbols-outlined text-[14px]" data-icon="record_voice_over">record_voice_over</span>听写</div><div class="bg-surface-variant text-on-surface-variant px-3 py-1 rounded-full flex items-center gap-1 font-label-sm text-label-sm font-semibold">未开始</div></div>
+<div class="bg-soft-lilac/30 rounded-xl p-5 mb-5 font-body-md text-on-surface-variant">
+<p class="mb-4 font-bold text-dark-green tracking-wide">2026.06.12周五练习:</p>
+<ul class="space-y-3 text-dark-green/90 font-medium">
+<li class="flex items-start gap-2"><span class="font-bold">1.</span> 《随堂练》64页。</li>
+<li class="flex items-start gap-2"><span class="font-bold">2.</span> 《听写本》36页读拼音写词语。</li>
+</ul>
+<p class="mt-4 text-dark-green/70 text-[13px] leading-relaxed font-medium">注:所有作业都要先把前面的看一次，有错先改正，再去写新的作业。请家长帮忙看看，督促孩子改正，慢慢让孩子养成好习惯！</p>
+</div>
+<div class="flex gap-4"><button class="flex-1 bg-soft-lilac text-on-surface-variant rounded-full py-3 font-body-md text-body-md font-bold flex items-center justify-center gap-2 hover:bg-soft-lilac/90 transition-colors"><span class="material-symbols-outlined text-[20px]" data-icon="visibility">visibility</span>预览听写</button><button class="flex-1 bg-soft-lilac text-on-surface-variant rounded-full py-3 font-body-md text-body-md font-bold flex items-center justify-center gap-2 hover:bg-soft-lilac/90 transition-colors"><span class="material-symbols-outlined text-[20px]" data-icon="edit">edit</span>编辑</button></div>
+</div>
+<!-- Task Card 2: Math -->
+<div class="bg-surface-container-lowest rounded-[24px] p-6 shadow-[0px_12px_32px_rgba(0,0,0,0.06)] border-none relative">
+<div class="flex items-center gap-4 mb-5 pt-2">
+<div class="w-12 h-12 rounded-full bg-pale-peach flex items-center justify-center"><span class="material-symbols-outlined text-[#4e453c]" data-icon="calculate">calculate</span></div>
+<h4 class="font-headline-h1-mobile text-headline-h1-mobile font-bold text-dark-green flex-1">数学</h4><div class="bg-pale-peach text-on-surface-variant px-3 py-1 rounded-full flex items-center gap-1 font-label-sm text-label-sm font-semibold">进行中</div>
+</div>
+<div class="bg-pale-peach/30 rounded-xl p-5 mb-5 font-body-md text-on-surface-variant">
+<p class="mb-4 font-bold text-dark-green tracking-wide">2026.06.12周五练习:</p>
+<p class="text-dark-green/90 font-medium">完成随堂练79，80页</p>
+</div>
+<button class="w-full bg-pale-peach text-on-surface-variant rounded-full py-3 font-body-md text-body-md font-bold flex items-center justify-center gap-2 hover:bg-pale-peach/90 transition-colors"><span class="material-symbols-outlined text-[20px]" data-icon="edit">edit</span>编辑</button>
+</div>
+<!-- Task Card 3: English -->
+<div class="bg-surface-container-lowest rounded-[24px] p-6 shadow-[0px_12px_32px_rgba(0,0,0,0.06)] border-none relative">
+<div class="flex items-center gap-4 mb-5 pt-2">
+<div class="w-12 h-12 rounded-full bg-mint-green flex items-center justify-center"><span class="material-symbols-outlined text-dark-green" data-icon="language">language</span></div>
+<h4 class="font-headline-h1-mobile text-headline-h1-mobile font-bold text-dark-green flex-1">英语</h4><div class="bg-surface-variant text-on-surface-variant px-3 py-1 rounded-full flex items-center gap-1 font-label-sm text-label-sm font-semibold">未开始</div>
+</div>
+<div class="bg-mint-light rounded-xl p-5 mb-5 font-body-md text-on-surface-variant">
+<p class="mb-4 font-bold text-dark-green tracking-wide">2026.06.12周五练习:</p>
+<ul class="space-y-3 text-dark-green/90 font-medium">
+<li class="flex items-start gap-2"><span class="font-bold">1.</span> 熟读Unit 4课文两遍。</li>
+<li class="flex items-start gap-2"><span class="font-bold">2.</span> 完成《练习册》第25页。</li>
+</ul>
+</div>
+<button class="w-full bg-mint-green text-dark-green rounded-full py-3 font-body-md text-body-md font-bold flex items-center justify-center gap-2 hover:bg-mint-green/90 transition-colors"><span class="material-symbols-outlined text-[20px]" data-icon="edit">edit</span>编辑</button>
+</div>
+<!-- Divider -->
+<hr class="border-t border-outline-variant/30 my-2">
+<!-- Completed Section -->
+<div>
+<h3 class="font-headline-h2 text-headline-h2 font-bold text-outline mb-6">已完成 (1)</h3>
+<div class="flex flex-col gap-6">
+<!-- Completed Task Card 1: Math -->
+<div class="bg-surface-container-high rounded-[24px] p-6 border border-outline-variant/10 relative opacity-80">
+<div class="flex items-center gap-4 mb-5 pt-2">
+<div class="w-12 h-12 rounded-full bg-pale-peach/60 flex items-center justify-center">
+<span class="material-symbols-outlined text-[#4e453c]" data-icon="calculate">calculate</span>
+</div>
+<h4 class="font-headline-h1-mobile text-headline-h1-mobile font-bold text-dark-green/60 flex-1 line-through decoration-dark-green/30">口算</h4>
+<div class="bg-mint-light/60 text-dark-green px-3 py-1 rounded-full flex items-center gap-1 font-label-sm text-label-sm font-semibold">
+<span class="material-symbols-outlined text-[14px]" data-icon="check_circle">check_circle</span>已完成
+</div>
+</div>
+<div class="bg-surface-container/50 rounded-xl p-5 font-body-md text-on-surface-variant/70">
+<p class="text-dark-green/60 font-medium line-through decoration-dark-green/30">完成口算天天练第45页</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-6 left-0 right-0 z-50 flex justify-around items-center px-6 py-4 max-w-md mx-auto fixed bottom-6 left-1/2 -translate-x-1/2 w-[calc(100%-48px)] rounded-full backdrop-blur-md shadow-[0px_8px_32px_rgba(185,240,166,0.3)] bg-white/90 border border-mint-green/30">
+<!-- Active Tab: assignment -->
+<a class="flex flex-col items-center justify-center gap-1" href="#">
+<div class="flex items-center justify-center bg-mint-green text-dark-green rounded-full w-14 h-14 active:scale-90 transition-transform duration-200 hover:bg-[#A5E391] transition-all shadow-sm">
+<span class="material-symbols-outlined text-[28px]" data-icon="assignment">assignment</span>
+</div>
+<span class="font-label-sm text-label-sm text-dark-green mt-1 font-bold">作业</span>
+</a>
+<!-- Inactive Tab: calendar_today -->
+<a class="flex flex-col items-center justify-center gap-1" href="#">
+<div class="flex items-center justify-center text-dark-green/60 w-14 h-14 active:scale-90 transition-transform duration-200 hover:bg-mint-light rounded-full transition-all">
+<span class="material-symbols-outlined text-[28px]" data-icon="calendar_today">calendar_today</span>
+</div>
+<span class="font-label-sm text-label-sm text-dark-green/60 mt-1 font-semibold">布置</span>
+</a>
+<!-- Inactive Tab: history -->
+<a class="flex flex-col items-center justify-center gap-1" href="#">
+<div class="flex items-center justify-center text-dark-green/60 w-14 h-14 active:scale-90 transition-transform duration-200 hover:bg-mint-light rounded-full transition-all">
+<span class="material-symbols-outlined text-[28px]" data-icon="history">history</span>
+</div>
+<span class="font-label-sm text-label-sm text-dark-green/60 mt-1 font-semibold">历史</span>
+</a>
+</nav>
+
+
+<div id="snapdom-sandbox" data-snapdom-sandbox="true" aria-hidden="true" style="position: absolute; left: -9999px; top: -9999px; width: 0px; height: 0px; overflow: hidden;"></div></body></html>
+
+<!-- 听写预览 - 沉浸有机弹窗 (V1) -->
+<!DOCTYPE html>
+
+<html lang="zh-CN"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>听写预览 - Homework Buddy</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "outline": "#75777b",
+                        "surface-tint": "#5c5e63",
+                        "on-surface-variant": "#45474a",
+                        "on-secondary-fixed-variant": "#225119",
+                        "on-tertiary": "#ffffff",
+                        "secondary": "#3a692e",
+                        "surface": "#fcf8f8",
+                        "surface-dim": "#dcd9d9",
+                        "inverse-surface": "#313030",
+                        "on-primary-fixed": "#191c20",
+                        "surface-container": "#f1eded",
+                        "on-secondary-fixed": "#012200",
+                        "on-primary-fixed-variant": "#44474c",
+                        "surface-variant": "#e5e2e2",
+                        "tertiary-fixed": "#eee0d4",
+                        "inverse-primary": "#c5c6cc",
+                        "background-alt": "#F8F9FB",
+                        "secondary-fixed": "#baf1a7",
+                        "primary-fixed-dim": "#c5c6cc",
+                        "error-container": "#ffdad6",
+                        "primary-fixed": "#e1e2e8",
+                        "on-error-container": "#93000a",
+                        "primary": "#000000",
+                        "error": "#ba1a1a",
+                        "tertiary-fixed-dim": "#d1c4b9",
+                        "on-tertiary-fixed-variant": "#4e453c",
+                        "on-secondary-container": "#3e6e32",
+                        "on-primary-container": "#818489",
+                        "secondary-container": "#b7eea5",
+                        "on-secondary": "#ffffff",
+                        "on-tertiary-fixed": "#211a13",
+                        "on-background": "#1c1b1c",
+                        "text-secondary": "#6B7280",
+                        "soft-lilac": "#E5D9F2",
+                        "on-primary": "#ffffff",
+                        "surface-container-lowest": "#ffffff",
+                        "primary-container": "#191c20",
+                        "surface-container-high": "#ebe7e7",
+                        "on-surface": "#1c1b1c",
+                        "background": "#fcf8f8",
+                        "outline-variant": "#c5c6cb",
+                        "on-error": "#ffffff",
+                        "secondary-fixed-dim": "#9fd58d",
+                        "inverse-on-surface": "#f3f0f0",
+                        "tertiary": "#000000",
+                        "on-tertiary-container": "#8d8278",
+                        "tertiary-container": "#211a13",
+                        "surface-container-highest": "#e5e2e2",
+                        "surface-container-low": "#f6f3f3",
+                        "surface-bright": "#fcf8f8",
+                        "pale-peach": "#FFE4D6"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "container-margin": "1.5rem",
+                        "card-padding": "1.25rem",
+                        "gap-xs": "0.5rem",
+                        "gap-md": "1.5rem",
+                        "gap-sm": "1rem"
+                    },
+                    "fontFamily": {
+                        "headline-h2": ["Inter"],
+                        "headline-h1": ["Inter"],
+                        "display-num-mobile": ["Inter"],
+                        "label-sm": ["Inter"],
+                        "headline-h1-mobile": ["Inter"],
+                        "display-num": ["Inter"],
+                        "body-md": ["Inter"]
+                    },
+                    "fontSize": {
+                        "headline-h2": ["18px", {"lineHeight": "24px", "fontWeight": "500"}],
+                        "headline-h1": ["28px", {"lineHeight": "36px", "fontWeight": "600"}],
+                        "display-num-mobile": ["36px", {"lineHeight": "44px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "label-sm": ["12px", {"lineHeight": "16px", "fontWeight": "400"}],
+                        "headline-h1-mobile": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                        "display-num": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .blob-shape {
+            border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%;
+            animation: morph 8s ease-in-out infinite;
+        }
+        @keyframes morph {
+            0%, 100% { border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%; }
+            34% { border-radius: 70% 30% 50% 50% / 30% 30% 70% 70%; }
+            67% { border-radius: 100% 60% 60% 100% / 100% 100% 60% 60%; }
+        }
+
+        .organic-card-1 { border-radius: 65% 35% 58% 42% / 47% 41% 59% 53%; }
+        .organic-card-2 { border-radius: 45% 55% 42% 58% / 54% 48% 52% 46%; }
+        .organic-card-3 { border-radius: 51% 49% 63% 37% / 41% 58% 42% 59%; }
+        .organic-card-4 { border-radius: 38% 62% 48% 52% / 57% 44% 56% 43%; }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+</head>
+<body class="bg-background-alt text-on-background min-h-screen relative overflow-hidden font-body-md text-body-md">
+<!-- Decorative Background Shape (Behind Overlay) -->
+<div class="absolute top-0 left-0 w-[500px] h-[500px] bg-soft-lilac opacity-40 blob-shape -translate-x-1/2 -translate-y-1/2 -z-10 blur-[80px]"></div>
+<!-- Mock Main Content Behind Overlay -->
+<header class="w-full top-0 flex items-center justify-between px-container-margin py-4 w-full relative opacity-30">
+<button class="text-primary"><span class="material-symbols-outlined">arrow_back</span></button>
+<div class="w-6"></div>
+</header>
+<!-- Dialog Overlay -->
+<div class="fixed inset-0 z-50 flex items-center justify-center p-container-margin bg-on-background/20 backdrop-blur-sm">
+<!-- Popup Dialog -->
+<div class="bg-surface-container-lowest/95 backdrop-blur-md w-full max-w-sm rounded-[32px] p-6 pb-12 shadow-[0_20px_60px_rgba(0,0,0,0.1)] relative border border-white/40">
+<!-- Header -->
+<div class="flex items-center justify-between mb-6">
+<h1 class="font-headline-h2 text-headline-h1-mobile text-primary">听写预览</h1>
+<button class="text-text-secondary hover:text-primary transition-colors">
+<span class="material-symbols-outlined">close</span>
+</button>
+</div>
+<div class="flex justify-between items-center mb-6">
+<span class="text-text-secondary font-body-md">共 8 个词语</span>
+<button class="text-primary hover:opacity-80 flex items-center gap-1 text-sm font-medium bg-surface-container-highest/50 px-3 py-1.5 rounded-full">
+<span class="material-symbols-outlined text-[18px]">shuffle</span>
+                乱序
+            </button>
+</div>
+<!-- Words Grid -->
+<div class="grid grid-cols-2 gap-3">
+<!-- Word Item 1 -->
+<div class="bg-soft-lilac/40 organic-card-1 p-3.5 flex items-center justify-between group cursor-pointer hover:bg-soft-lilac/60 transition-colors shadow-sm">
+<span class="font-headline-h2 text-headline-h2 text-primary ml-2">害怕</span>
+<button class="w-8 h-8 rounded-full bg-surface-container-lowest/80 backdrop-blur-sm shadow-sm flex items-center justify-center text-primary group-hover:scale-105 transition-transform">
+<span class="material-symbols-outlined text-[16px]" style="font-variation-settings: 'FILL' 1;">play_arrow</span>
+</button>
+</div>
+<!-- Word Item 2 -->
+<div class="bg-secondary-container/40 organic-card-2 p-3.5 flex items-center justify-between group cursor-pointer hover:bg-secondary-container/60 transition-colors shadow-sm">
+<span class="font-headline-h2 text-headline-h2 text-primary ml-2">风格</span>
+<button class="w-8 h-8 rounded-full bg-surface-container-lowest/80 backdrop-blur-sm shadow-sm flex items-center justify-center text-primary group-hover:scale-105 transition-transform">
+<span class="material-symbols-outlined text-[16px]" style="font-variation-settings: 'FILL' 1;">play_arrow</span>
+</button>
+</div>
+<!-- Word Item 3 -->
+<div class="bg-secondary-container/40 organic-card-3 p-3.5 flex items-center justify-between group cursor-pointer hover:bg-secondary-container/60 transition-colors shadow-sm">
+<span class="font-headline-h2 text-headline-h2 text-primary ml-2">小菜</span>
+<button class="w-8 h-8 rounded-full bg-surface-container-lowest/80 backdrop-blur-sm shadow-sm flex items-center justify-center text-primary group-hover:scale-105 transition-transform">
+<span class="material-symbols-outlined text-[16px]" style="font-variation-settings: 'FILL' 1;">play_arrow</span>
+</button>
+</div>
+<!-- Word Item 4 -->
+<div class="bg-soft-lilac/40 organic-card-4 p-3.5 flex items-center justify-between group cursor-pointer hover:bg-soft-lilac/60 transition-colors shadow-sm">
+<span class="font-headline-h2 text-headline-h2 text-primary ml-2">小红</span>
+<button class="w-8 h-8 rounded-full bg-surface-container-lowest/80 backdrop-blur-sm shadow-sm flex items-center justify-center text-primary group-hover:scale-105 transition-transform">
+<span class="material-symbols-outlined text-[16px]" style="font-variation-settings: 'FILL' 1;">play_arrow</span>
+</button>
+</div>
+<!-- Word Item 5 -->
+<div class="bg-soft-lilac/40 organic-card-2 p-3.5 flex items-center justify-between group cursor-pointer hover:bg-soft-lilac/60 transition-colors shadow-sm">
+<span class="font-headline-h2 text-headline-h2 text-primary ml-2">风光</span>
+<button class="w-8 h-8 rounded-full bg-surface-container-lowest/80 backdrop-blur-sm shadow-sm flex items-center justify-center text-primary group-hover:scale-105 transition-transform">
+<span class="material-symbols-outlined text-[16px]" style="font-variation-settings: 'FILL' 1;">play_arrow</span>
+</button>
+</div>
+<!-- Word Item 6 -->
+<div class="bg-secondary-container/40 organic-card-1 p-3.5 flex items-center justify-between group cursor-pointer hover:bg-secondary-container/60 transition-colors shadow-sm">
+<span class="font-headline-h2 text-headline-h2 text-primary ml-2">好评</span>
+<button class="w-8 h-8 rounded-full bg-surface-container-lowest/80 backdrop-blur-sm shadow-sm flex items-center justify-center text-primary group-hover:scale-105 transition-transform">
+<span class="material-symbols-outlined text-[16px]" style="font-variation-settings: 'FILL' 1;">play_arrow</span>
+</button>
+</div>
+<!-- Word Item 7 -->
+<div class="bg-secondary-container/40 organic-card-4 p-3.5 flex items-center justify-between group cursor-pointer hover:bg-secondary-container/60 transition-colors shadow-sm">
+<span class="font-headline-h2 text-headline-h2 text-primary ml-2">自然</span>
+<button class="w-8 h-8 rounded-full bg-surface-container-lowest/80 backdrop-blur-sm shadow-sm flex items-center justify-center text-primary group-hover:scale-105 transition-transform">
+<span class="material-symbols-outlined text-[16px]" style="font-variation-settings: 'FILL' 1;">play_arrow</span>
+</button>
+</div>
+<!-- Word Item 8 -->
+<div class="bg-soft-lilac/40 organic-card-3 p-3.5 flex items-center justify-between group cursor-pointer hover:bg-soft-lilac/60 transition-colors shadow-sm">
+<span class="font-headline-h2 text-headline-h2 text-primary ml-2">小猫</span>
+<button class="w-8 h-8 rounded-full bg-surface-container-lowest/80 backdrop-blur-sm shadow-sm flex items-center justify-center text-primary group-hover:scale-105 transition-transform">
+<span class="material-symbols-outlined text-[16px]" style="font-variation-settings: 'FILL' 1;">play_arrow</span>
+</button>
+</div>
+</div>
+<!-- Floating Pill Button -->
+<div class="absolute -bottom-7 left-0 right-0 flex justify-center">
+<button class="w-10/12 bg-primary text-on-primary rounded-full h-14 font-headline-h2 text-headline-h2 flex items-center justify-center gap-2 hover:opacity-90 active:scale-[0.98] transition-all shadow-[0_10px_25px_rgba(0,0,0,0.2)]">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">playlist_play</span>
+                顺序播放
+            </button>
+</div>
+</div>
+</div>
+</body></html>

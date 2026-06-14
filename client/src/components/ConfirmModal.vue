@@ -72,6 +72,7 @@ function handleCancel() {
 }
 
 function handleConfirm() {
+  emit('update:visible', false)
   emit('confirm')
 }
 </script>

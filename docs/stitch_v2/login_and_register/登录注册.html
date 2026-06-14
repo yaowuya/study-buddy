@@ -1,0 +1,459 @@
+<!-- 作业伙伴 - 登录页面 (萌动有机版) -->
+<!DOCTYPE html>
+
+<html lang="zh-CN"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>登录 - 作业伙伴</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "secondary-container": "#b7eea5",
+                    "primary-fixed-dim": "#c5c6cc",
+                    "surface-bright": "#fcf8f8",
+                    "primary": "#000000",
+                    "background-alt": "#F8F9FB",
+                    "primary-container": "#191c20",
+                    "on-tertiary-fixed-variant": "#4e453c",
+                    "on-secondary-fixed-variant": "#225119",
+                    "inverse-primary": "#c5c6cc",
+                    "on-primary-container": "#818489",
+                    "surface-container-lowest": "#ffffff",
+                    "pale-peach": "#FFE4D6",
+                    "on-secondary-container": "#3e6e32",
+                    "on-primary-fixed-variant": "#44474c",
+                    "background": "#fcf8f8",
+                    "on-background": "#1c1b1c",
+                    "secondary-fixed": "#baf1a7",
+                    "on-error": "#ffffff",
+                    "text-secondary": "#6B7280",
+                    "tertiary-container": "#211a13",
+                    "on-secondary": "#ffffff",
+                    "surface-tint": "#5c5e63",
+                    "error-container": "#ffdad6",
+                    "surface-container-low": "#f6f3f3",
+                    "secondary": "#3a692e",
+                    "on-tertiary-container": "#8d8278",
+                    "surface-variant": "#e5e2e2",
+                    "soft-lilac": "#E5D9F2",
+                    "surface-container-highest": "#e5e2e2",
+                    "on-primary-fixed": "#191c20",
+                    "inverse-surface": "#313030",
+                    "on-primary": "#ffffff",
+                    "on-tertiary": "#ffffff",
+                    "primary-fixed": "#e1e2e8",
+                    "surface-container-high": "#ebe7e7",
+                    "surface": "#fcf8f8",
+                    "on-secondary-fixed": "#012200",
+                    "on-error-container": "#93000a",
+                    "inverse-on-surface": "#f3f0f0",
+                    "surface-dim": "#dcd9d9",
+                    "outline-variant": "#c5c6cb",
+                    "on-tertiary-fixed": "#211a13",
+                    "on-surface": "#1c1b1c",
+                    "on-surface-variant": "#45474a",
+                    "error": "#ba1a1a",
+                    "tertiary-fixed-dim": "#d1c4b9",
+                    "surface-container": "#f1eded",
+                    "tertiary-fixed": "#eee0d4",
+                    "tertiary": "#000000",
+                    "secondary-fixed-dim": "#9fd58d",
+                    "outline": "#75777b"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "gap-xs": "0.5rem",
+                    "gap-md": "1.5rem",
+                    "card-padding": "1.25rem",
+                    "container-margin": "1.5rem",
+                    "gap-sm": "1rem"
+            },
+            "fontFamily": {
+                    "headline-h1-mobile": [
+                            "Inter"
+                    ],
+                    "headline-h1": [
+                            "Inter"
+                    ],
+                    "display-num": [
+                            "Inter"
+                    ],
+                    "label-sm": [
+                            "Inter"
+                    ],
+                    "display-num-mobile": [
+                            "Inter"
+                    ],
+                    "body-md": [
+                            "Inter"
+                    ],
+                    "headline-h2": [
+                            "Inter"
+                    ]
+            },
+            "fontSize": {
+                    "headline-h1-mobile": [
+                            "24px",
+                            {
+                                    "lineHeight": "32px",
+                                    "fontWeight": "600"
+                            }
+                    ],
+                    "headline-h1": [
+                            "28px",
+                            {
+                                    "lineHeight": "36px",
+                                    "fontWeight": "600"
+                            }
+                    ],
+                    "display-num": [
+                            "48px",
+                            {
+                                    "lineHeight": "56px",
+                                    "letterSpacing": "-0.02em",
+                                    "fontWeight": "700"
+                            }
+                    ],
+                    "label-sm": [
+                            "12px",
+                            {
+                                    "lineHeight": "16px",
+                                    "fontWeight": "400"
+                            }
+                    ],
+                    "display-num-mobile": [
+                            "36px",
+                            {
+                                    "lineHeight": "44px",
+                                    "letterSpacing": "-0.02em",
+                                    "fontWeight": "700"
+                            }
+                    ],
+                    "body-md": [
+                            "14px",
+                            {
+                                    "lineHeight": "20px",
+                                    "fontWeight": "400"
+                            }
+                    ],
+                    "headline-h2": [
+                            "18px",
+                            {
+                                    "lineHeight": "24px",
+                                    "fontWeight": "500"
+                            }
+                    ]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .blob-shape {
+            border-radius: 41% 59% 70% 30% / 32% 40% 60% 68%;
+            animation: morph 8s ease-in-out infinite alternate;
+        }
+        @keyframes morph {
+            0% { border-radius: 41% 59% 70% 30% / 32% 40% 60% 68%; }
+            50% { border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%; }
+            100% { border-radius: 30% 70% 50% 50% / 50% 60% 40% 50%; }
+        }
+        .soft-shadow {
+            box-shadow: 0px 8px 24px rgba(0, 0, 0, 0.04);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-alt min-h-screen flex items-center justify-center p-container-margin overflow-hidden relative">
+<!-- Ambient Background Elements -->
+<div class="absolute top-[-10%] right-[-10%] w-[500px] h-[500px] bg-soft-lilac/30 blob-shape -z-10 blur-3xl"></div>
+<div class="absolute bottom-[-10%] left-[-10%] w-[400px] h-[400px] bg-pale-peach/30 blob-shape -z-10 blur-3xl"></div>
+<main class="w-full max-w-md relative z-10 flex flex-col items-center">
+<!-- Header Graphic -->
+<div class="w-32 h-32 bg-soft-lilac blob-shape flex items-center justify-center mb-8 soft-shadow">
+<span class="material-symbols-outlined text-primary text-5xl" style="font-variation-settings: 'FILL' 1;">menu_book</span>
+</div>
+<!-- Login Card -->
+<div class="bg-surface-container-lowest w-full rounded-[24px] p-8 soft-shadow flex flex-col items-center">
+<!-- Title & Subtitle -->
+<h1 class="font-headline-h1-mobile text-headline-h1-mobile text-primary mb-2 text-center">作业伙伴</h1>
+<p class="font-body-md text-body-md text-text-secondary text-center mb-8">欢迎回来！今天准备学点什么？</p>
+<!-- Role Switch -->
+<div class="flex w-full bg-surface-container-low rounded-full p-1 mb-8">
+<button class="flex-1 py-3 rounded-full bg-secondary-container text-on-secondary-container font-body-md text-body-md font-medium transition-all shadow-sm">
+                    我是学生
+                </button>
+<button class="flex-1 py-3 rounded-full text-on-surface-variant font-body-md text-body-md transition-all hover:bg-surface-variant/50">
+                    我是家长
+                </button>
+</div>
+<!-- Form -->
+<form class="w-full space-y-4 mb-8">
+<!-- Username -->
+<div class="relative">
+<div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+<span class="material-symbols-outlined text-outline-variant">person</span>
+</div>
+<input class="w-full pl-12 pr-4 py-4 bg-surface-container-lowest border border-surface-variant rounded-[16px] font-body-md text-body-md text-on-surface placeholder-text-secondary focus:outline-none focus:border-secondary-container focus:ring-1 focus:ring-secondary-container transition-colors soft-shadow" placeholder="手机号/用户名" type="text"/>
+</div>
+<!-- Password -->
+<div class="relative">
+<div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+<span class="material-symbols-outlined text-outline-variant">lock</span>
+</div>
+<input class="w-full pl-12 pr-12 py-4 bg-surface-container-lowest border border-surface-variant rounded-[16px] font-body-md text-body-md text-on-surface placeholder-text-secondary focus:outline-none focus:border-secondary-container focus:ring-1 focus:ring-secondary-container transition-colors soft-shadow" placeholder="密码" type="password"/>
+<div class="absolute inset-y-0 right-0 pr-4 flex items-center cursor-pointer">
+<span class="material-symbols-outlined text-outline-variant hover:text-on-surface transition-colors">visibility_off</span>
+</div>
+</div>
+</form>
+<!-- Action Button -->
+<button class="w-full bg-primary text-on-primary py-4 rounded-full font-headline-h2 text-headline-h2 hover:opacity-90 active:scale-[0.98] transition-all soft-shadow">
+                登录
+            </button>
+<!-- Footer Links -->
+<div class="flex justify-between w-full mt-6 px-2">
+<a class="font-body-md text-body-md text-text-secondary hover:text-primary transition-colors" href="#">忘记密码？</a>
+<a class="font-body-md text-body-md text-primary font-medium hover:opacity-80 transition-opacity" href="#">没有账号？去注册</a>
+</div>
+</div>
+</main>
+<script>
+        // Simple role switch interaction
+        const roleButtons = document.querySelectorAll('.flex-1');
+        roleButtons.forEach(btn => {
+            btn.addEventListener('click', function() {
+                roleButtons.forEach(b => {
+                    b.classList.remove('bg-secondary-container', 'text-on-secondary-container', 'shadow-sm', 'font-medium');
+                    b.classList.add('text-on-surface-variant', 'hover:bg-surface-variant/50');
+                });
+                this.classList.remove('text-on-surface-variant', 'hover:bg-surface-variant/50');
+                this.classList.add('bg-secondary-container', 'text-on-secondary-container', 'shadow-sm', 'font-medium');
+            });
+        });
+    </script>
+</body></html>
+
+<!-- 作业伙伴 - 注册页面 (浮动萌动版) -->
+<!DOCTYPE html>
+
+<html lang="zh-CN" style=""><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Registration - 作业伙伴</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "secondary-container": "#b7eea5",
+                        "primary-fixed-dim": "#c5c6cc",
+                        "surface-bright": "#fcf8f8",
+                        "primary": "#000000",
+                        "background-alt": "#F8F9FB",
+                        "primary-container": "#191c20",
+                        "on-tertiary-fixed-variant": "#4e453c",
+                        "on-secondary-fixed-variant": "#225119",
+                        "inverse-primary": "#c5c6cc",
+                        "on-primary-container": "#818489",
+                        "surface-container-lowest": "#ffffff",
+                        "pale-peach": "#FFE4D6",
+                        "on-secondary-container": "#3e6e32",
+                        "on-primary-fixed-variant": "#44474c",
+                        "background": "#fcf8f8",
+                        "on-background": "#1c1b1c",
+                        "secondary-fixed": "#baf1a7",
+                        "on-error": "#ffffff",
+                        "text-secondary": "#6B7280",
+                        "tertiary-container": "#211a13",
+                        "on-secondary": "#ffffff",
+                        "surface-tint": "#5c5e63",
+                        "error-container": "#ffdad6",
+                        "surface-container-low": "#f6f3f3",
+                        "secondary": "#3a692e",
+                        "on-tertiary-container": "#8d8278",
+                        "surface-variant": "#e5e2e2",
+                        "soft-lilac": "#E5D9F2",
+                        "surface-container-highest": "#e5e2e2",
+                        "on-primary-fixed": "#191c20",
+                        "inverse-surface": "#313030",
+                        "on-primary": "#ffffff",
+                        "on-tertiary": "#ffffff",
+                        "primary-fixed": "#e1e2e8",
+                        "surface-container-high": "#ebe7e7",
+                        "surface": "#fcf8f8",
+                        "on-secondary-fixed": "#012200",
+                        "on-error-container": "#93000a",
+                        "inverse-on-surface": "#f3f0f0",
+                        "surface-dim": "#dcd9d9",
+                        "outline-variant": "#c5c6cb",
+                        "on-tertiary-fixed": "#211a13",
+                        "on-surface": "#1c1b1c",
+                        "on-surface-variant": "#45474a",
+                        "error": "#ba1a1a",
+                        "tertiary-fixed-dim": "#d1c4b9",
+                        "surface-container": "#f1eded",
+                        "tertiary-fixed": "#eee0d4",
+                        "tertiary": "#000000",
+                        "secondary-fixed-dim": "#9fd58d",
+                        "outline": "#75777b",
+                        "mint-green": "#a8e6cf",
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px",
+                        "organic": "24px"
+                    },
+                    "spacing": {
+                        "gap-xs": "0.5rem",
+                        "gap-md": "1.5rem",
+                        "card-padding": "1.25rem",
+                        "container-margin": "1.5rem",
+                        "gap-sm": "1rem"
+                    },
+                    "fontFamily": {
+                        "headline-h1-mobile": ["Quicksand", "Inter"],
+                        "headline-h1": ["Quicksand", "Inter"],
+                        "display-num": ["Quicksand", "Inter"],
+                        "label-sm": ["Quicksand", "Inter"],
+                        "display-num-mobile": ["Quicksand", "Inter"],
+                        "body-md": ["Quicksand", "Inter"],
+                        "headline-h2": ["Quicksand", "Inter"]
+                    },
+                    "fontSize": {
+                        "headline-h1-mobile": ["24px", { "lineHeight": "32px", "fontWeight": "600" }],
+                        "headline-h1": ["28px", { "lineHeight": "36px", "fontWeight": "600" }],
+                        "display-num": ["48px", { "lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "label-sm": ["12px", { "lineHeight": "16px", "fontWeight": "400" }],
+                        "display-num-mobile": ["36px", { "lineHeight": "44px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "body-md": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+                        "headline-h2": ["18px", { "lineHeight": "24px", "fontWeight": "500" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .organic-blob {
+            border-radius: 43% 57% 70% 30% / 30% 30% 70% 70%;
+            animation: morph 12s ease-in-out infinite alternate;
+        }
+        @keyframes morph {
+            0% { border-radius: 43% 57% 70% 30% / 30% 30% 70% 70%; transform: rotate(0deg) scale(1); }
+            50% { border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%; transform: rotate(15deg) scale(1.05); }
+            100% { border-radius: 30% 70% 70% 30% / 30% 60% 40% 70%; transform: rotate(-10deg) scale(0.95); }
+        }
+        .diffused-shadow {
+            box-shadow: 0px 16px 48px rgba(0, 0, 0, 0.06);
+        }
+    </style>
+</head>
+<body class="bg-background-alt min-h-screen flex items-center justify-center p-container-margin md:p-8 font-body-md text-body-md text-on-background relative overflow-hidden">
+<!-- Organic Header Blob Background -->
+<div class="absolute top-[-10%] left-[-10%] w-[120%] h-96 bg-gradient-to-br from-soft-lilac to-mint-green organic-blob opacity-60 z-0"></div>
+<!-- Main Registration Container -->
+<main class="w-full max-w-md bg-surface-container-lowest rounded-[32px] diffused-shadow border border-mint-green/30 p-card-padding md:p-8 relative z-10 mx-auto">
+<!-- Header Icon & Title -->
+<div class="flex flex-col items-center mb-gap-md">
+<div class="w-20 h-20 bg-gradient-to-tr from-soft-lilac to-pale-peach rounded-[40%] flex items-center justify-center mb-gap-sm shadow-sm">
+<span class="material-symbols-outlined text-primary text-[40px]">school</span>
+</div>
+<h1 class="font-headline-h1-mobile text-headline-h1-mobile text-primary text-center flex items-center gap-2">
+    作业伙伴
+    <span class="material-symbols-outlined text-secondary-container text-[28px] animate-bounce">emoji_emotions</span>
+</h1>
+<p class="text-on-surface-variant mt-gap-xs text-center font-medium">创建账号，开启学习之旅</p>
+</div>
+<!-- Role Switcher -->
+<div class="flex p-1.5 bg-surface-container-low rounded-full mb-gap-md border border-outline-variant/30">
+<button class="flex-1 py-2.5 rounded-full font-headline-h2 text-headline-h2 bg-secondary-container text-on-secondary-container shadow-sm transition-all duration-300 transform scale-100" id="roleStudent">我是学生</button>
+<button class="flex-1 py-2.5 rounded-full font-headline-h2 text-headline-h2 text-on-surface-variant hover:text-primary hover:bg-surface-container-highest transition-all duration-300" id="roleParent">我是家长</button>
+</div>
+<!-- Form Fields -->
+<form class="flex flex-col gap-gap-sm mb-gap-md">
+<!-- Phone Number -->
+<div class="relative">
+<span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant">smartphone</span>
+<input class="w-full bg-surface-container-lowest border-2 border-surface-container-high rounded-2xl py-3.5 pl-12 pr-4 focus:outline-none focus:border-mint-green focus:ring-4 focus:ring-mint-green/20 transition-all font-medium" placeholder="请输入手机号" type="tel"/>
+</div>
+<!-- Verification Code -->
+<!-- Password -->
+<div class="relative">
+<span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant">lock</span>
+<input class="w-full bg-surface-container-lowest border-2 border-surface-container-high rounded-2xl py-3.5 pl-12 pr-12 focus:outline-none focus:border-mint-green focus:ring-4 focus:ring-mint-green/20 transition-all font-medium" id="passwordInput" placeholder="设置密码" type="password"/>
+<button class="absolute right-4 top-1/2 -translate-y-1/2 text-on-surface-variant hover:text-primary transition-colors p-1 rounded-full hover:bg-surface-container-highest" id="togglePassword" type="button">
+<span class="material-symbols-outlined text-[20px]">visibility_off</span>
+</button>
+</div>
+</form>
+<!-- Action Button -->
+<button class="w-full py-4 bg-primary text-on-primary rounded-2xl font-headline-h2 text-headline-h2 hover:bg-opacity-90 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] transition-all duration-200 mb-gap-sm shadow-lg shadow-primary/20">
+            注册
+        </button>
+<!-- Footer Link -->
+<div class="text-center mt-6">
+<a class="text-text-secondary hover:text-primary transition-colors font-semibold border-b border-transparent hover:border-primary pb-0.5" href="#">已有账号？去登录</a>
+</div>
+</main>
+<script>
+        // Role Switcher Logic
+        const roleStudent = document.getElementById('roleStudent');
+        const roleParent = document.getElementById('roleParent');
+
+        function setActiveRole(activeBtn, inactiveBtn) {
+            activeBtn.classList.add('bg-secondary-container', 'text-on-secondary-container', 'shadow-sm', 'scale-100');
+            activeBtn.classList.remove('text-on-surface-variant', 'hover:text-primary', 'hover:bg-surface-container-highest');
+            
+            inactiveBtn.classList.remove('bg-secondary-container', 'text-on-secondary-container', 'shadow-sm', 'scale-100');
+            inactiveBtn.classList.add('text-on-surface-variant', 'hover:text-primary', 'hover:bg-surface-container-highest');
+        }
+
+        roleStudent.addEventListener('click', (e) => {
+            e.preventDefault();
+            setActiveRole(roleStudent, roleParent);
+        });
+
+        roleParent.addEventListener('click', (e) => {
+            e.preventDefault();
+            setActiveRole(roleParent, roleStudent);
+        });
+
+        // Password Visibility Toggle
+        const togglePassword = document.getElementById('togglePassword');
+        const passwordInput = document.getElementById('passwordInput');
+        
+        togglePassword.addEventListener('click', () => {
+            const icon = togglePassword.querySelector('span');
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                icon.textContent = 'visibility';
+            } else {
+                passwordInput.type = 'password';
+                icon.textContent = 'visibility_off';
+            }
+        });
+    </script>
+</body></html>

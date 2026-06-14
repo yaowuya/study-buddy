@@ -1,85 +1,120 @@
 <template>
   <view class="page">
-    <!-- Task Header -->
-    <view class="task-header" :style="{ paddingTop: statusBarHeight + 'px' }">
-      <view class="close-btn" @tap="handleClose">
-        <text class="material-symbols-outlined">close</text>
-      </view>
-      <view class="progress-bar-wrap">
-        <view class="progress-bar-bg">
-          <view class="progress-bar-fill" :style="{ width: progressPct + '%' }">
-            <view class="progress-sparkle"></view>
-          </view>
+    <!-- Immersive Background blobs -->
+    <view class="bg-blobs">
+      <view class="blob blob-1"></view>
+      <view class="blob blob-2"></view>
+      <view class="blob blob-3"></view>
+    </view>
+
+    <!-- Sticky Progress Bar -->
+    <view class="progress-header" :style="{ paddingTop: statusBarHeight + 'px' }">
+      <view class="progress-bar-row">
+        <view class="progress-track">
+          <view class="progress-fill" :style="{ width: progressPct + '%' }"></view>
         </view>
-        <text class="progress-text">{{ progressLabel }}</text>
+        <text class="progress-label">{{ progressLabel }}</text>
       </view>
     </view>
 
-    <!-- Main -->
-    <view class="main" :style="{ paddingTop: (statusBarHeight + 100) + 'px' }">
-      <!-- Intro Badge -->
-      <view class="intro-badge">
-        <text class="intro-star">⭐</text>
-        <text class="intro-text">请准备好你的作业本，听写开始啦！</text>
+    <scroll-view scroll-y class="main" :style="{ paddingTop: (statusBarHeight + 60) + 'px' }">
+      <!-- Header: back + title (scrolls with content) -->
+      <view class="appbar">
+        <view class="appbar-back" @tap="handleClose">
+          <text class="material-symbols-outlined">arrow_back</text>
+        </view>
+        <text class="appbar-title">听写闯关</text>
+        <view class="appbar-spacer"></view>
       </view>
 
-      <!-- Task Info (Continuous Mode) -->
-      <view v-if="isContinuousMode && taskTitles.length > 1" class="task-info">
-        <text class="task-info-text">任务 {{ currentTaskIndex + 1 }}/{{ taskIds.length }}</text>
+      <!-- Motivational Message Card -->
+      <view class="motivation-card">
+        <view class="motivation-avatar">
+          <text class="material-symbols-outlined motivation-icon">face_6</text>
+        </view>
+        <view class="motivation-text">
+          <text class="motivation-title">{{ motivationTitle }}</text>
+          <text class="motivation-sub">{{ motivationSub }}</text>
+        </view>
+        <view class="motivation-deco"></view>
       </view>
 
-      <!-- Word List -->
-      <view class="word-list-section">
-        <text class="section-title">听写词语</text>
-        <text v-if="taskTitle" class="task-title-display">{{ taskTitle }}</text>
+      <!-- Main Playback Cloud -->
+      <view class="playback-cloud">
+        <view class="playback-status">
+          <view class="playback-status-badge">
+            <text class="playback-status-text">{{ currentIndex >= 0 ? '正在朗读...' : '准备好了吗？' }}</text>
+          </view>
+          <text class="playback-word-number">第 {{ (currentIndex >= 0 ? currentIndex + 1 : (nextUnplayedIndex + 1)) }} 个</text>
+        </view>
+
+        <!-- Bouncy Playback Button -->
+        <view :class="['playback-btn', isPlaying ? 'playback-btn-playing' : '']" @tap="handlePlaybackTap">
+          <text class="material-symbols-outlined playback-btn-icon">
+            {{ isPlaying ? 'cruelty_free' : 'volume_up' }}
+          </text>
+          <text class="playback-btn-label">{{ isPlaying ? '朗读中...' : '点击朗读' }}</text>
+        </view>
+
+        <!-- Slow play button -->
+        <view class="slow-play-btn" @tap="playSlowCurrent">
+          <text class="slow-play-text">慢速播放</text>
+        </view>
+      </view>
+
+      <!-- Upcoming Word List -->
+      <view class="word-list-card">
+        <view class="word-list-header">
+          <text class="word-list-title">听写清单</text>
+          <text class="word-list-count">共 {{ words.length }} 个词</text>
+        </view>
         <view class="word-list">
           <view
             v-for="(word, i) in words"
             :key="i"
-            :class="['word-item', playedWords[i] ? 'word-item-played' : '', currentIndex === i ? 'word-item-playing' : '']"
+            :class="[
+              'word-item',
+              playedWords[i] ? 'word-item-played' : '',
+              currentIndex === i ? 'word-item-current' : '',
+              showAnswers ? 'word-item-revealed' : '',
+            ]"
             @tap="playSingleWord(i)"
           >
-            <view class="word-left">
-              <view :class="['play-btn', playedWords[i] ? 'play-btn-done' : '', currentIndex === i ? 'play-btn-active' : '']">
-                <text class="material-symbols-outlined play-icon">
-                  {{ currentIndex === i ? 'volume_up' : (playedWords[i] ? 'check' : 'play_arrow') }}
-                </text>
+            <view class="word-item-left">
+              <view :class="['word-num', playedWords[i] ? 'word-num-done' : '', currentIndex === i ? 'word-num-active' : '']">
+                <text class="word-num-text">{{ i + 1 }}</text>
               </view>
-              <text v-if="!showAnswers" class="word-number">第 {{ i + 1 }} 个词</text>
-              <text v-else class="word-text">{{ word }}</text>
+              <text v-if="showAnswers" class="word-item-text">{{ word }}</text>
+              <text v-else-if="playedWords[i]" class="word-item-pending">已听写</text>
+              <text v-else class="word-item-pending">{{ currentIndex === i ? '正在听写' : '待听写' }}</text>
             </view>
-            <view v-if="!playedWords[i]" class="tap-hint">
-              <text class="tap-hint-text">点击播放</text>
-            </view>
-            <text v-else-if="!showAnswers" class="material-symbols-outlined status-icon">check_circle</text>
+            <text v-if="!playedWords[i] && currentIndex !== i" class="material-symbols-outlined word-lock">lock</text>
+            <text v-else-if="playedWords[i]" class="material-symbols-outlined word-check">check_circle</text>
+            <text v-else class="material-symbols-outlined word-playing-icon">volume_up</text>
           </view>
         </view>
       </view>
-    </view>
 
-    <!-- Bottom Action -->
+      <view class="bottom-spacer"></view>
+    </scroll-view>
+
+    <!-- Floating Primary Action -->
     <view class="bottom-action" :style="{ paddingBottom: (safeAreaBottom + 16) + 'px' }">
-      <view v-if="!allPlayed" class="action-btn-row">
-        <view v-if="!isPlaying" class="action-btn btn-start" @tap="startDictation">
-          <text class="material-symbols-outlined btn-icon">play_arrow</text>
-          <text class="action-btn-text">{{ hasPlayedAny ? '继续' : '开始听写' }}</text>
-        </view>
-        <view v-else class="action-btn btn-playing" @tap="pauseDictation">
-          <text class="material-symbols-outlined btn-icon">pause</text>
-          <text class="action-btn-text">暂停</text>
-        </view>
+      <view v-if="!allPlayed" class="action-btn" @tap="startDictation">
+        <text class="material-symbols-outlined action-icon">play_arrow</text>
+        <text class="action-text">{{ hasPlayedAny ? '继续听写' : '开始听写' }}</text>
       </view>
-      <view v-else-if="!showAnswers" class="check-btn" @tap="showAnswersAction">
-        <text class="check-btn-text">检查答案</text>
-        <text class="material-symbols-outlined check-arrow">arrow_forward</text>
+      <view v-else-if="!showAnswers" class="action-btn action-btn-check" @tap="showAnswersAction">
+        <text class="material-symbols-outlined action-icon">visibility</text>
+        <text class="action-text">查看答案</text>
       </view>
-      <view v-else-if="isContinuousMode && hasNextTask" class="check-btn" @tap="nextTask">
-        <text class="check-btn-text">下一个听写任务</text>
-        <text class="material-symbols-outlined check-arrow">arrow_forward</text>
+      <view v-else-if="isContinuousMode && hasNextTask" class="action-btn" @tap="nextTask">
+        <text class="material-symbols-outlined action-icon">arrow_forward</text>
+        <text class="action-text">下一个听写任务</text>
       </view>
-      <view v-else class="check-btn check-btn-back" @tap="handleClose">
-        <text class="material-symbols-outlined check-arrow">arrow_back</text>
-        <text class="check-btn-text">返回</text>
+      <view v-else class="action-btn action-btn-back" @tap="handleClose">
+        <text class="material-symbols-outlined action-icon">arrow_back</text>
+        <text class="action-text">返回</text>
       </view>
     </view>
   </view>
@@ -109,9 +144,13 @@ const currentIndex = ref(-1)
 const isPlaying = ref(false)
 const autoPlayTimer = ref<ReturnType<typeof setTimeout> | null>(null)
 const ttsReady = ref(false)
-const stopSpeaking = ref(false) // Flag to stop ongoing speakMultiple
+const stopSpeaking = ref(false)
 
 const words = computed(() => items.value.map(i => i.content))
+
+const nextUnplayedIndex = computed(() => {
+  return words.value.findIndex((_, i) => !playedWords[i])
+})
 
 const allPlayed = computed(() => {
   if (words.value.length === 0) return false
@@ -138,12 +177,23 @@ const progressLabel = computed(() => {
   return `${playedCount}/${words.value.length}`
 })
 
+const motivationTitle = computed(() => {
+  if (allPlayed.value) return '太棒了！全部完成！'
+  if (hasPlayedAny.value) return '加油，小勇士！'
+  return '加油，小勇士！'
+})
+
+const motivationSub = computed(() => {
+  if (allPlayed.value) return '你已经听写了所有词语！'
+  if (hasPlayedAny.value) return '准备好听写下一个词语了吗？'
+  return '请准备好你的作业本，听写开始啦！'
+})
+
 async function loadItems() {
   try {
     items.value = await getDictationItems(taskId.value)
     if (taskId.value) {
       await tasksStore.updateStatus(taskId.value, 'in_progress')
-      // Get task title from tasksStore
       const task = tasksStore.tasks.find(t => t.id === taskId.value)
       if (task) {
         taskTitle.value = task.title
@@ -160,14 +210,12 @@ function getTTSAudioUrl(text: string, rate: number = 1.0): string {
   return `${BASE_URL}/tts/speak?text=${encodeURIComponent(text)}&rate=${rate}`
 }
 
-function speak(text: string): Promise<void> {
+function speak(text: string, rate: number = 1.0): Promise<void> {
   return new Promise((resolve) => {
     if (stopSpeaking.value) {
       resolve()
       return
     }
-
-    console.log('[TTS] 开始播放:', text)
 
     try {
       if (dictationAudioContext) {
@@ -176,39 +224,34 @@ function speak(text: string): Promise<void> {
 
       dictationAudioContext = uni.createInnerAudioContext()
       dictationAudioContext.volume = 1.0
-      dictationAudioContext.src = getTTSAudioUrl(text)
+      dictationAudioContext.src = getTTSAudioUrl(text, rate)
 
       dictationAudioContext.onCanplay(() => {
-        console.log('[TTS] 音频可播放')
         dictationAudioContext?.play()
       })
 
       dictationAudioContext.onEnded(() => {
-        console.log('[TTS] 播放完成')
         dictationAudioContext?.destroy()
         dictationAudioContext = null
         resolve()
       })
 
       dictationAudioContext.onError((e) => {
-        console.error('[TTS] 播放失败:', e)
         dictationAudioContext?.destroy()
         dictationAudioContext = null
         resolve()
       })
     } catch (e) {
-      console.error('[TTS] 异常:', e)
       resolve()
     }
   })
 }
 
-// Speak a word multiple times with pauses between
 async function speakMultiple(text: string, times: number = 3, pauseMs: number = 800): Promise<void> {
   for (let i = 0; i < times; i++) {
-    if (stopSpeaking.value) return // Check if we should stop
+    if (stopSpeaking.value) return
     await speak(text)
-    if (stopSpeaking.value) return // Check after speak
+    if (stopSpeaking.value) return
     if (i < times - 1) {
       await delay(pauseMs)
     }
@@ -290,7 +333,7 @@ async function playWord(index: number) {
     return
   }
 
-  resumeSpeech() // Reset stop flag
+  resumeSpeech()
   currentIndex.value = index
   await speakMultiple(words.value[index], 3)
   playedWords[index] = true
@@ -307,31 +350,55 @@ async function playWord(index: number) {
   }
 }
 
-// User taps a word to play - this pauses auto-play
 async function playSingleWord(index: number) {
   if (currentIndex.value === index) return
 
-  // Stop any current speech and auto-play timer
   stopSpeech()
   clearAutoPlayTimer()
-
-  // Wait for stop to take effect (speak() polls every 50ms, so 150ms should be enough)
   await delay(150)
-
-  // Pause auto-play mode - user needs to click "继续" to resume
   isPlaying.value = false
 
   if (!ttsReady.value) {
     await initTTS()
   }
 
-  // Reset stop flag and play the clicked word
   resumeSpeech()
   currentIndex.value = index
   await speakMultiple(words.value[index], 3)
   playedWords[index] = true
   currentIndex.value = -1
-  // Do NOT auto-continue - user is now in manual mode
+}
+
+// Play current word slowly
+async function playSlowCurrent() {
+  const idx = currentIndex.value >= 0 ? currentIndex.value : nextUnplayedIndex.value
+  if (idx < 0) return
+
+  stopSpeech()
+  clearAutoPlayTimer()
+  await delay(150)
+  isPlaying.value = false
+
+  if (!ttsReady.value) {
+    await initTTS()
+  }
+
+  resumeSpeech()
+  currentIndex.value = idx
+  await speak(words.value[idx], 0.5)
+  await delay(500)
+  await speak(words.value[idx], 0.5)
+  playedWords[idx] = true
+  currentIndex.value = -1
+}
+
+function handlePlaybackTap() {
+  if (isPlaying.value) {
+    // Currently playing, do nothing (user should use word list to interact)
+    return
+  }
+  // Start playing from next unplayed word
+  startDictation()
 }
 
 async function startDictation() {
@@ -345,7 +412,6 @@ async function startDictation() {
   await warmUpTTS()
 
   isPlaying.value = true
-  // Always start from first unplayed word
   const startIndex = words.value.findIndex((_, i) => !playedWords[i])
 
   if (startIndex >= 0) {
@@ -369,7 +435,6 @@ async function nextTask() {
   currentTaskIndex.value++
   taskId.value = taskIds.value[currentTaskIndex.value]
 
-  // Reset state for new task
   Object.keys(playedWords).forEach(key => delete playedWords[key])
   showAnswers.value = false
   currentIndex.value = -1
@@ -398,11 +463,10 @@ function stopSpeech() {
 }
 
 function resumeSpeech() {
-  stopSpeaking.value = false // Reset flag when starting new speech
+  stopSpeaking.value = false
 }
 
 onLoad(async (query) => {
-  // Check for continuous mode
   if (query?.taskIds && query?.continuous === '1') {
     isContinuousMode.value = true
     taskIds.value = query.taskIds.split(',')
@@ -434,189 +498,266 @@ onUnmounted(() => {
 
 .material-symbols-outlined {
   font-family: 'Material Symbols Outlined';
-  font-weight: normal; font-style: normal; font-size: 24px; line-height: 1;
+  font-weight: normal; font-style: normal; line-height: 1;
   letter-spacing: normal; text-transform: none; display: inline-block;
   white-space: nowrap; word-wrap: normal; direction: ltr;
   font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
 }
 
 .page {
-  min-height: 100vh; background: $color-surface;
-  font-family: $font-family-body; display: flex; flex-direction: column;
+  min-height: 100vh; background: #f8fbf8;
+  font-family: 'Inter', sans-serif; position: relative;
 }
 
-// Header
-.task-header {
-  position: fixed; top: 0; left: 0; right: 0; z-index: 10;
-  background: rgba($color-surface, 0.9); backdrop-filter: blur(8px);
+// ═══════════════════════════════════════════════════
+// Immersive Background Blobs
+// ═══════════════════════════════════════════════════
+.bg-blobs {
+  position: fixed; inset: 0; pointer-events: none; overflow: hidden; z-index: 0;
+}
+.blob {
+  position: absolute; border-radius: 50%; filter: blur(60px);
+}
+.blob-1 { top: -80px; left: -80px; width: 256px; height: 256px; background: rgba($color-mint-green, 0.3); }
+.blob-2 { top: 50%; right: -128px; width: 320px; height: 320px; background: rgba($color-mint-green-bright, 0.4); }
+.blob-3 { bottom: -80px; left: 25%; width: 288px; height: 288px; background: rgba($color-mint-green-dim, 0.2); }
+
+// ═══════════════════════════════════════════════════
+// Sticky Progress Bar
+// ═══════════════════════════════════════════════════
+.progress-header {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 50;
+  background: rgba(252, 248, 248, 0.8); backdrop-filter: blur(12px);
+  padding-left: $spacing-margin; padding-right: $spacing-margin; padding-bottom: 12px;
+  border-bottom: 1px solid rgba($color-organic-surface-variant, 0.3);
+}
+.progress-bar-row {
+  display: flex; align-items: center; gap: 12px;
+}
+.progress-track {
+  flex: 1; height: 12px; background: $color-organic-surface-container-high;
+  border-radius: $radius-full; overflow: hidden;
+}
+.progress-fill {
+  height: 100%; background: $color-organic-secondary;
+  border-radius: $radius-full; transition: width 0.7s ease;
+}
+.progress-label {
+  font-size: 16px; font-weight: 700; color: $color-on-secondary-fixed-variant;
+  letter-spacing: -0.02em; min-width: 36px; text-align: right;
+}
+
+// ═══════════════════════════════════════════════════
+// AppBar
+// ═══════════════════════════════════════════════════
+.appbar {
   display: flex; align-items: center; justify-content: space-between;
-  padding-left: $spacing-margin; padding-right: $spacing-margin; padding-bottom: $spacing-md;
-  margin-top: 20px;
+  padding: 0 0 16px 0;
 }
-.close-btn {
-  width: 48px; height: 48px; border-radius: $radius-full;
-  background: $color-surface-container; display: flex; align-items: center; justify-content: center;
-  color: $color-on-surface-variant; flex-shrink: 0;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+.appbar-back {
+  width: 40px; height: 40px; border-radius: $radius-full;
+  background: rgba(255, 255, 255, 0.8); display: flex; align-items: center; justify-content: center;
+  color: $color-organic-on-surface-variant; box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+  &:active { transform: scale(0.9); }
 }
-.progress-bar-wrap {
-  flex: 1; margin: 0 $spacing-margin; display: flex; align-items: center; gap: $spacing-sm;
+.appbar-back .material-symbols-outlined { font-size: 20px; color: $color-organic-on-surface-variant; }
+.appbar-title {
+  font-size: 18px; font-weight: 500; color: $color-organic-primary;
 }
-.progress-bar-bg {
-  flex: 1; height: 16px; background: $color-surface-container-highest;
-  border-radius: $radius-full; overflow: hidden; box-shadow: inset 0 2px 4px rgba(0,0,0,0.06);
-}
-.progress-bar-fill {
-  height: 100%; background: $color-tertiary-container; border-radius: $radius-full;
-  position: relative; transition: width 0.3s;
-}
-.progress-sparkle {
-  position: absolute; inset: 0; background: rgba(255,255,255,0.2);
-  width: 50%; transform: skewX(-20deg);
-}
-.progress-text {
-  font-family: $font-family; font-size: $font-label-md; font-weight: 600;
-  color: $color-on-surface-variant; min-width: 36px; text-align: right;
-}
+.appbar-spacer { width: 40px; }
 
+// ═══════════════════════════════════════════════════
 // Main
+// ═══════════════════════════════════════════════════
 .main {
-  flex: 1; display: flex; flex-direction: column; align-items: center;
-  padding-left: $spacing-margin; padding-right: $spacing-margin;
-  padding-bottom: 140px;
+  flex: 1; padding: 0 $spacing-margin; box-sizing: border-box; width: 100%;
+  padding-bottom: 140px; position: relative; z-index: 1;
 }
 
-// Intro badge
-.intro-badge {
-  display: flex; align-items: center; gap: $spacing-base;
-  padding: $spacing-sm $spacing-md; background: $color-surface-container-low;
-  border-radius: $radius-full; border: 1px solid $color-surface-container;
-  margin-bottom: $spacing-md; box-shadow: 0 2px 4px rgba(0,0,0,0.04);
+// ═══════════════════════════════════════════════════
+// Motivational Card (mint-green cloud)
+// ═══════════════════════════════════════════════════
+.motivation-card {
+  background: rgba($color-mint-green-bright, 0.4);
+  border-radius: 48px; padding: 24px;
+  display: flex; align-items: center; gap: 16px;
+  filter: drop-shadow(0 10px 20px rgba(0,0,0,0.05));
+  position: relative; overflow: hidden; margin-bottom: 24px;
 }
-.intro-star { font-size: 20px; }
-.intro-text { font-size: $font-body-md; color: $color-on-surface-variant; }
-
-// Task info
-.task-info {
-  padding: $spacing-xs $spacing-md;
-  background: $color-primary-fixed;
+.motivation-avatar {
+  width: 56px; height: 56px; background: rgba(255, 255, 255, 0.6);
+  border-radius: $radius-full; padding: 8px;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.motivation-icon {
+  font-size: 40px; color: $color-organic-on-secondary-container;
+  animation: bounce-subtle 3s ease-in-out infinite;
+}
+@keyframes bounce-subtle {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+.motivation-text { display: flex; flex-direction: column; }
+.motivation-title { font-size: 18px; font-weight: 500; color: $color-organic-primary; }
+.motivation-sub { font-size: 14px; color: $color-on-secondary-fixed-variant; margin-top: 2px; }
+.motivation-deco {
+  position: absolute; right: -16px; bottom: -16px;
+  width: 48px; height: 48px; background: rgba(255, 255, 255, 0.3);
   border-radius: $radius-full;
-  margin-bottom: $spacing-md;
-}
-.task-info-text {
-  font-family: $font-family; font-size: $font-label-md; font-weight: 600;
-  color: $color-primary;
 }
 
-// Word list section
-.word-list-section {
-  width: 100%; max-width: 320px;
+// ═══════════════════════════════════════════════════
+// Main Playback Cloud (cloud-shape)
+// ═══════════════════════════════════════════════════
+.playback-cloud {
+  background: rgba($color-mint-green, 0.5);
+  border-radius: 60% 40% 70% 30% / 40% 50% 60% 50%;
+  padding: 40px 32px;
+  display: flex; flex-direction: column; align-items: center; gap: 32px;
+  filter: drop-shadow(0 10px 20px rgba(0,0,0,0.05));
+  border: 4px solid rgba(255, 255, 255, 0.8);
+  margin-bottom: 24px;
 }
-.section-title {
-  font-family: $font-family; font-size: $font-headline-lg; font-weight: 600;
-  color: $color-on-surface; text-align: center; display: block; margin-bottom: $spacing-xs;
+.playback-status {
+  text-align: center; display: flex; flex-direction: column; align-items: center; gap: 8px;
 }
-.task-title-display {
-  font-family: $font-family; font-size: $font-body-md; font-weight: 500;
-  color: $color-on-surface-variant; text-align: center; display: block; margin-bottom: $spacing-md;
+.playback-status-badge {
+  display: inline-block; padding: 4px 16px;
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: $radius-full;
 }
-.word-list {
-  display: flex; flex-direction: column; gap: $spacing-sm;
+.playback-status-text {
+  font-size: 12px; font-weight: 700; color: $color-organic-on-secondary-container;
 }
-.word-item {
-  display: flex; align-items: center; justify-content: space-between;
-  padding: $spacing-md; background: $color-surface-container;
-  border-radius: $radius-xl; border: 2px solid transparent;
-  transition: all 0.2s;
+.playback-word-number {
+  font-size: 36px; font-weight: 700; color: $color-organic-primary;
+  letter-spacing: -0.02em; line-height: 44px;
+}
+
+// Bouncy Playback Button
+.playback-btn {
+  width: 128px; height: 128px; border-radius: $radius-full;
+  background: rgba(255, 255, 255, 0.9);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+  box-shadow: 0 8px 0 rgba(0,0,0,0.1);
   &:active {
-    background: $color-surface-container-high;
-    transform: scale(0.98);
+    transform: scale(0.9) translateY(4px);
+    box-shadow: 0 2px 0 rgba(0,0,0,0.1);
   }
 }
-.word-item-played {
-  border-color: $color-tertiary;
+.playback-btn-playing {
+  animation: pulse-glow 2s ease-in-out infinite;
 }
-.word-item-playing {
-  border-color: $color-primary;
-  background: $color-primary-fixed;
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 8px 0 rgba(0,0,0,0.1), 0 0 0 0 rgba($color-mint-green, 0.4); }
+  50% { box-shadow: 0 8px 0 rgba(0,0,0,0.1), 0 0 0 16px rgba($color-mint-green, 0); }
 }
-.word-left {
-  display: flex; align-items: center; gap: $spacing-md;
+.playback-btn-icon {
+  font-size: 60px; color: $color-organic-on-secondary-container;
 }
-.play-btn {
-  width: 44px; height: 44px; border-radius: $radius-full;
-  background: $color-surface-container-high; display: flex; align-items: center; justify-content: center;
-  transition: all 0.2s;
-}
-.play-btn-done {
-  background: $color-tertiary;
-}
-.play-btn-active {
-  background: $color-primary;
-  box-shadow: 0 0 0 4px rgba(0, 88, 189, 0.2);
-}
-.play-icon { font-size: 26px; color: $color-on-surface-variant; }
-.play-btn-done .play-icon { color: $color-on-tertiary; }
-.play-btn-active .play-icon { color: $color-on-primary; }
-.word-number {
-  font-family: $font-family; font-size: $font-body-lg; font-weight: 500;
-  color: $color-on-surface;
-}
-.word-text {
-  font-family: $font-family; font-size: $font-body-lg; font-weight: 500;
-  color: $color-on-surface;
-}
-.tap-hint {
-  padding: 4px 12px; background: $color-primary-fixed; border-radius: $radius-full;
-}
-.tap-hint-text {
-  font-family: $font-family; font-size: $font-label-sm; font-weight: 600;
-  color: $color-primary;
-}
-.status-icon {
-  font-size: 24px; color: $color-tertiary;
+.playback-btn-label {
+  font-size: 12px; font-weight: 700; color: $color-organic-on-secondary-container;
+  margin-top: 4px;
 }
 
-// Bottom action
-.bottom-action {
-  position: fixed; bottom: 0; left: 0; right: 0; z-index: 20;
-  padding-left: $spacing-margin; padding-right: $spacing-margin; padding-top: $spacing-xl;
-  background: linear-gradient(to top, $color-surface 60%, transparent);
+// Slow play button
+.slow-play-btn {
+  padding: 8px 24px; background: rgba(255, 255, 255, 0.8);
+  border-radius: $radius-full;
+  &:active { transform: scale(0.95); }
 }
-.action-btn-row {
-  display: flex; justify-content: center;
+.slow-play-text {
+  font-size: 14px; font-weight: 500; color: $color-organic-on-secondary-container;
+}
+
+// ═══════════════════════════════════════════════════
+// Word List Card (upcoming list)
+// ═══════════════════════════════════════════════════
+.word-list-card {
+  background: rgba($color-mint-green-bright, 0.2);
+  border-radius: 40px; padding: 24px;
+  display: flex; flex-direction: column; gap: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.5);
+}
+.word-list-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 8px;
+}
+.word-list-title { font-size: 18px; font-weight: 500; color: $color-on-secondary-fixed-variant; }
+.word-list-count { font-size: 12px; color: $color-on-secondary-fixed-variant; opacity: 0.7; }
+
+.word-list { display: flex; flex-direction: column; gap: 12px; }
+
+.word-item {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px; background: rgba(255, 255, 255, 0.9);
+  border-radius: 16px; border: 1px solid #fff;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  transition: all 0.15s;
+  &:active { transform: scale(0.98); }
+}
+.word-item-played {
+  background: rgba(255, 255, 255, 0.5);
+  border-color: rgba(255, 255, 255, 0.5);
+}
+.word-item-current {
+  background: rgba(255, 255, 255, 0.9);
+  border-color: rgba($color-mint-green, 0.5);
+}
+.word-item-revealed {
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.word-item-left { display: flex; align-items: center; gap: 12px; }
+.word-num {
+  width: 32px; height: 32px; border-radius: $radius-full;
+  background: $color-mint-green; display: flex; align-items: center; justify-content: center;
+}
+.word-num-done { background: rgba($color-mint-green, 0.5); }
+.word-num-active { background: $color-mint-green; }
+.word-num-text { font-size: 12px; font-weight: 700; color: $color-organic-on-secondary-container; }
+.word-num-done .word-num-text { opacity: 0.7; }
+
+.word-item-text { font-size: 14px; color: $color-organic-on-surface-variant; font-weight: 500; }
+.word-item-pending { font-size: 14px; color: $color-organic-on-surface-variant; }
+
+.word-lock { font-size: 18px; color: $color-organic-surface-variant; }
+.word-check { font-size: 20px; color: $color-dark-green; }
+.word-playing-icon { font-size: 18px; color: $color-organic-secondary; }
+
+// ═══════════════════════════════════════════════════
+// Bottom Floating Action
+// ═══════════════════════════════════════════════════
+.bottom-action {
+  position: fixed; bottom: 0; left: 0; right: 0; z-index: 40;
+  padding: 24px $spacing-margin;
+  background: linear-gradient(to top, #f8fbf8 70%, transparent);
 }
 .action-btn {
-  display: flex; align-items: center; justify-content: center; gap: $spacing-sm;
-  min-width: 200px; padding: 18px $spacing-xl; border-radius: $radius-xl;
-  font-family: $font-family; font-size: $font-headline-lg; font-weight: 600;
-  border-bottom: 6px solid transparent;
-  &:active { border-bottom-width: 0; transform: translateY(6px); }
+  width: 100%; height: 64px;
+  background: $color-mint-green; color: $color-organic-on-secondary-container;
+  border-radius: $radius-full;
+  display: flex; align-items: center; justify-content: center; gap: 12px;
+  font-size: 24px; font-weight: 600;
+  box-shadow: 0 8px 20px rgba($color-mint-green, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s;
+  &:active {
+    transform: scale(0.9) translateY(4px);
+    box-shadow: 0 2px 0 rgba(0,0,0,0.1);
+  }
 }
-.btn-start {
-  background: $color-tertiary-container; color: $color-on-tertiary-container;
-  border-bottom-color: $color-on-tertiary-fixed-variant;
+.action-btn-check {
+  background: $color-dark-green; color: #fff;
+  box-shadow: 0 8px 20px rgba($color-dark-green, 0.3);
 }
-.btn-playing {
-  background: $color-primary; color: $color-on-primary;
-  border-bottom-color: $color-on-primary-fixed-variant;
+.action-btn-back {
+  background: $color-organic-primary; color: #fff;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
 }
-.btn-icon { font-size: 28px; }
-.action-btn-text { color: inherit; }
-.check-btn {
-  display: flex; align-items: center; justify-content: center; gap: $spacing-md;
-  background: $color-tertiary-container; color: $color-on-tertiary-container;
-  padding: 18px; border-radius: $radius-xl;
-  border-bottom: 6px solid $color-on-tertiary-fixed-variant;
-  font-family: $font-family; font-size: $font-headline-lg; font-weight: 600;
-  box-shadow: 0 4px 12px rgba(0, 131, 121, 0.2);
-  &:active { border-bottom-width: 0; transform: translateY(6px); }
-}
-.check-btn-back {
-  background: $color-primary; color: $color-on-primary;
-  border-bottom-color: $color-on-primary-fixed-variant;
-  box-shadow: 0 4px 12px rgba(0, 88, 189, 0.2);
-}
-.check-btn-text { color: inherit; }
-.check-arrow { font-size: 28px; font-variation-settings: 'wght' 600; color: inherit; }
+.action-icon { font-size: 28px; }
+.action-text { color: inherit; }
+
+.bottom-spacer { height: 120px; }
 </style>

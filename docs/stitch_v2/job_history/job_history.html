@@ -1,0 +1,315 @@
+<!DOCTYPE html><html class="light" lang="zh-CN" style="width: 390px; height: 1281px; overflow: hidden; position: relative;"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Homework Detail</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "secondary": "#3a692e",
+                        "tertiary-fixed-dim": "#d1c4b9",
+                        "surface-container-highest": "#e5e2e2",
+                        "primary-container": "#191c20",
+                        "inverse-primary": "#c5c6cc",
+                        "background": "#fcf8f8",
+                        "on-error": "#ffffff",
+                        "tertiary-container": "#211a13",
+                        "on-secondary-fixed": "#012200",
+                        "inverse-on-surface": "#f3f0f0",
+                        "surface-dim": "#dcd9d9",
+                        "text-secondary": "#6B7280",
+                        "on-secondary-fixed-variant": "#225119",
+                        "secondary-container": "#b7eea5",
+                        "surface-variant": "#e5e2e2",
+                        "surface-tint": "#5c5e63",
+                        "on-background": "#1c1b1c",
+                        "error-container": "#ffdad6",
+                        "primary-fixed": "#e1e2e8",
+                        "on-tertiary-container": "#8d8278",
+                        "on-primary": "#ffffff",
+                        "surface-bright": "#fcf8f8",
+                        "background-alt": "#F8F9FB",
+                        "on-tertiary-fixed-variant": "#4e453c",
+                        "tertiary-fixed": "#eee0d4",
+                        "secondary-fixed": "#baf1a7",
+                        "primary-fixed-dim": "#c5c6cc",
+                        "surface-container-high": "#ebe7e7",
+                        "error": "#ba1a1a",
+                        "primary": "#000000",
+                        "on-tertiary": "#ffffff",
+                        "on-error-container": "#93000a",
+                        "pale-peach": "#FFE4D6",
+                        "soft-lilac": "#E5D9F2",
+                        "on-secondary": "#ffffff",
+                        "on-surface-variant": "#45474a",
+                        "secondary-fixed-dim": "#9fd58d",
+                        "on-secondary-container": "#3e6e32",
+                        "surface-container": "#f1eded",
+                        "on-primary-fixed": "#191c20",
+                        "on-primary-container": "#818489",
+                        "on-tertiary-fixed": "#211a13",
+                        "outline-variant": "#c5c6cb",
+                        "surface-container-lowest": "#ffffff",
+                        "on-surface": "#1c1b1c",
+                        "tertiary": "#000000",
+                        "on-primary-fixed-variant": "#44474c",
+                        "inverse-surface": "#313030",
+                        "surface-container-low": "#f6f3f3",
+                        "surface": "#fcf8f8",
+                        "outline": "#75777b"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "gap-sm": "0.75rem",
+                        "gap-md": "1rem",
+                        "gap-xs": "0.25rem",
+                        "container-margin": "1rem",
+                        "card-padding": "1.5rem"
+                    },
+                    "fontFamily": {
+                        "headline-h1": ["Inter"],
+                        "headline-h1-mobile": ["Inter"],
+                        "display-num": ["Inter"],
+                        "label-sm": ["Inter"],
+                        "headline-h2": ["Inter"],
+                        "display-num-mobile": ["Inter"],
+                        "body-md": ["Inter"]
+                    },
+                    "fontSize": {
+                        "headline-h1": ["28px", {"lineHeight": "36px", "fontWeight": "600"}],
+                        "headline-h1-mobile": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                        "display-num": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "label-sm": ["12px", {"lineHeight": "16px", "fontWeight": "400"}],
+                        "headline-h2": ["18px", {"lineHeight": "24px", "fontWeight": "500"}],
+                        "display-num-mobile": ["36px", {"lineHeight": "44px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .glass-card {
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            box-shadow: 0 16px 40px rgba(0, 0, 0, 0.06);
+        }
+        .organic-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            overflow: hidden;
+            background-color: #F8F9FB;
+        }
+        .blob {
+            position: absolute;
+            filter: blur(60px);
+            opacity: 0.6;
+            animation: float 20s infinite alternate ease-in-out;
+        }
+        .blob-1 {
+            top: -10%;
+            left: -10%;
+            width: 50vw;
+            height: 50vw;
+            background-color: #E5D9F2;
+            border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%;
+        }
+        .blob-2 {
+            bottom: -10%;
+            right: -10%;
+            width: 60vw;
+            height: 60vw;
+            background-color: #FFE4D6;
+            border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%;
+            animation-delay: -10s;
+        }
+        .blob-3 {
+            top: 40%;
+            left: 60%;
+            width: 40vw;
+            height: 40vw;
+            background-color: #B9F0A6;
+            border-radius: 50%;
+            animation-delay: -5s;
+        }
+        @keyframes float {
+            0% { transform: translate(0, 0) rotate(0deg); }
+            100% { transform: translate(20px, 30px) rotate(10deg); }
+        }
+        .shadow-soft {
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.04);
+        }
+    </style>
+</head>
+<body class="bg-background-alt text-on-surface font-headline-h1 min-h-screen pb-32">
+<!-- Organic Background Elements -->
+<div class="organic-bg">
+<div class="blob blob-1"></div>
+<div class="blob blob-2"></div>
+<div class="blob blob-3"></div>
+</div>
+<!-- TopAppBar -->
+<main class="max-w-3xl mx-auto px-container-margin pt-8 pb-8 space-y-6">
+<!-- Dropdown Filter & Statistics Summary -->
+<div class="flex flex-col gap-4 mb-4">
+<div class="flex justify-between items-center">
+<h2 class="font-headline-h2 text-headline-h2 font-semibold">作业概览</h2>
+<div class="relative">
+<button class="bg-surface-container-lowest/80 glass-card px-5 py-2 rounded-full shadow-sm flex items-center gap-1 font-label-sm text-label-sm text-on-surface hover:bg-surface-container transition-colors">
+<span class="">本周</span>
+<span class="material-symbols-outlined text-[16px]">expand_more</span>
+</button>
+</div>
+</div>
+<div class="bg-surface-container-lowest/60 glass-card rounded-[24px] p-4 shadow-soft flex gap-2 divide-x divide-outline-variant/20">
+<div class="flex-1 flex flex-col items-center justify-center">
+<div class="text-text-secondary font-label-sm text-label-sm">总任务</div>
+<div class="font-headline-h2 text-headline-h2 font-semibold text-primary">12</div>
+</div>
+<div class="flex-1 flex flex-col items-center justify-center">
+<div class="text-text-secondary font-label-sm text-label-sm">合格</div>
+<div class="font-headline-h2 text-headline-h2 font-semibold text-secondary">10</div>
+</div>
+<div class="flex-1 flex flex-col items-center justify-center">
+<div class="text-text-secondary font-label-sm text-label-sm">待评</div>
+<div class="font-headline-h2 text-headline-h2 font-semibold text-error">2</div>
+</div>
+</div>
+</div>
+<!-- Date Header 1 -->
+<div class="flex items-center gap-4">
+<div class="bg-surface-container-lowest/60 glass-card shadow-soft px-4 py-2 rounded-full font-label-sm text-label-sm font-medium flex items-center gap-1.5">
+<span class="material-symbols-outlined text-secondary text-sm">calendar_today</span>
+                5月17日
+            </div>
+<div class="h-px bg-outline-variant/30 flex-grow"></div>
+</div>
+<!-- Language Arts Card 1 -->
+<article class="bg-soft-lilac/60 glass-card rounded-[24px] p-card-padding shadow-soft transition-transform hover:scale-[1.01] duration-300">
+<div class="flex justify-between items-start mb-4">
+<h2 class="font-headline-h2 text-[16px] leading-[22px] font-semibold">听写13课的词语</h2>
+<div class="bg-surface-container-lowest/80 px-3 py-1.5 rounded-full flex items-center gap-1.5 shadow-sm">
+<span class="material-symbols-outlined text-secondary" style="font-size: 14px;">check_circle</span>
+<span class="font-label-sm text-[11px] text-on-surface-variant font-medium">合格</span>
+</div>
+</div>
+<div class="font-body-md text-[13px] leading-[18px] text-on-surface/80 space-y-2 mb-5">
+<p class="">1. 读课文3遍</p>
+<p class="">2. 听写13课词语</p>
+</div>
+<div class="flex flex-wrap gap-2">
+<span class="bg-secondary-fixed/80 backdrop-blur-sm text-on-secondary-container px-3 py-1.5 rounded-full font-label-sm text-[11px] shadow-sm">前面</span>
+<span class="bg-secondary-fixed/80 backdrop-blur-sm text-on-secondary-container px-3 py-1.5 rounded-full font-label-sm text-[11px] shadow-sm">加法</span>
+<span class="bg-secondary-fixed/80 backdrop-blur-sm text-on-secondary-container px-3 py-1.5 rounded-full font-label-sm text-[11px] shadow-sm">金鱼</span>
+<span class="bg-secondary-fixed/80 backdrop-blur-sm text-on-secondary-container px-3 py-1.5 rounded-full font-label-sm text-[11px] shadow-sm">看到</span>
+<span class="bg-secondary-fixed/80 backdrop-blur-sm text-on-secondary-container px-3 py-1.5 rounded-full font-label-sm text-[11px] shadow-sm">这个</span>
+<span class="bg-secondary-fixed/80 backdrop-blur-sm text-on-secondary-container px-3 py-1.5 rounded-full font-label-sm text-[11px] shadow-sm">学问</span>
+<span class="bg-secondary-fixed/80 backdrop-blur-sm text-on-secondary-container px-3 py-1.5 rounded-full font-label-sm text-[11px] shadow-sm">面包</span>
+<span class="bg-secondary-fixed/80 backdrop-blur-sm text-on-secondary-container px-3 py-1.5 rounded-full font-label-sm text-[11px] shadow-sm">这里</span>
+</div>
+</article>
+<!-- Language Arts Card 2 -->
+<article class="bg-soft-lilac/60 glass-card rounded-[24px] p-card-padding shadow-soft transition-transform hover:scale-[1.01] duration-300">
+<div class="flex justify-between items-start mb-4">
+<h2 class="font-headline-h2 text-[16px] leading-[22px] font-semibold">语文作业</h2>
+<div class="bg-surface-container-lowest/80 px-3 py-1.5 rounded-full flex items-center gap-1.5 shadow-sm">
+<span class="material-symbols-outlined text-secondary" style="font-size: 14px;">check_circle</span>
+<span class="font-label-sm text-[11px] text-on-surface-variant font-medium">合格</span>
+</div>
+</div>
+<div class="font-body-md text-[13px] leading-[18px] text-on-surface/80 mb-5">
+<p class="">完成默写和朗读</p>
+</div>
+<div class="flex flex-wrap gap-2">
+<span class="bg-surface-container-lowest/80 backdrop-blur-sm text-on-surface px-3 py-1.5 rounded-full font-label-sm text-[11px] shadow-sm">春天</span>
+<span class="bg-surface-container-lowest/80 backdrop-blur-sm text-on-surface px-3 py-1.5 rounded-full font-label-sm text-[11px] shadow-sm">卫生</span>
+<span class="bg-surface-container-lowest/80 backdrop-blur-sm text-on-surface px-3 py-1.5 rounded-full font-label-sm text-[11px] shadow-sm">小时</span>
+</div>
+</article>
+<!-- English Dictation Card -->
+<article class="bg-secondary-fixed/60 glass-card rounded-[24px] p-card-padding shadow-soft transition-transform hover:scale-[1.01] duration-300">
+<div class="flex justify-between items-start mb-4">
+<h2 class="font-headline-h2 text-[16px] leading-[22px] font-semibold">英语听写</h2>
+<div class="bg-surface-container-lowest/80 px-3 py-1.5 rounded-full flex items-center gap-1.5 shadow-sm">
+<span class="material-symbols-outlined text-secondary" style="font-size: 14px;">check_circle</span>
+<span class="font-label-sm text-[11px] text-on-surface-variant font-medium">合格</span>
+</div>
+</div>
+<div class="font-body-md text-[13px] leading-[18px] text-on-surface/80 mb-5">
+<p class="">英语听写作业</p>
+</div>
+<div class="flex flex-wrap gap-2">
+<span class="bg-surface-container-lowest/80 backdrop-blur-sm text-on-surface px-3 py-1.5 rounded-full font-label-sm text-[11px] shadow-sm">fish</span>
+<span class="bg-surface-container-lowest/80 backdrop-blur-sm text-on-surface px-3 py-1.5 rounded-full font-label-sm text-[11px] shadow-sm">ball</span>
+<span class="bg-surface-container-lowest/80 backdrop-blur-sm text-on-surface px-3 py-1.5 rounded-full font-label-sm text-[11px] shadow-sm">cat</span>
+<span class="bg-surface-container-lowest/80 backdrop-blur-sm text-on-surface px-3 py-1.5 rounded-full font-label-sm text-[11px] shadow-sm">chair</span>
+</div>
+</article>
+<!-- Date Header 2 -->
+<div class="flex items-center gap-4 mt-8 mb-2">
+<div class="bg-surface-container-lowest/60 glass-card shadow-soft px-4 py-2 rounded-full font-label-sm text-label-sm font-medium flex items-center gap-1.5">
+<span class="material-symbols-outlined text-secondary text-sm">calendar_today</span>
+                5月18日
+            </div>
+<div class="h-px bg-outline-variant/30 flex-grow"></div>
+</div>
+<!-- Mathematics Card -->
+<article class="bg-pale-peach/60 glass-card rounded-[24px] p-card-padding shadow-soft transition-transform hover:scale-[1.01] duration-300">
+<div class="flex justify-between items-start mb-4">
+<h2 class="font-headline-h2 text-[16px] leading-[22px] font-semibold">周一数学作业</h2>
+</div>
+<div class="font-body-md text-[13px] leading-[18px] text-on-surface/80 mb-5 leading-relaxed">
+<p class="">2026.05.18周一练习：完成随堂练的 54 页，按要求列竖式，书写工整，书面整洁</p>
+</div>
+<div class="flex items-center mt-5 pt-4 border-t border-outline-variant/20 justify-end">
+<div class="flex gap-2 justify-end">
+<button class="bg-error/90 backdrop-blur-sm text-on-error px-4 py-2 rounded-full font-label-sm text-[11px] shadow-sm hover:opacity-90 transition-opacity">不合格</button>
+<button class="bg-secondary-fixed/90 backdrop-blur-sm text-on-secondary-container px-4 py-2 rounded-full font-label-sm text-[11px] shadow-sm hover:opacity-90 transition-opacity flex items-center gap-1.5 font-medium">
+<span class="material-symbols-outlined" style="font-size: 14px;">check</span>
+                        合格
+                    </button>
+</div>
+</div>
+</article>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-8 left-1/2 -translate-x-1/2 w-[calc(100%-48px)] max-w-md rounded-full bg-surface-container-lowest/60 glass-card z-50 flex justify-around items-center px-4 py-3 transition-all">
+<!-- Homework (Inactive) -->
+<a class="flex flex-col items-center justify-center gap-1" href="#">
+<div class="flex items-center justify-center text-on-surface-variant w-14 h-14 active:scale-90 transition-transform duration-200 hover:bg-secondary-fixed/20 rounded-full transition-all">
+<span class="material-symbols-outlined text-[28px]">book</span>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface-variant mt-1 font-semibold">作业</span>
+</a>
+<!-- Add (Inactive) -->
+<a class="flex flex-col items-center justify-center gap-1" href="#">
+<div class="flex items-center justify-center text-on-surface-variant w-14 h-14 active:scale-90 transition-transform duration-200 hover:bg-secondary-fixed/20 rounded-full transition-all">
+<span class="material-symbols-outlined text-[28px]">add_circle</span>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface-variant mt-1 font-semibold">布置</span>
+</a>
+<!-- History (Active) -->
+<a class="flex flex-col items-center justify-center gap-1" href="#">
+<div class="flex items-center justify-center bg-secondary-fixed/90 backdrop-blur-sm text-on-secondary-container rounded-full w-14 h-14 active:scale-90 transition-transform duration-200 hover:opacity-90 transition-all shadow-sm">
+<span class="material-symbols-outlined text-[28px]" style="font-variation-settings: &quot;FILL&quot; 1;">history</span>
+</div>
+<span class="font-label-sm text-label-sm text-on-secondary-container mt-1 font-bold">历史</span>
+</a>
+</nav>
+<div id="snapdom-sandbox" data-snapdom-sandbox="true" aria-hidden="true" style="position: absolute; left: -9999px; top: -9999px; width: 0px; height: 0px; overflow: hidden;"></div></body></html>
