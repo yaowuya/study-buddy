@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, timedelta
 
 
 def test_create_task(client, register_and_get_token, auth_headers):
@@ -61,6 +61,24 @@ def test_student_cannot_create_task(client, register_and_get_token, auth_headers
         "type": "school", "title": "任务", "date": str(date.today()),
     }, headers=auth_headers(token))
     assert resp.status_code == 403
+
+
+def test_list_tasks_by_task_date(client, register_and_get_token, auth_headers):
+    """task_date 快捷参数：只返回指定日期的任务，跨日任务不应出现"""
+    token = register_and_get_token("13800000142")
+    today = str(date.today())
+    yesterday = str(date.today() - timedelta(days=1))
+    client.post("/api/v1/tasks/", json={
+        "type": "school", "title": "今日任务", "date": today,
+    }, headers=auth_headers(token))
+    client.post("/api/v1/tasks/", json={
+        "type": "home", "title": "昨日任务", "date": yesterday,
+    }, headers=auth_headers(token))
+    resp = client.get(f"/api/v1/tasks/?task_date={today}", headers=auth_headers(token))
+    assert resp.status_code == 200
+    tasks = resp.json()
+    assert len(tasks) == 1
+    assert tasks[0]["title"] == "今日任务"
 
 
 def test_cannot_access_other_family_task(client, register_and_get_token, auth_headers):

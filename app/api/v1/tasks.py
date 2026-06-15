@@ -40,8 +40,17 @@ def create_task(body: TaskCreate, user: User = Depends(require_parent), db: Sess
 
 
 @router.get("/", response_model=list[TaskOut])
-def list_tasks(date_from: date | None = None, date_to: date | None = None, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+def list_tasks(
+    task_date: date | None = None,          # 精确查询某一天（快捷参数）
+    date_from: date | None = None,
+    date_to: date | None = None,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
     _check_family(user)
+    if task_date:
+        date_from = date_from or task_date
+        date_to = date_to or task_date
     tasks = task_crud.get_family_tasks_by_date(db, user.family_id, date_from, date_to)
     return [_to_task_out(t) for t in tasks]
 
