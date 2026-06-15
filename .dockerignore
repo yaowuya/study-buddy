@@ -12,3 +12,8 @@ tests
 .pytest_cache
 .mypy_cache
 tmp
+client
+client/
+client/node_modules
+client/dist
+client/unpackage
