@@ -51,22 +51,24 @@
           <text class="empty-text">今天没有任务，休息一下吧！</text>
         </view>
         <view v-for="task in tasks" :key="task.id" :class="['task-card', `card-${task.subject || 'default'}`, (task.status === 'graded' || task.status === 'submitted') ? 'task-done' : '']">
-          <!-- Card header: icon + title + badge -->
+          <!-- Card header: line1=icon+title, line2=badges -->
           <view class="task-card-header">
-            <view class="task-header-left">
+            <view class="task-header-row">
               <view :class="['task-icon-circle', `icon-${task.subject || 'default'}`]">
                 <text class="material-symbols-outlined task-icon">{{ subjectIcon(task.subject) }}</text>
               </view>
               <view :class="['task-title', `title-${task.subject || 'default'}`]">
                 <text>{{ task.title }}</text>
               </view>
+            </view>
+            <view class="task-badges-row">
               <view v-if="task.has_dictation" class="dictation-badge">
                 <text class="material-symbols-outlined badge-icon">mic</text>
                 <text class="badge-text">听写</text>
               </view>
-            </view>
-            <view :class="['status-badge', `status-${task.status}`]">
-              <text class="status-text">{{ statusLabel(task.status) }}</text>
+              <view :class="['status-badge', `status-${task.status}`]">
+                <text class="status-text">{{ statusLabel(task.status) }}</text>
+              </view>
             </view>
           </view>
 
@@ -431,13 +433,15 @@ onShow(() => {
 .card-default { background: $color-organic-surface-container; }
 
 // ═══════════════════════════════════════════════════
-// Task Card Header
+// Task Card Header (two rows)
 // ═══════════════════════════════════════════════════
 .task-card-header {
-  display: flex; align-items: center;
-  margin-bottom: 16px;
+  display: flex; flex-direction: column; gap: 8px;
+  margin-bottom: 12px;
 }
-.task-header-left { display: flex; align-items: center; gap: 8px; overflow: hidden; flex: 1; min-width: 0; }
+.task-header-row {
+  display: flex; align-items: center; gap: 8px;
+}
 .task-icon-circle {
   width: 32px; height: 32px; border-radius: $radius-full;
   background: rgba(255, 255, 255, 0.5);
@@ -449,18 +453,21 @@ onShow(() => {
 .icon-default .task-icon { color: $color-organic-on-surface-variant; }
 .task-icon { font-size: 16px; }
 
-.task-title { font-size: 16px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex-shrink: 1; min-width: 0; }
+.task-title { font-size: 18px; font-weight: 700; }
 .title-语文 { color: #3b0764; }
 .title-数学 { color: #7c2d12; }
 .title-英语 { color: $color-dark-green; }
 .title-default { color: $color-organic-on-surface; }
+
+.task-badges-row {
+  display: flex; align-items: center; gap: 8px; padding-left: 40px;
+}
 
 // Dictation badge
 .dictation-badge {
   display: inline-flex; align-items: center; gap: 2px;
   background: rgba($color-dark-green, 0.8);
   padding: 2px 8px; border-radius: 4px;
-  flex-shrink: 0;
 }
 .badge-icon { font-size: 12px; color: #fff; }
 .badge-text { font-size: 10px; font-weight: 600; color: #fff; }
@@ -469,8 +476,6 @@ onShow(() => {
 .status-badge {
   padding: 4px 12px; border-radius: $radius-full;
   background: rgba(255, 255, 255, 0.6);
-  flex-shrink: 0;
-  margin-left: 8px;
 }
 .status-text { font-size: 12px; font-weight: 500; }
 .status-pending .status-text { color: $color-organic-on-surface-variant; }
