@@ -238,6 +238,15 @@ function formatDate(d: Date): string {
   return `${y}-${m}-${day}`
 }
 
+function parseDate(dateStr: string): Date {
+  // 兼容 Android 真机：避免 new Date("2026-06-15") 返回 Invalid Date
+  const parts = dateStr.split('-')
+  if (parts.length === 3) {
+    return new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]))
+  }
+  return new Date(dateStr)
+}
+
 function loadTasksForFilter() {
   gradedResult && Object.keys(gradedResult).forEach(k => delete gradedResult[k])
   Object.keys(gradedComment).forEach(k => delete gradedComment[k])
@@ -322,7 +331,7 @@ function getDateRange(filter: string): [Date, Date] {
 const filteredTasks = computed(() => {
   const [rangeStart, rangeEnd] = getDateRange(currentFilter.value)
   return allTasks.value.filter(t => {
-    const d = new Date(t.date)
+    const d = parseDate(t.date)
     return d >= rangeStart && d <= rangeEnd
   })
 })
@@ -341,7 +350,7 @@ const dateGroups = computed(() => {
   const map = new Map<string, { label: string; sortKey: string; tasks: TaskOut[] }>()
 
   for (const task of filteredTasks.value) {
-    const d = new Date(task.date); d.setHours(0, 0, 0, 0)
+    const d = parseDate(task.date); d.setHours(0, 0, 0, 0)
     let label: string, sortKey: string
     if (d.getTime() === today.getTime()) {
       label = '今天'; sortKey = '0'

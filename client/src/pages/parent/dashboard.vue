@@ -270,7 +270,10 @@ function statusLabel(status: string) {
 }
 
 function formatDate(dateStr: string) {
-  const d = new Date(dateStr)
+  const parts = dateStr.split('-')
+  const d = parts.length === 3
+    ? new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]))
+    : new Date(dateStr)
   const weekDays = ['周日', '周一', '周二', '周三', '周四', '周五', '周六']
   const m = String(d.getMonth() + 1).padStart(2, '0')
   const day = String(d.getDate()).padStart(2, '0')

@@ -257,7 +257,12 @@ function goDictation(task: TaskOut | undefined) {
 function goDictationContinuous() {
   const sortedDictationTasks = tasks.value
     .filter(t => t.has_dictation && t.status !== 'graded')
-    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+    .sort((a, b) => {
+      const pa = a.date.split('-'), pb = b.date.split('-')
+      const da = pa.length === 3 ? new Date(Number(pa[0]), Number(pa[1]) - 1, Number(pa[2])) : new Date(a.date)
+      const db = pb.length === 3 ? new Date(Number(pb[0]), Number(pb[1]) - 1, Number(pb[2])) : new Date(b.date)
+      return da.getTime() - db.getTime()
+    })
 
   if (sortedDictationTasks.length === 0) return
 
