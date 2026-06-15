@@ -215,7 +215,7 @@ const familyCode = ref('加载中')
 const statusBarHeight = ref(0)
 
 // 日期筛选
-const currentFilter = ref('week')
+const currentFilter = ref('month')
 const showFilterDropdown = ref(false)
 const filterOptions = [
   { value: 'today', label: '今日' },
@@ -365,7 +365,7 @@ const dateGroups = computed(() => {
     if (!map.has(sortKey)) map.set(sortKey, { label, sortKey, tasks: [] })
     map.get(sortKey)!.tasks.push(task)
   }
-  return [...map.values()].sort((a, b) => a.sortKey.localeCompare(b.sortKey))
+  return [...map.values()].sort((a, b) => b.sortKey.localeCompare(a.sortKey))
 })
 
 async function loadGradedInfo() {
