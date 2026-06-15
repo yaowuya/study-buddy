@@ -10,8 +10,5 @@ services:
     extra_hosts:
       - "host.docker.internal:host-gateway"
     volumes:
-      - studybuddy_logs:/app/logs
+      - /data/logs/studybuddy:/app/logs
       - ./tmp:/app/tmp
-
-volumes:
-  studybuddy_logs:
