@@ -15,8 +15,10 @@ export function request<T = any>(
       header['Authorization'] = `Bearer ${token}`
     }
 
+    const fullUrl = `${BASE_URL}${url}`
+    console.log('[request]', method, fullUrl)
     uni.request({
-      url: `${BASE_URL}${url}`,
+      url: fullUrl,
       method: method as any,
       data,
       header,
@@ -35,6 +37,7 @@ export function request<T = any>(
         resolve(res.data as T)
       },
       fail: (err) => {
+        console.error('[request] fail:', method, url, err.errMsg)
         reject(new Error(err.errMsg))
       },
     })

@@ -11,7 +11,12 @@ export const useTasksStore = defineStore('tasks', () => {
     async function fetchAllTasks(dateFrom?: string, dateTo?: string) {
     loading.value = true
     try {
+      console.log('[tasksStore] fetchAllTasks:', dateFrom, dateTo)
       tasks.value = await tasksApi.listTasks(dateFrom, dateTo)
+      console.log('[tasksStore] fetchAllTasks result:', tasks.value.length, 'tasks')
+    } catch (err) {
+      console.error('[tasksStore] fetchAllTasks error:', err)
+      throw err
     } finally {
       loading.value = false
     }

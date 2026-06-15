@@ -255,7 +255,10 @@ function loadTasksForFilter() {
   const [rangeStart, rangeEnd] = getDateRange(currentFilter.value)
   const dateFrom = formatDate(rangeStart)
   const dateTo = formatDate(rangeEnd)
-  tasksStore.fetchAllTasks(dateFrom, dateTo).then(loadGradedInfo)
+  console.log('[grading] loadTasksForFilter called:', { dateFrom, dateTo })
+  tasksStore.fetchAllTasks(dateFrom, dateTo).then(loadGradedInfo).catch((err) => {
+    console.error('[grading] fetchAllTasks failed:', err)
+  })
 }
 
 // 是否为学生模式（只读）
