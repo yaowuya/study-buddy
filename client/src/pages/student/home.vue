@@ -57,7 +57,9 @@
               <view :class="['task-icon-circle', `icon-${task.subject || 'default'}`]">
                 <text class="material-symbols-outlined task-icon">{{ subjectIcon(task.subject) }}</text>
               </view>
-              <text :class="['task-title', `title-${task.subject || 'default'}`]">{{ task.title }}</text>
+              <view :class="['task-title', `title-${task.subject || 'default'}`]">
+                <text>{{ task.title }}</text>
+              </view>
               <view v-if="task.has_dictation" class="dictation-badge">
                 <text class="material-symbols-outlined badge-icon">mic</text>
                 <text class="badge-text">听写</text>
