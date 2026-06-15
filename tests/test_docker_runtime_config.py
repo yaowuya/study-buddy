@@ -14,6 +14,8 @@ def test_migration_doc_mentions_docker_database_url_encoding():
 
     assert "host.docker.internal" in doc
     assert "%40" in doc
+    assert "Cai" not in doc
+    assert "180906" not in doc
 
 
 def test_alembic_env_does_not_write_database_url_through_configparser():

@@ -11,7 +11,7 @@
 1. 备份 PostgreSQL。
 2. 在 MySQL 中创建空库和账号。
 3. 使用当前项目 Alembic 在 MySQL 中创建表结构。
-4. 使用 `pgloader` 只迁移数据，不让 `pgloader` 自动创建表结构。
+4. 使用项目脚本只迁移数据，不让脚本自动创建表结构。
 5. 校验核心表记录数。
 6. 切换 `.env` 的 `DATABASE_URL`。
 7. 重启服务并观察日志。
@@ -60,7 +60,7 @@ UNION ALL SELECT 'mistakes', COUNT(*) FROM mistakes;
 
 ```bash
 sudo apt update
-sudo apt install -y mysql-server pgloader
+sudo apt install -y mysql-server
 ```
 
 如果项目虚拟环境还没有安装依赖：
@@ -112,37 +112,42 @@ SHOW COLUMNS FROM users;
 SHOW COLUMNS FROM tasks;
 ```
 
-## 6. 使用 pgloader 只导入数据
+## 6. 使用项目脚本只导入数据
 
-创建 `pg-to-mysql.load`：
-
-```lisp
-LOAD DATABASE
-     FROM postgresql://postgres:root@127.0.0.1:5432/studybuddy
-     INTO mysql://studybuddy:请替换为强密码@127.0.0.1:3306/studybuddy
-
-WITH data only, truncate
-
-INCLUDING ONLY TABLE NAMES MATCHING
-    ~/families/,
-    ~/users/,
-    ~/tasks/,
-    ~/dictation_items/,
-    ~/submissions/,
-    ~/mistakes/;
-```
-
-执行：
+先 dry-run 查看 PostgreSQL 源库各表数量，不写入 MySQL：
 
 ```bash
-pgloader pg-to-mysql.load
+python scripts/migrate_postgres_to_mysql.py \
+  --source postgresql://postgres:root@127.0.0.1:5432/studybuddy \
+  --target mysql+pymysql://studybuddy:请替换为强密码@127.0.0.1:3306/studybuddy \
+  --dry-run
+```
+
+确认表数量符合预期后执行正式迁移：
+
+```bash
+python scripts/migrate_postgres_to_mysql.py \
+  --source postgresql://postgres:root@127.0.0.1:5432/studybuddy \
+  --target mysql+pymysql://studybuddy:请替换为强密码@127.0.0.1:3306/studybuddy
+```
+
+脚本默认按依赖顺序迁移：
+
+```text
+families
+users
+tasks
+dictation_items
+submissions
+mistakes
 ```
 
 说明：
 
-- `data only` 表示只导数据，不由 `pgloader` 创建表。
-- `truncate` 会先清空 MySQL 目标表，所以只应在新建空库或确认可覆盖时使用。
-- 如果 PostgreSQL 密码、MySQL 密码包含特殊字符，建议 URL encode，或临时使用不含特殊字符的迁移账号。
+- 目标 MySQL 表结构必须先通过 `alembic upgrade head` 创建。
+- 脚本默认会先按反向依赖顺序清空目标表，再插入 PostgreSQL 数据。
+- 如果目标表已有数据且不想清空，可加 `--no-truncate`，但主键重复会导致插入失败。
+- 如果 PostgreSQL 密码、MySQL 密码包含特殊字符，连接 URL 中需要做 URL encode。例如 `@` 写成 `%40`。
 
 ## 7. 校验 MySQL 数据
 
@@ -198,7 +203,7 @@ DATABASE_URL=mysql+pymysql://studybuddy:请替换为强密码@host.docker.intern
 如果数据库密码包含特殊字符，需要做 URL 编码。例如密码里的 `@` 要写成 `%40`：
 
 ```env
-DATABASE_URL=mysql+pymysql://paas:Cai%40180906@host.docker.internal:3306/studybuddy
+DATABASE_URL=mysql+pymysql://studybuddy:your%40password@host.docker.internal:3306/studybuddy
 ```
 
 重启服务：
