@@ -432,10 +432,10 @@ onShow(() => {
 // Task Card Header
 // ═══════════════════════════════════════════════════
 .task-card-header {
-  display: flex; align-items: center; justify-content: space-between;
+  display: flex; align-items: center;
   margin-bottom: 16px;
 }
-.task-header-left { display: flex; align-items: center; gap: 8px; overflow: hidden; }
+.task-header-left { display: flex; align-items: center; gap: 8px; overflow: hidden; flex: 1; min-width: 0; }
 .task-icon-circle {
   width: 32px; height: 32px; border-radius: $radius-full;
   background: rgba(255, 255, 255, 0.5);
@@ -458,6 +458,7 @@ onShow(() => {
   display: inline-flex; align-items: center; gap: 2px;
   background: rgba($color-dark-green, 0.8);
   padding: 2px 8px; border-radius: 4px;
+  flex-shrink: 0;
 }
 .badge-icon { font-size: 12px; color: #fff; }
 .badge-text { font-size: 10px; font-weight: 600; color: #fff; }
@@ -467,6 +468,7 @@ onShow(() => {
   padding: 4px 12px; border-radius: $radius-full;
   background: rgba(255, 255, 255, 0.6);
   flex-shrink: 0;
+  margin-left: 8px;
 }
 .status-text { font-size: 12px; font-weight: 500; }
 .status-pending .status-text { color: $color-organic-on-surface-variant; }
