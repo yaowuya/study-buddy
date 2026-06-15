@@ -188,6 +188,19 @@ WHERE t.id IS NULL;
 DATABASE_URL=mysql+pymysql://studybuddy:请替换为强密码@localhost:3306/studybuddy
 ```
 
+如果应用跑在 Docker Compose 容器里，而 MySQL 跑在宿主机上，`localhost` 指的是容器自身，不是宿主机。此时应使用 `host.docker.internal`，并确保 `.env` 每个配置独占一行：
+
+```env
+# 数据库连接
+DATABASE_URL=mysql+pymysql://studybuddy:请替换为强密码@host.docker.internal:3306/studybuddy
+```
+
+如果数据库密码包含特殊字符，需要做 URL 编码。例如密码里的 `@` 要写成 `%40`：
+
+```env
+DATABASE_URL=mysql+pymysql://paas:Cai%40180906@host.docker.internal:3306/studybuddy
+```
+
 重启服务：
 
 ```bash

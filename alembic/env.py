@@ -1,6 +1,7 @@
 from logging.config import fileConfig
 
 import os
+from sqlalchemy import create_engine
 from sqlalchemy import engine_from_config
 from sqlalchemy import pool
 
@@ -10,10 +11,13 @@ from alembic import context
 # access to the values within the .ini file in use.
 config = context.config
 
-# 优先使用环境变量中的 DATABASE_URL
+# 优先使用环境变量中的 DATABASE_URL。不要写回 Alembic ini 配置，
+# URL 编码里的 "%" 会被 ConfigParser 当成插值语法。
 db_url = os.getenv("DATABASE_URL")
-if db_url:
-    config.set_main_option("sqlalchemy.url", db_url)
+
+
+def get_database_url() -> str:
+    return db_url or config.get_main_option("sqlalchemy.url")
 
 # Interpret the config file for Python logging.
 # This line sets up loggers basically.
@@ -46,7 +50,7 @@ def run_migrations_offline() -> None:
     script output.
 
     """
-    url = config.get_main_option("sqlalchemy.url")
+    url = get_database_url()
     context.configure(
         url=url,
         target_metadata=target_metadata,
@@ -65,11 +69,14 @@ def run_migrations_online() -> None:
     and associate a connection with the context.
 
     """
-    connectable = engine_from_config(
-        config.get_section(config.config_ini_section, {}),
-        prefix="sqlalchemy.",
-        poolclass=pool.NullPool,
-    )
+    if db_url:
+        connectable = create_engine(db_url, poolclass=pool.NullPool)
+    else:
+        connectable = engine_from_config(
+            config.get_section(config.config_ini_section, {}),
+            prefix="sqlalchemy.",
+            poolclass=pool.NullPool,
+        )
 
     with connectable.connect() as connection:
         context.configure(
