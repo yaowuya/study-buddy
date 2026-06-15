@@ -435,9 +435,9 @@ onShow(() => {
   display: flex; align-items: center; justify-content: space-between;
   margin-bottom: 16px;
 }
-.task-header-left { display: flex; align-items: center; gap: 12px; overflow: hidden; }
+.task-header-left { display: flex; align-items: center; gap: 8px; overflow: hidden; }
 .task-icon-circle {
-  width: 40px; height: 40px; border-radius: $radius-full;
+  width: 32px; height: 32px; border-radius: $radius-full;
   background: rgba(255, 255, 255, 0.5);
   display: flex; align-items: center; justify-content: center; flex-shrink: 0;
 }
@@ -445,9 +445,9 @@ onShow(() => {
 .icon-数学 .task-icon { color: #9a3412; }
 .icon-英语 .task-icon { color: $color-dark-green; }
 .icon-default .task-icon { color: $color-organic-on-surface-variant; }
-.task-icon { font-size: 20px; }
+.task-icon { font-size: 16px; }
 
-.task-title { font-size: 20px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex-shrink: 1; min-width: 0; }
+.task-title { font-size: 16px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex-shrink: 1; min-width: 0; }
 .title-语文 { color: #3b0764; }
 .title-数学 { color: #7c2d12; }
 .title-英语 { color: $color-dark-green; }
