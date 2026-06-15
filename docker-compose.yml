@@ -1,7 +1,7 @@
 services:
   studybuddy-api:
     build: .
-    container_name: studybuddy-api-2:0
+    container_name: studybuddy-api-2.0
     restart: always
     ports:
       - "8000:8000"
