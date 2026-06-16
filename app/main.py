@@ -1,7 +1,9 @@
 from contextlib import asynccontextmanager
+import os
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 
 from app.api.v1.auth import router as auth_router
 from app.api.v1.tasks import router as tasks_router
@@ -49,6 +51,12 @@ app.include_router(admin_router, prefix="/api/v1")
 @app.get("/health")
 def health_check():
     return {"status": "ok"}
+
+
+# 挂载管理后台静态文件（构建产物放在项目根目录 admin-dist/）
+_admin_dist = os.path.join(os.path.dirname(os.path.dirname(__file__)), "admin-dist")
+if os.path.isdir(_admin_dist):
+    app.mount("/admin", StaticFiles(directory=_admin_dist, html=True), name="admin-ui")
 
 
 if __name__ == "__main__":
