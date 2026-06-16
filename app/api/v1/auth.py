@@ -30,6 +30,8 @@ def login(body: UserLogin, db: Session = Depends(get_db)):
     user = user_crud.get_user_by_phone(db, body.phone)
     if not user or not verify_password(body.password, user.hashed_password):
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Invalid credentials")
+    if not user.is_active:
+        raise HTTPException(status.HTTP_403_FORBIDDEN, "Account disabled")
     token = create_access_token(str(user.id))
     return Token(access_token=token)
 
