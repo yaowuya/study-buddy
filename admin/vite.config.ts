@@ -7,7 +7,7 @@ export default defineConfig({
   plugins: [vue()],
   base: '/admin/',
   build: {
-    outDir: '../static/admin',
+    outDir: '../static/admin-dist',
     emptyOutDir: true,
   },
   server: {

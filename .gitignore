@@ -71,9 +71,9 @@ lerna-debug.log*
 # === OpenAPI (auto-generated, re-export on demand) ===
 openapi.json
 
-# === Admin 开发临时产物（正式构建输出到 static/admin/，需提交）===
-admin-dist/
-admin/dist/
+# === Admin 开发临时产物（正式构建输出到 static/admin-dist/，需提交）===
+/admin-dist/
+/admin/dist/
 
 # === Docs build artifacts ===
 docs/_build/
