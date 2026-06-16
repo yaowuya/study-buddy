@@ -1,0 +1,1 @@
+import{r as e}from"./index-B8I3RB8c.js";function t(){return e.get(`/tasks/stats`)}function n(t){return e.get(`/tasks/`,{params:t})}function r(t){return e.get(`/tasks/${t}`)}function i(t){return e.delete(`/tasks/${t}`)}export{n as i,t as n,r,i as t};

@@ -1,0 +1,1 @@
+import{r as e}from"./index-B8I3RB8c.js";function t(t){return e.get(`/users/`,{params:t})}function n(t){return e.get(`/users/${t}`)}function r(t,n){return e.patch(`/users/${t}`,n)}function i(t){return e.delete(`/users/${t}`)}export{r as i,n,t as r,i as t};

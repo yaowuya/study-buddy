@@ -1,0 +1,1 @@
+import{r as e}from"./index-B8I3RB8c.js";function t(t){return e.get(`/families/`,{params:t})}function n(t){return e.get(`/families/${t}`)}function r(t){return e.delete(`/families/${t}`)}export{n,t as r,r as t};

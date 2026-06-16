@@ -5,9 +5,10 @@ import { fileURLToPath, URL } from 'node:url'
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [vue()],
-  base: '/admin/',           // 打包后资源路径前缀
+  base: '/admin/',
   build: {
-    outDir: '../admin-dist', // 输出到项目根目录的 admin-dist/
+    outDir: '../static/admin',
+    emptyOutDir: true,
   },
   server: {
     port: 5174,

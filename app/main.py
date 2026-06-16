@@ -53,8 +53,8 @@ def health_check():
     return {"status": "ok"}
 
 
-# 挂载管理后台静态文件（构建产物放在项目根目录 admin-dist/）
-_admin_dist = os.path.join(os.path.dirname(os.path.dirname(__file__)), "admin-dist")
+# 挂载管理后台静态文件（构建产物放在 static/admin/）
+_admin_dist = os.path.join(os.path.dirname(os.path.dirname(__file__)), "static", "admin")
 if os.path.isdir(_admin_dist):
     app.mount("/admin", StaticFiles(directory=_admin_dist, html=True), name="admin-ui")
 

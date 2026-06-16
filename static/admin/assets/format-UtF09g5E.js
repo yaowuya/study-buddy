@@ -1,0 +1,1 @@
+function e(e){return{pending:`未开始`,in_progress:`进行中`,submitted:`已提交`,graded:`已批改`}[e]||e}function t(e){return{pending:`default`,in_progress:`blue`,submitted:`orange`,graded:`green`}[e]||`default`}export{t as n,e as t};
