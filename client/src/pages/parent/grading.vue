@@ -188,6 +188,7 @@ import { ref, computed, reactive, onMounted } from 'vue'
 import { onShow } from '@dcloudio/uni-app'
 import { useAuthStore } from '@/stores/auth'
 import { useTasksStore } from '@/stores/tasks'
+import { useSyncStore } from '@/stores/sync'
 import { gradeSubmission, listSubmissions, submitTask as apiSubmitTask } from '@/api/submissions'
 import { getDictationItems } from '@/api/dictation'
 import type { TaskOut } from '@/api/tasks'
@@ -208,6 +209,7 @@ const studentNavItems: NavItem[] = [
 
 const authStore = useAuthStore()
 const tasksStore = useTasksStore()
+const syncStore = useSyncStore()
 const showCode = ref(false)
 const showLogoutConfirm = ref(false)
 const familyCode = ref('加载中')
@@ -356,9 +358,9 @@ const dateGroups = computed(() => {
     const d = parseDate(task.date); d.setHours(0, 0, 0, 0)
     let label: string, sortKey: string
     if (d.getTime() === today.getTime()) {
-      label = '今天'; sortKey = '0'
+      label = '今天'; sortKey = `9_${task.date}`   // 最大，排最前
     } else if (d.getTime() === yesterday.getTime()) {
-      label = '昨天'; sortKey = '1'
+      label = '昨天'; sortKey = `8_${task.date}`   // 第二大
     } else {
       label = `${d.getMonth() + 1}月${d.getDate()}日`; sortKey = `2_${task.date}`
     }
@@ -484,6 +486,7 @@ onMounted(async () => {
 })
 
 onShow(() => {
+  syncStore.stop()   // 停掉 home 页的定时同步，防止 fetchTodayTasks 覆盖历史数据
   loadTasksForFilter()
 })
 </script>
