@@ -23,8 +23,8 @@ def create_family(db: Session) -> Family:
 
 
 def get_family_by_code(db: Session, code: str) -> Family | None:
-    return db.query(Family).filter(Family.code == code).first()
+    return db.query(Family).filter(Family.code == code, Family.is_deleted == False).first()
 
 
 def get_family_by_id(db: Session, family_id: uuid.UUID) -> Family | None:
-    return db.query(Family).filter(Family.id == family_id).first()
+    return db.query(Family).filter(Family.id == family_id, Family.is_deleted == False).first()

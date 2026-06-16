@@ -15,7 +15,7 @@ def create_task(db: Session, family_id: uuid.UUID, **kwargs) -> Task:
 
 
 def get_family_tasks_by_date(db: Session, family_id: uuid.UUID, date_from: date | None = None, date_to: date | None = None) -> list[Task]:
-    query = db.query(Task).filter(Task.family_id == family_id)
+    query = db.query(Task).filter(Task.family_id == family_id, Task.is_deleted == False)
     if date_from:
         query = query.filter(Task.date >= date_from)
     if date_to:
@@ -24,7 +24,7 @@ def get_family_tasks_by_date(db: Session, family_id: uuid.UUID, date_from: date 
 
 
 def get_task_by_id(db: Session, task_id: uuid.UUID) -> Task | None:
-    return db.query(Task).filter(Task.id == task_id).first()
+    return db.query(Task).filter(Task.id == task_id, Task.is_deleted == False).first()
 
 
 def update_task_status(db: Session, task: Task, status: TaskStatus) -> Task:

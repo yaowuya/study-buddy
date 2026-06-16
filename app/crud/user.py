@@ -7,11 +7,11 @@ from app.core.security import hash_password
 
 
 def get_user_by_phone(db: Session, phone: str) -> User | None:
-    return db.query(User).filter(User.phone == phone).first()
+    return db.query(User).filter(User.phone == phone, User.is_deleted == False).first()
 
 
 def get_user_by_id(db: Session, user_id: uuid.UUID) -> User | None:
-    return db.query(User).filter(User.id == user_id).first()
+    return db.query(User).filter(User.id == user_id, User.is_deleted == False).first()
 
 
 def create_user(db: Session, phone: str, password: str, role: UserRole) -> User:
