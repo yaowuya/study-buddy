@@ -7,15 +7,19 @@ const PROD_API_URL = 'http://106.55.249.101:8000/api/v1'
 // 本地开发 API 地址（真机调试用）
 const DEV_API_URL = 'http://10.10.41.184:8000/api/v1'
 
-// #ifdef H5
-// H5 端：开发环境走代理，生产环境直接请求
-const BASE_URL = import.meta.env.DEV ? '/api/v1' : PROD_API_URL
-// #endif
+// 判断当前运行环境
+// typeof window 在 H5 下存在，App 下不存在
+function getBaseUrl(): string {
+  // H5 开发环境走 Vite 代理
+  if (import.meta.env.DEV && typeof window !== 'undefined') {
+    return '/api/v1'
+  }
+  // App 开发真机调试走内网
+  if (import.meta.env.DEV) {
+    return DEV_API_URL
+  }
+  // 生产环境
+  return PROD_API_URL
+}
 
-// #ifndef H5
-// App 端：打包后用生产地址，调试时用本地地址
-// 正式打包时 import.meta.env.DEV 为 false
-const BASE_URL = import.meta.env.DEV ? DEV_API_URL : PROD_API_URL
-// #endif
-
-export { BASE_URL }
+export const BASE_URL = getBaseUrl()
