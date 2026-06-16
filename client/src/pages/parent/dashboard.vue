@@ -536,17 +536,17 @@ onUnmounted(() => {
 
 // Badges
 .badge {
-  display: inline-flex; align-items: center; gap: 2px;
-  padding: 2px 8px; border-radius: $radius-full;
-  font-size: 12px; font-weight: 700; line-height: 16px;
+  display: inline-flex; align-items: center; gap: 3px;
+  padding: 4px 10px; border-radius: $radius-full;
+  font-size: 12px; font-weight: 700; line-height: 16px; flex-shrink: 0;
 }
 .badge-dictation { background: $color-on-secondary-fixed-variant; color: #fff; }
 .badge-pending { background: $color-organic-surface-variant; color: $color-organic-on-surface-variant; font-weight: 600; }
 .badge-in_progress { background: $color-pale-peach; color: $color-organic-on-surface-variant; font-weight: 600; }
 .badge-completed { background: rgba($color-mint-light, 0.6); color: $color-dark-green; font-weight: 600; }
-.badge-icon { font-size: 10px; }
-.badge-icon-sm { font-size: 10px; }
-.badge-text { color: inherit; font-size: 10px; font-weight: 600; }
+.badge-icon { font-size: 13px; }
+.badge-icon-sm { font-size: 13px; }
+.badge-text { color: inherit; font-size: 12px; font-weight: 600; }
 
 // Task Content
 .task-content {

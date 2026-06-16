@@ -452,20 +452,20 @@ onShow(() => {
 
 // Dictation badge
 .dictation-badge {
-  display: inline-flex; align-items: center; gap: 2px;
+  display: inline-flex; align-items: center; gap: 3px;
   background: rgba($color-dark-green, 0.8);
-  padding: 2px 6px; border-radius: 4px; flex-shrink: 0;
+  padding: 3px 8px; border-radius: 6px; flex-shrink: 0;
 }
-.badge-icon { font-size: 10px; color: #fff; }
-.badge-text { font-size: 9px; font-weight: 600; color: #fff; }
+.badge-icon { font-size: 13px; color: #fff; }
+.badge-text { font-size: 12px; font-weight: 600; color: #fff; }
 
 // Status badge
 .status-badge {
-  padding: 2px 8px; border-radius: $radius-full;
+  padding: 4px 10px; border-radius: $radius-full;
   background: rgba(255, 255, 255, 0.6);
   flex-shrink: 0;
 }
-.status-text { font-size: 11px; font-weight: 500; }
+.status-text { font-size: 12px; font-weight: 600; }
 .status-pending .status-text { color: $color-organic-on-surface-variant; }
 .status-in_progress .status-text { color: $color-organic-secondary; }
 .status-submitted .status-text { color: $color-primary; }
