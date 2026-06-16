@@ -54,20 +54,16 @@
         <view v-for="task in pendingTasks" :key="task.id" class="task-card">
           <!-- Task Header -->
           <view class="task-header">
-            <view class="task-header-row">
-              <view :class="['task-icon-circle', `icon-bg-${task.subject || 'default'}`]">
-                <text class="material-symbols-outlined task-icon">{{ subjectIcon(task.subject) }}</text>
-              </view>
-              <text class="task-title">{{ task.title }}</text>
+            <view :class="['task-icon-circle', `icon-bg-${task.subject || 'default'}`]">
+              <text class="material-symbols-outlined task-icon">{{ subjectIcon(task.subject) }}</text>
             </view>
-            <view class="task-badges-row">
-              <view v-if="task.has_dictation" class="badge badge-dictation">
-                <text class="material-symbols-outlined badge-icon">record_voice_over</text>
-                <text class="badge-text">听写</text>
-              </view>
-              <view :class="['badge', `badge-${task.status}`]">
-                <text class="badge-text">{{ statusLabel(task.status) }}</text>
-              </view>
+            <text class="task-title">{{ task.title }}</text>
+            <view v-if="task.has_dictation" class="badge badge-dictation">
+              <text class="material-symbols-outlined badge-icon">record_voice_over</text>
+              <text class="badge-text">听写</text>
+            </view>
+            <view :class="['badge', `badge-${task.status}`]">
+              <text class="badge-text">{{ statusLabel(task.status) }}</text>
             </view>
           </view>
 
@@ -104,17 +100,13 @@
         <text class="section-label section-label-done">已完成 ({{ doneTasks.length }})</text>
         <view v-for="task in doneTasks" :key="task.id" class="task-card task-card-done">
           <view class="task-header">
-            <view class="task-header-row">
-              <view :class="['task-icon-circle', `icon-bg-${task.subject || 'default'}`, 'icon-done']">
-                <text class="material-symbols-outlined task-icon">{{ subjectIcon(task.subject) }}</text>
-              </view>
-              <text class="task-title task-title-done">{{ task.title }}</text>
+            <view :class="['task-icon-circle', `icon-bg-${task.subject || 'default'}`, 'icon-done']">
+              <text class="material-symbols-outlined task-icon">{{ subjectIcon(task.subject) }}</text>
             </view>
-            <view class="task-badges-row">
-              <view class="badge badge-completed">
-                <text class="material-symbols-outlined badge-icon-sm">check_circle</text>
-                <text class="badge-text">已完成</text>
-              </view>
+            <text class="task-title task-title-done">{{ task.title }}</text>
+            <view class="badge badge-completed">
+              <text class="material-symbols-outlined badge-icon-sm">check_circle</text>
+              <text class="badge-text">已完成</text>
             </view>
           </view>
           <view class="task-content task-content-done">
@@ -522,11 +514,9 @@ onUnmounted(() => {
 }
 
 // Task Header
-.task-header { display: flex; flex-direction: column; gap: 8px; }
-.task-header-row { display: flex; align-items: center; gap: 12px; }
-.task-badges-row { display: flex; align-items: center; gap: 8px; padding-left: 44px; }
+.task-header { display: flex; align-items: center; gap: 8px; }
 .task-icon-circle {
-  width: 36px; height: 36px; border-radius: $radius-full;
+  width: 30px; height: 30px; border-radius: $radius-full;
   display: flex; align-items: center; justify-content: center; flex-shrink: 0;
 }
 .icon-bg-语文 { background: $color-soft-lilac; color: #4e453c; }
@@ -536,26 +526,26 @@ onUnmounted(() => {
 .icon-bg-default { background: $color-organic-surface-container; color: $color-organic-on-surface-variant; }
 .icon-done { opacity: 0.6; }
 
-.task-icon { font-size: 18px; }
+.task-icon { font-size: 15px; }
 .task-title {
-  font-family: 'Inter', sans-serif; font-size: 18px; font-weight: 700;
-  color: $color-dark-green; line-height: 24px;
+  font-family: 'Inter', sans-serif; font-size: 16px; font-weight: 700;
+  color: $color-dark-green; line-height: 22px; flex: 1;
 }
 .task-title-done { text-decoration: line-through; color: rgba(29, 59, 22, 0.6); }
 
 // Badges
 .badge {
-  display: inline-flex; align-items: center; gap: 4px;
-  padding: 4px 12px; border-radius: $radius-full;
+  display: inline-flex; align-items: center; gap: 2px;
+  padding: 2px 8px; border-radius: $radius-full;
   font-size: 12px; font-weight: 700; line-height: 16px;
 }
 .badge-dictation { background: $color-on-secondary-fixed-variant; color: #fff; }
 .badge-pending { background: $color-organic-surface-variant; color: $color-organic-on-surface-variant; font-weight: 600; }
 .badge-in_progress { background: $color-pale-peach; color: $color-organic-on-surface-variant; font-weight: 600; }
 .badge-completed { background: rgba($color-mint-light, 0.6); color: $color-dark-green; font-weight: 600; }
-.badge-icon { font-size: 14px; }
-.badge-icon-sm { font-size: 14px; }
-.badge-text { color: inherit; }
+.badge-icon { font-size: 10px; }
+.badge-icon-sm { font-size: 10px; }
+.badge-text { color: inherit; font-size: 10px; font-weight: 600; }
 
 // Task Content
 .task-content {

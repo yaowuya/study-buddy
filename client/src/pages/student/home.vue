@@ -51,24 +51,18 @@
           <text class="empty-text">今天没有任务，休息一下吧！</text>
         </view>
         <view v-for="task in tasks" :key="task.id" :class="['task-card', `card-${task.subject || 'default'}`, (task.status === 'graded' || task.status === 'submitted') ? 'task-done' : '']">
-          <!-- Card header: line1=icon+title, line2=badges -->
+          <!-- Card header: icon + title + badges (single row) -->
           <view class="task-card-header">
-            <view class="task-header-row">
-              <view :class="['task-icon-circle', `icon-${task.subject || 'default'}`]">
-                <text class="material-symbols-outlined task-icon">{{ subjectIcon(task.subject) }}</text>
-              </view>
-              <view :class="['task-title', `title-${task.subject || 'default'}`]">
-                <text>{{ task.title }}</text>
-              </view>
+            <view :class="['task-icon-circle', `icon-${task.subject || 'default'}`]">
+              <text class="material-symbols-outlined task-icon">{{ subjectIcon(task.subject) }}</text>
             </view>
-            <view class="task-badges-row">
-              <view v-if="task.has_dictation" class="dictation-badge">
-                <text class="material-symbols-outlined badge-icon">mic</text>
-                <text class="badge-text">听写</text>
-              </view>
-              <view :class="['status-badge', `status-${task.status}`]">
-                <text class="status-text">{{ statusLabel(task.status) }}</text>
-              </view>
+            <text :class="['task-title', `title-${task.subject || 'default'}`]">{{ task.title }}</text>
+            <view v-if="task.has_dictation" class="dictation-badge">
+              <text class="material-symbols-outlined badge-icon">mic</text>
+              <text class="badge-text">听写</text>
+            </view>
+            <view :class="['status-badge', `status-${task.status}`]">
+              <text class="status-text">{{ statusLabel(task.status) }}</text>
             </view>
           </view>
 
@@ -433,17 +427,14 @@ onShow(() => {
 .card-default { background: $color-organic-surface-container; }
 
 // ═══════════════════════════════════════════════════
-// Task Card Header (two rows)
+// Task Card Header
 // ═══════════════════════════════════════════════════
 .task-card-header {
-  display: flex; flex-direction: column; gap: 8px;
+  display: flex; align-items: center; gap: 6px;
   margin-bottom: 12px;
 }
-.task-header-row {
-  display: flex; align-items: center; gap: 8px;
-}
 .task-icon-circle {
-  width: 32px; height: 32px; border-radius: $radius-full;
+  width: 30px; height: 30px; border-radius: $radius-full;
   background: rgba(255, 255, 255, 0.5);
   display: flex; align-items: center; justify-content: center; flex-shrink: 0;
 }
@@ -451,33 +442,30 @@ onShow(() => {
 .icon-数学 .task-icon { color: #9a3412; }
 .icon-英语 .task-icon { color: $color-dark-green; }
 .icon-default .task-icon { color: $color-organic-on-surface-variant; }
-.task-icon { font-size: 16px; }
+.task-icon { font-size: 15px; }
 
-.task-title { font-size: 18px; font-weight: 700; }
+.task-title { font-size: 16px; font-weight: 700; flex: 1; }
 .title-语文 { color: #3b0764; }
 .title-数学 { color: #7c2d12; }
 .title-英语 { color: $color-dark-green; }
 .title-default { color: $color-organic-on-surface; }
 
-.task-badges-row {
-  display: flex; align-items: center; gap: 8px; padding-left: 40px;
-}
-
 // Dictation badge
 .dictation-badge {
   display: inline-flex; align-items: center; gap: 2px;
   background: rgba($color-dark-green, 0.8);
-  padding: 2px 8px; border-radius: 4px;
+  padding: 2px 6px; border-radius: 4px; flex-shrink: 0;
 }
-.badge-icon { font-size: 12px; color: #fff; }
-.badge-text { font-size: 10px; font-weight: 600; color: #fff; }
+.badge-icon { font-size: 10px; color: #fff; }
+.badge-text { font-size: 9px; font-weight: 600; color: #fff; }
 
 // Status badge
 .status-badge {
-  padding: 4px 12px; border-radius: $radius-full;
+  padding: 2px 8px; border-radius: $radius-full;
   background: rgba(255, 255, 255, 0.6);
+  flex-shrink: 0;
 }
-.status-text { font-size: 12px; font-weight: 500; }
+.status-text { font-size: 11px; font-weight: 500; }
 .status-pending .status-text { color: $color-organic-on-surface-variant; }
 .status-in_progress .status-text { color: $color-organic-secondary; }
 .status-submitted .status-text { color: $color-primary; }
