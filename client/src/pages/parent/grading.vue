@@ -553,7 +553,7 @@ onShow(() => {
 .main {
   position: relative;
   z-index: 1;
-  padding: 0 24px;
+  padding: 0 16px;
   box-sizing: border-box;
   height: 100vh;
 }
@@ -728,6 +728,7 @@ onShow(() => {
   flex-direction: column;
   gap: 12px;
   margin-bottom: 24px;
+  padding: 0 8px;
 }
 
 .date-header {
@@ -783,14 +784,15 @@ onShow(() => {
   padding: 24px;
   box-shadow: 0 16px 32px rgba(0, 0, 0, 0.06);
   transition: transform 0.3s;
+  margin: 0 4px;
 }
 
 .stagger-left {
-  transform: translateX(-8px) rotate(-1deg);
+  transform: translateX(-6px) rotate(-1deg);
 }
 
 .stagger-right {
-  transform: translateX(8px) rotate(1deg);
+  transform: translateX(6px) rotate(1deg);
 }
 
 // Card color variants
