@@ -444,7 +444,7 @@ onShow(() => {
 .icon-default .task-icon { color: $color-organic-on-surface-variant; }
 .task-icon { font-size: 15px; }
 
-.task-title { font-size: 16px; font-weight: 700; flex: 1; }
+.task-title { font-size: 16px; font-weight: 700; flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .title-语文 { color: #3b0764; }
 .title-数学 { color: #7c2d12; }
 .title-英语 { color: $color-dark-green; }

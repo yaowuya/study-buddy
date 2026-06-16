@@ -529,7 +529,8 @@ onUnmounted(() => {
 .task-icon { font-size: 15px; }
 .task-title {
   font-family: 'Inter', sans-serif; font-size: 16px; font-weight: 700;
-  color: $color-dark-green; line-height: 22px; flex: 1;
+  color: $color-dark-green; line-height: 22px; flex: 1; min-width: 0;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 .task-title-done { text-decoration: line-through; color: rgba(29, 59, 22, 0.6); }
 
