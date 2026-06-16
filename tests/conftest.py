@@ -1,8 +1,12 @@
+import os
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
+
+# 测试环境强制使用固定初始密码，不受 .env 影响
+os.environ.setdefault("ADMIN_INITIAL_PASSWORD", "admin123")
 
 from app.database import Base
 from app.main import app

@@ -7,6 +7,7 @@ class Settings(BaseSettings):
     SECRET_KEY: str = "change-me-in-production"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 7  # 7 days
     ADMIN_TOKEN_EXPIRE_MINUTES: int = 60 * 8         # 管理员 token 8 小时
+    ADMIN_INITIAL_PASSWORD: str = "admin123"         # 默认管理员初始密码，生产环境请通过 .env 覆盖
     CORS_ORIGINS: list[str] = ["http://localhost:5173", "http://localhost:5174"]
 
     # 百度 TTS 配置
