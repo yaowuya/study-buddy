@@ -54,16 +54,20 @@
         <view v-for="task in pendingTasks" :key="task.id" class="task-card">
           <!-- Task Header -->
           <view class="task-header">
-            <view :class="['task-icon-circle', `icon-bg-${task.subject || 'default'}`]">
-              <text class="material-symbols-outlined task-icon">{{ subjectIcon(task.subject) }}</text>
+            <view class="task-header-row">
+              <view :class="['task-icon-circle', `icon-bg-${task.subject || 'default'}`]">
+                <text class="material-symbols-outlined task-icon">{{ subjectIcon(task.subject) }}</text>
+              </view>
+              <text class="task-title">{{ task.title }}</text>
             </view>
-            <text class="task-title">{{ task.title }}</text>
-            <view v-if="task.has_dictation" class="badge badge-dictation">
-              <text class="material-symbols-outlined badge-icon">record_voice_over</text>
-              <text class="badge-text">听写</text>
-            </view>
-            <view :class="['badge', `badge-${task.status}`]">
-              <text class="badge-text">{{ statusLabel(task.status) }}</text>
+            <view class="task-badges-row">
+              <view v-if="task.has_dictation" class="badge badge-dictation">
+                <text class="material-symbols-outlined badge-icon">record_voice_over</text>
+                <text class="badge-text">听写</text>
+              </view>
+              <view :class="['badge', `badge-${task.status}`]">
+                <text class="badge-text">{{ statusLabel(task.status) }}</text>
+              </view>
             </view>
           </view>
 
@@ -100,13 +104,17 @@
         <text class="section-label section-label-done">已完成 ({{ doneTasks.length }})</text>
         <view v-for="task in doneTasks" :key="task.id" class="task-card task-card-done">
           <view class="task-header">
-            <view :class="['task-icon-circle', `icon-bg-${task.subject || 'default'}`, 'icon-done']">
-              <text class="material-symbols-outlined task-icon">{{ subjectIcon(task.subject) }}</text>
+            <view class="task-header-row">
+              <view :class="['task-icon-circle', `icon-bg-${task.subject || 'default'}`, 'icon-done']">
+                <text class="material-symbols-outlined task-icon">{{ subjectIcon(task.subject) }}</text>
+              </view>
+              <text class="task-title task-title-done">{{ task.title }}</text>
             </view>
-            <text class="task-title task-title-done">{{ task.title }}</text>
-            <view class="badge badge-completed">
-              <text class="material-symbols-outlined badge-icon-sm">check_circle</text>
-              <text class="badge-text">已完成</text>
+            <view class="task-badges-row">
+              <view class="badge badge-completed">
+                <text class="material-symbols-outlined badge-icon-sm">check_circle</text>
+                <text class="badge-text">已完成</text>
+              </view>
             </view>
           </view>
           <view class="task-content task-content-done">
@@ -514,9 +522,11 @@ onUnmounted(() => {
 }
 
 // Task Header
-.task-header { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+.task-header { display: flex; flex-direction: column; gap: 8px; }
+.task-header-row { display: flex; align-items: center; gap: 12px; }
+.task-badges-row { display: flex; align-items: center; gap: 8px; padding-left: 44px; }
 .task-icon-circle {
-  width: 48px; height: 48px; border-radius: $radius-full;
+  width: 36px; height: 36px; border-radius: $radius-full;
   display: flex; align-items: center; justify-content: center; flex-shrink: 0;
 }
 .icon-bg-语文 { background: $color-soft-lilac; color: #4e453c; }
@@ -526,10 +536,10 @@ onUnmounted(() => {
 .icon-bg-default { background: $color-organic-surface-container; color: $color-organic-on-surface-variant; }
 .icon-done { opacity: 0.6; }
 
-.task-icon { font-size: 24px; }
+.task-icon { font-size: 18px; }
 .task-title {
-  font-family: 'Inter', sans-serif; font-size: 24px; font-weight: 700;
-  color: $color-dark-green; line-height: 32px; flex: 1;
+  font-family: 'Inter', sans-serif; font-size: 18px; font-weight: 700;
+  color: $color-dark-green; line-height: 24px;
 }
 .task-title-done { text-decoration: line-through; color: rgba(29, 59, 22, 0.6); }
 
