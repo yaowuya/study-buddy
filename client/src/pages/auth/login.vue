@@ -192,6 +192,13 @@ async function handleLogin() {
   }
   try {
     await authStore.login(phone.value, password.value)
+    // 校验选择的角色与账号实际角色是否一致
+    if (authStore.user?.role !== selectedRole.value) {
+      const actualLabel = authStore.user?.role === 'parent' ? '家长' : '学生'
+      uni.showToast({ title: `该账号是${actualLabel}账号，请选择正确角色`, icon: 'none', duration: 2500 })
+      authStore.logout()
+      return
+    }
     navigateByRole()
   } catch (e: any) {
     if (isRegisterMode.value) {

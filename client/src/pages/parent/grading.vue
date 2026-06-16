@@ -188,6 +188,7 @@ import { ref, computed, reactive, onMounted } from 'vue'
 import { onShow } from '@dcloudio/uni-app'
 import { useAuthStore } from '@/stores/auth'
 import { useTasksStore } from '@/stores/tasks'
+import { useSyncStore } from '@/stores/sync'
 import { gradeSubmission, listSubmissions, submitTask as apiSubmitTask } from '@/api/submissions'
 import { getDictationItems } from '@/api/dictation'
 import type { TaskOut } from '@/api/tasks'
@@ -208,6 +209,7 @@ const studentNavItems: NavItem[] = [
 
 const authStore = useAuthStore()
 const tasksStore = useTasksStore()
+const syncStore = useSyncStore()
 const showCode = ref(false)
 const showLogoutConfirm = ref(false)
 const familyCode = ref('加载中')
@@ -215,7 +217,7 @@ const familyCode = ref('加载中')
 const statusBarHeight = ref(0)
 
 // 日期筛选
-const currentFilter = ref('week')
+const currentFilter = ref('month')
 const showFilterDropdown = ref(false)
 const filterOptions = [
   { value: 'today', label: '今日' },
@@ -238,6 +240,15 @@ function formatDate(d: Date): string {
   return `${y}-${m}-${day}`
 }
 
+function parseDate(dateStr: string): Date {
+  // 兼容 Android 真机：避免 new Date("2026-06-15") 返回 Invalid Date
+  const parts = dateStr.split('-')
+  if (parts.length === 3) {
+    return new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]))
+  }
+  return new Date(dateStr)
+}
+
 function loadTasksForFilter() {
   gradedResult && Object.keys(gradedResult).forEach(k => delete gradedResult[k])
   Object.keys(gradedComment).forEach(k => delete gradedComment[k])
@@ -246,7 +257,10 @@ function loadTasksForFilter() {
   const [rangeStart, rangeEnd] = getDateRange(currentFilter.value)
   const dateFrom = formatDate(rangeStart)
   const dateTo = formatDate(rangeEnd)
-  tasksStore.fetchAllTasks(dateFrom, dateTo).then(loadGradedInfo)
+  console.log('[grading] loadTasksForFilter called:', { dateFrom, dateTo })
+  tasksStore.fetchAllTasks(dateFrom, dateTo).then(loadGradedInfo).catch((err) => {
+    console.error('[grading] fetchAllTasks failed:', err)
+  })
 }
 
 // 是否为学生模式（只读）
@@ -322,7 +336,7 @@ function getDateRange(filter: string): [Date, Date] {
 const filteredTasks = computed(() => {
   const [rangeStart, rangeEnd] = getDateRange(currentFilter.value)
   return allTasks.value.filter(t => {
-    const d = new Date(t.date)
+    const d = parseDate(t.date)
     return d >= rangeStart && d <= rangeEnd
   })
 })
@@ -341,19 +355,19 @@ const dateGroups = computed(() => {
   const map = new Map<string, { label: string; sortKey: string; tasks: TaskOut[] }>()
 
   for (const task of filteredTasks.value) {
-    const d = new Date(task.date); d.setHours(0, 0, 0, 0)
+    const d = parseDate(task.date); d.setHours(0, 0, 0, 0)
     let label: string, sortKey: string
     if (d.getTime() === today.getTime()) {
-      label = '今天'; sortKey = '0'
+      label = '今天'; sortKey = `9_${task.date}`   // 最大，排最前
     } else if (d.getTime() === yesterday.getTime()) {
-      label = '昨天'; sortKey = '1'
+      label = '昨天'; sortKey = `8_${task.date}`   // 第二大
     } else {
       label = `${d.getMonth() + 1}月${d.getDate()}日`; sortKey = `2_${task.date}`
     }
     if (!map.has(sortKey)) map.set(sortKey, { label, sortKey, tasks: [] })
     map.get(sortKey)!.tasks.push(task)
   }
-  return [...map.values()].sort((a, b) => a.sortKey.localeCompare(b.sortKey))
+  return [...map.values()].sort((a, b) => b.sortKey.localeCompare(a.sortKey))
 })
 
 async function loadGradedInfo() {
@@ -472,6 +486,7 @@ onMounted(async () => {
 })
 
 onShow(() => {
+  syncStore.stop()   // 停掉 home 页的定时同步，防止 fetchTodayTasks 覆盖历史数据
   loadTasksForFilter()
 })
 </script>
@@ -541,7 +556,7 @@ onShow(() => {
 .main {
   position: relative;
   z-index: 1;
-  padding: 0 24px;
+  padding: 0 16px;
   box-sizing: border-box;
   height: 100vh;
 }
@@ -716,6 +731,7 @@ onShow(() => {
   flex-direction: column;
   gap: 12px;
   margin-bottom: 24px;
+  padding: 0 8px;
 }
 
 .date-header {
@@ -771,14 +787,15 @@ onShow(() => {
   padding: 24px;
   box-shadow: 0 16px 32px rgba(0, 0, 0, 0.06);
   transition: transform 0.3s;
+  margin: 0 4px;
 }
 
 .stagger-left {
-  transform: translateX(-8px) rotate(-1deg);
+  transform: translateX(-6px) rotate(-1deg);
 }
 
 .stagger-right {
-  transform: translateX(8px) rotate(1deg);
+  transform: translateX(6px) rotate(1deg);
 }
 
 // Card color variants

@@ -51,17 +51,15 @@
           <text class="empty-text">今天没有任务，休息一下吧！</text>
         </view>
         <view v-for="task in tasks" :key="task.id" :class="['task-card', `card-${task.subject || 'default'}`, (task.status === 'graded' || task.status === 'submitted') ? 'task-done' : '']">
-          <!-- Card header: icon + title + badge -->
+          <!-- Card header: icon + title + badges (single row) -->
           <view class="task-card-header">
-            <view class="task-header-left">
-              <view :class="['task-icon-circle', `icon-${task.subject || 'default'}`]">
-                <text class="material-symbols-outlined task-icon">{{ subjectIcon(task.subject) }}</text>
-              </view>
-              <text :class="['task-title', `title-${task.subject || 'default'}`]">{{ task.title }}</text>
-              <view v-if="task.has_dictation" class="dictation-badge">
-                <text class="material-symbols-outlined badge-icon">mic</text>
-                <text class="badge-text">听写</text>
-              </view>
+            <view :class="['task-icon-circle', `icon-${task.subject || 'default'}`]">
+              <text class="material-symbols-outlined task-icon">{{ subjectIcon(task.subject) }}</text>
+            </view>
+            <text :class="['task-title', `title-${task.subject || 'default'}`]">{{ task.title }}</text>
+            <view v-if="task.has_dictation" class="dictation-badge">
+              <text class="material-symbols-outlined badge-icon">mic</text>
+              <text class="badge-text">听写</text>
             </view>
             <view :class="['status-badge', `status-${task.status}`]">
               <text class="status-text">{{ statusLabel(task.status) }}</text>
@@ -257,7 +255,12 @@ function goDictation(task: TaskOut | undefined) {
 function goDictationContinuous() {
   const sortedDictationTasks = tasks.value
     .filter(t => t.has_dictation && t.status !== 'graded')
-    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+    .sort((a, b) => {
+      const pa = a.date.split('-'), pb = b.date.split('-')
+      const da = pa.length === 3 ? new Date(Number(pa[0]), Number(pa[1]) - 1, Number(pa[2])) : new Date(a.date)
+      const db = pb.length === 3 ? new Date(Number(pb[0]), Number(pb[1]) - 1, Number(pb[2])) : new Date(b.date)
+      return da.getTime() - db.getTime()
+    })
 
   if (sortedDictationTasks.length === 0) return
 
@@ -427,12 +430,11 @@ onShow(() => {
 // Task Card Header
 // ═══════════════════════════════════════════════════
 .task-card-header {
-  display: flex; align-items: center; justify-content: space-between;
-  margin-bottom: 16px;
+  display: flex; align-items: center; gap: 6px;
+  margin-bottom: 12px;
 }
-.task-header-left { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
 .task-icon-circle {
-  width: 40px; height: 40px; border-radius: $radius-full;
+  width: 30px; height: 30px; border-radius: $radius-full;
   background: rgba(255, 255, 255, 0.5);
   display: flex; align-items: center; justify-content: center; flex-shrink: 0;
 }
@@ -440,9 +442,9 @@ onShow(() => {
 .icon-数学 .task-icon { color: #9a3412; }
 .icon-英语 .task-icon { color: $color-dark-green; }
 .icon-default .task-icon { color: $color-organic-on-surface-variant; }
-.task-icon { font-size: 20px; }
+.task-icon { font-size: 15px; }
 
-.task-title { font-size: 20px; font-weight: 700; }
+.task-title { font-size: 16px; font-weight: 700; flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .title-语文 { color: #3b0764; }
 .title-数学 { color: #7c2d12; }
 .title-英语 { color: $color-dark-green; }
@@ -450,20 +452,20 @@ onShow(() => {
 
 // Dictation badge
 .dictation-badge {
-  display: inline-flex; align-items: center; gap: 2px;
+  display: inline-flex; align-items: center; gap: 3px;
   background: rgba($color-dark-green, 0.8);
-  padding: 2px 8px; border-radius: 4px;
+  padding: 3px 8px; border-radius: 6px; flex-shrink: 0;
 }
-.badge-icon { font-size: 12px; color: #fff; }
-.badge-text { font-size: 10px; font-weight: 600; color: #fff; }
+.badge-icon { font-size: 13px; color: #fff; }
+.badge-text { font-size: 12px; font-weight: 600; color: #fff; }
 
 // Status badge
 .status-badge {
-  padding: 4px 12px; border-radius: $radius-full;
+  padding: 4px 10px; border-radius: $radius-full;
   background: rgba(255, 255, 255, 0.6);
   flex-shrink: 0;
 }
-.status-text { font-size: 12px; font-weight: 500; }
+.status-text { font-size: 12px; font-weight: 600; }
 .status-pending .status-text { color: $color-organic-on-surface-variant; }
 .status-in_progress .status-text { color: $color-organic-secondary; }
 .status-submitted .status-text { color: $color-primary; }
