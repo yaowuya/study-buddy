@@ -5,7 +5,7 @@ class Settings(BaseSettings):
     DATABASE_URL: str = "mysql+pymysql://root:root@localhost:3306/studybuddy"
     SECRET_KEY: str = "change-me-in-production"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 7  # 7 days
-    CORS_ORIGINS: list[str] = ["http://localhost:5173"]
+    CORS_ORIGINS: list[str] = ["http://localhost:5173", "http://localhost:5174"]
 
     # 百度 TTS 配置
     BAIDU_TTS_API_KEY: str = ""
