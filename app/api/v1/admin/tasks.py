@@ -56,7 +56,7 @@ def list_tasks(
     out = [
         AdminTaskOut(
             id=t.id, family_id=t.family_id, type=t.type, title=t.title,
-            status=t.status, date=str(t.date), subject=t.subject, is_deleted=t.is_deleted,
+            desc=t.desc, status=t.status, date=str(t.date), subject=t.subject, is_deleted=t.is_deleted,
         )
         for t in items
     ]
