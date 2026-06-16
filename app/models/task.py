@@ -2,7 +2,7 @@ import uuid
 from datetime import date
 from enum import StrEnum
 
-from sqlalchemy import String, Date, ForeignKey, Integer, Text
+from sqlalchemy import String, Date, ForeignKey, Integer, Text, Boolean
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db_types import GUID
@@ -33,6 +33,7 @@ class Task(Base):
     status: Mapped[TaskStatus] = mapped_column(String(20), default=TaskStatus.PENDING, nullable=False)  # 任务状态
     date: Mapped[date] = mapped_column(Date, nullable=False, index=True)  # 任务日期
     subject: Mapped[str | None] = mapped_column(String(20), nullable=True)  # 科目（如：语文、数学）
+    is_deleted: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)  # 软删除标记
 
     dictation_items: Mapped[list["DictationItem"]] = relationship(back_populates="task", cascade="all, delete-orphan")
     submission: Mapped["Submission | None"] = relationship(back_populates="task", uselist=False)
