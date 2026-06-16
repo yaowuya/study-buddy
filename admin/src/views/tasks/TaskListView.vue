@@ -9,6 +9,7 @@ import type { AdminFamilyOut } from '@/types/family'
 import { message } from 'ant-design-vue'
 import { formatStatus, statusColor } from '@/utils/format'
 import dayjs from 'dayjs'
+import type { Dayjs } from 'dayjs'
 
 const router = useRouter()
 const loading = ref(false)
@@ -16,9 +17,24 @@ const data = ref<PaginatedResponse<AdminTaskOut>>({ total: 0, items: [], page: 1
 const filters = reactive({
   task_status: undefined as string | undefined,
   family_id: undefined as string | undefined,
-  date_from: '',
-  date_to: '',
 })
+// RangePicker 绑定值：[Dayjs, Dayjs] | null
+const dateRange = ref<[Dayjs, Dayjs] | null>(null)
+
+// ── RangePicker 快捷预设 ──
+const rangePresets = [
+  { label: '今日', value: [dayjs(), dayjs()] as [Dayjs, Dayjs] },
+  { label: '最近7天', value: [dayjs().subtract(6, 'day'), dayjs()] as [Dayjs, Dayjs] },
+  { label: '最近30天', value: [dayjs().subtract(29, 'day'), dayjs()] as [Dayjs, Dayjs] },
+  { label: '本周', value: [dayjs().startOf('week'), dayjs().endOf('week')] as [Dayjs, Dayjs] },
+  { label: '本月', value: [dayjs().startOf('month'), dayjs().endOf('month')] as [Dayjs, Dayjs] },
+  { label: '今年', value: [dayjs().startOf('year'), dayjs().endOf('year')] as [Dayjs, Dayjs] },
+]
+
+function onRangeChange(val: [Dayjs, Dayjs] | null) {
+  dateRange.value = val
+  fetchData()
+}
 
 // ── 家庭下拉 ──
 const familyOptions = ref<{ value: string; label: string }[]>([])
@@ -42,47 +58,6 @@ onMounted(() => {
   fetchData()
 })
 
-// ── 快捷时间 ──
-const quickOptions = [
-  { label: '今日', key: 'today' },
-  { label: '本周', key: 'week' },
-  { label: '本月', key: 'month' },
-  { label: '今年', key: 'year' },
-]
-const activeQuick = ref<string | null>(null)
-
-function applyQuick(key: string) {
-  const now = dayjs()
-  if (activeQuick.value === key) {
-    // 再次点击取消
-    activeQuick.value = null
-    filters.date_from = ''
-    filters.date_to = ''
-  } else {
-    activeQuick.value = key
-    if (key === 'today') {
-      filters.date_from = now.format('YYYY-MM-DD')
-      filters.date_to = now.format('YYYY-MM-DD')
-    } else if (key === 'week') {
-      filters.date_from = now.startOf('week').format('YYYY-MM-DD')
-      filters.date_to = now.endOf('week').format('YYYY-MM-DD')
-    } else if (key === 'month') {
-      filters.date_from = now.startOf('month').format('YYYY-MM-DD')
-      filters.date_to = now.endOf('month').format('YYYY-MM-DD')
-    } else if (key === 'year') {
-      filters.date_from = now.startOf('year').format('YYYY-MM-DD')
-      filters.date_to = now.endOf('year').format('YYYY-MM-DD')
-    }
-  }
-  fetchData()
-}
-
-// 手动修改日期时清除快捷选中
-function onDateChange() {
-  activeQuick.value = null
-  fetchData()
-}
-
 // ── 表格 ──
 const columns = [
   { title: '标题', dataIndex: 'title' },
@@ -99,8 +74,10 @@ async function fetchData(page = 1) {
     const params: Record<string, any> = { page, page_size: 20 }
     if (filters.task_status) params.task_status = filters.task_status
     if (filters.family_id) params.family_id = filters.family_id
-    if (filters.date_from) params.date_from = filters.date_from
-    if (filters.date_to) params.date_to = filters.date_to
+    if (dateRange.value) {
+      params.date_from = dateRange.value[0].format('YYYY-MM-DD')
+      params.date_to = dateRange.value[1].format('YYYY-MM-DD')
+    }
     const res = await listTasks(params)
     data.value = res.data
   } finally {
@@ -119,8 +96,7 @@ async function handleDelete(record: AdminTaskOut) {
   <div>
     <h2 style="margin-bottom:16px">作业管理</h2>
 
-    <!-- 搜索栏 -->
-    <a-space style="margin-bottom:12px" wrap>
+    <a-space style="margin-bottom:16px" wrap>
       <!-- 家庭下拉 -->
       <a-select
         v-model:value="filters.family_id"
@@ -139,32 +115,28 @@ async function handleDelete(record: AdminTaskOut) {
       </a-select>
 
       <!-- 状态 -->
-      <a-select v-model:value="filters.task_status" placeholder="全部状态" allowClear style="width:130px" @change="fetchData()">
+      <a-select
+        v-model:value="filters.task_status"
+        placeholder="全部状态"
+        allowClear
+        style="width:130px"
+        @change="fetchData()"
+      >
         <a-select-option value="pending">未开始</a-select-option>
         <a-select-option value="in_progress">进行中</a-select-option>
         <a-select-option value="submitted">已提交</a-select-option>
         <a-select-option value="graded">已批改</a-select-option>
       </a-select>
 
-      <!-- 日期范围 -->
-      <a-input v-model:value="filters.date_from" type="date" style="width:150px" @change="onDateChange" />
-      <span style="color:#999">至</span>
-      <a-input v-model:value="filters.date_to" type="date" style="width:150px" @change="onDateChange" />
+      <!-- 日期范围选择器（内含快捷预设） -->
+      <a-range-picker
+        v-model:value="dateRange"
+        :presets="rangePresets"
+        style="width:280px"
+        @change="onRangeChange"
+      />
 
       <a-button type="primary" @click="fetchData()">搜索</a-button>
-    </a-space>
-
-    <!-- 快捷时间 -->
-    <a-space style="margin-bottom:16px">
-      <a-button
-        v-for="opt in quickOptions"
-        :key="opt.key"
-        :type="activeQuick === opt.key ? 'primary' : 'default'"
-        size="small"
-        @click="applyQuick(opt.key)"
-      >
-        {{ opt.label }}
-      </a-button>
     </a-space>
 
     <a-table
