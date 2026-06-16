@@ -33,18 +33,18 @@ async function handleSubmit() {
   <div>
     <h2 style="margin-bottom:24px">修改密码</h2>
     <a-card style="max-width:480px">
-      <a-form layout="vertical" @finish="handleSubmit">
+      <a-form layout="vertical">
         <a-form-item label="旧密码">
           <a-input-password v-model:value="form.old_password" placeholder="请输入旧密码" />
         </a-form-item>
-        <a-form-item label="新密码">
+        <a-form-item label="新密码（至少8位）">
           <a-input-password v-model:value="form.new_password" placeholder="请输入新密码" />
         </a-form-item>
         <a-form-item label="确认新密码">
           <a-input-password v-model:value="form.confirm_password" placeholder="请再次输入新密码" />
         </a-form-item>
         <a-form-item>
-          <a-button type="primary" html-type="submit" :loading="loading">确认修改</a-button>
+          <a-button type="primary" :loading="loading" @click="handleSubmit">确认修改</a-button>
         </a-form-item>
       </a-form>
     </a-card>
