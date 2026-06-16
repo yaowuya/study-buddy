@@ -7,6 +7,7 @@ from sqlalchemy.pool import StaticPool
 from app.database import Base
 from app.main import app
 from app.core.deps import get_db
+from app.crud.admin import seed_admin
 
 SQLALCHEMY_DATABASE_URL = "sqlite://"
 
@@ -18,6 +19,11 @@ engine = create_engine(
 TestSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 Base.metadata.create_all(bind=engine)
+
+# 在测试 DB 中种入默认管理员
+_seed_db = TestSessionLocal()
+seed_admin(_seed_db)
+_seed_db.close()
 
 
 def override_get_db():
