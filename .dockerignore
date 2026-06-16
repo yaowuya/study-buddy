@@ -6,14 +6,24 @@ __pycache__
 .gitignore
 .env
 venv
+.venv
 *.db
 alembic/versions/__pycache__
 tests
 .pytest_cache
 .mypy_cache
 tmp
-client
+
+# 移动端客户端（不需要打包进镜像）
 client/
 client/node_modules
 client/dist
 client/unpackage
+
+# 管理后台源码（构建产物已在 static/admin-dist/，源码不需要）
+admin/
+admin/node_modules
+
+# 文档
+docs/
+openspec/
