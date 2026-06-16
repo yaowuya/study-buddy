@@ -7,6 +7,7 @@ from app.core.deps import get_db, require_admin
 from app.models.admin import Admin
 from app.models.family import Family
 from app.models.user import User
+from app.models.task import Task
 from app.schemas.admin import AdminFamilyOut, AdminFamilyDetailOut, AdminUserOut
 from app.schemas.pagination import PaginatedResponse
 
@@ -28,7 +29,7 @@ def list_families(
     families = query.order_by(Family.id.desc()).offset((page - 1) * page_size).limit(page_size).all()
     items = []
     for f in families:
-        member_count = db.query(User).filter(User.family_id == f.id).count()
+        member_count = db.query(User).filter(User.family_id == f.id, User.is_deleted == False).count()
         items.append(AdminFamilyOut(id=f.id, code=f.code, member_count=member_count, is_deleted=f.is_deleted))
     return PaginatedResponse(total=total, items=items, page=page, page_size=page_size)
 
@@ -38,7 +39,7 @@ def get_family(family_id: uuid.UUID, admin: Admin = Depends(require_admin), db: 
     family = db.query(Family).filter(Family.id == family_id).first()
     if not family:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Family not found")
-    members = db.query(User).filter(User.family_id == family_id).all()
+    members = db.query(User).filter(User.family_id == family_id, User.is_deleted == False).all()
     member_outs = [
         AdminUserOut(id=m.id, phone=m.phone, role=m.role, family_id=m.family_id, is_active=m.is_active, is_deleted=m.is_deleted)
         for m in members
@@ -55,5 +56,8 @@ def delete_family(family_id: uuid.UUID, admin: Admin = Depends(require_admin), d
     if not family:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Family not found")
     family.is_deleted = True
+    # 级联软删除成员和任务
+    db.query(User).filter(User.family_id == family_id).update({"is_deleted": True})
+    db.query(Task).filter(Task.family_id == family_id).update({"is_deleted": True})
     db.commit()
     return {"ok": True}

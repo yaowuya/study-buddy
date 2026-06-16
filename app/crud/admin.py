@@ -1,3 +1,4 @@
+import os
 import uuid
 
 from sqlalchemy.orm import Session
@@ -15,11 +16,13 @@ def get_admin_by_id(db: Session, admin_id: uuid.UUID) -> Admin | None:
 
 
 def seed_admin(db: Session) -> None:
-    """幂等插入默认管理员"""
-    if not db.query(Admin).first():
-        admin = Admin(username="admin", hashed_password=hash_password("admin123"))
-        db.add(admin)
-        db.commit()
+    """幂等插入默认管理员，密码从 ADMIN_INITIAL_PASSWORD 环境变量读取"""
+    if db.query(Admin).first():
+        return
+    initial_password = os.environ.get("ADMIN_INITIAL_PASSWORD", "admin123")
+    admin = Admin(username="admin", hashed_password=hash_password(initial_password))
+    db.add(admin)
+    db.commit()
 
 
 def update_admin_password(db: Session, admin: Admin, new_hashed_password: str) -> Admin:

@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 
 from app.core.deps import get_db, require_admin
 from app.core.security import verify_password, create_access_token, hash_password
+from app.core.config import settings
 from app.models.admin import Admin
 from app.crud import admin as admin_crud
 from app.schemas.admin import AdminLogin, AdminOut, AdminPasswordChange
@@ -18,7 +19,7 @@ def admin_login(body: AdminLogin, db: Session = Depends(get_db)):
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Invalid credentials")
     if not admin.is_active:
         raise HTTPException(status.HTTP_403_FORBIDDEN, "Admin account disabled")
-    token = create_access_token(f"admin:{admin.id}")
+    token = create_access_token(f"admin:{admin.id}", expire_minutes=settings.ADMIN_TOKEN_EXPIRE_MINUTES)
     return Token(access_token=token)
 
 

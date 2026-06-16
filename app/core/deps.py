@@ -55,7 +55,10 @@ def require_admin(request: Request, db: Session = Depends(get_db)) -> Admin:
     payload = decode_access_token(token)
     if not payload or not payload.startswith("admin:"):
         raise HTTPException(status.HTTP_403_FORBIDDEN, "Admin access required")
-    admin_id = uuid.UUID(payload.removeprefix("admin:"))
+    try:
+        admin_id = uuid.UUID(payload.removeprefix("admin:"))
+    except ValueError:
+        raise HTTPException(status.HTTP_403_FORBIDDEN, "Admin access required")
     admin = db.query(Admin).filter(Admin.id == admin_id, Admin.is_active == True).first()
     if not admin:
         raise HTTPException(status.HTTP_403_FORBIDDEN, "Admin not found or inactive")

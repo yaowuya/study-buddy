@@ -1,7 +1,7 @@
 import uuid
 from datetime import date
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
 from app.core.deps import get_db, require_admin
@@ -19,9 +19,9 @@ router = APIRouter(tags=["admin-tasks"])
 @router.get("/stats", response_model=AdminStatsOut)
 def get_stats(admin: Admin = Depends(require_admin), db: Session = Depends(get_db)):
     today = date.today()
-    total_users = db.query(User).count()
-    total_families = db.query(Family).count()
-    today_tasks = db.query(Task).filter(Task.date == today).count()
+    total_users = db.query(User).filter(User.is_deleted == False).count()
+    total_families = db.query(Family).filter(Family.is_deleted == False).count()
+    today_tasks = db.query(Task).filter(Task.date == today, Task.is_deleted == False).count()
     pending_submissions = db.query(Submission).filter(Submission.is_correct == None).count()
     return AdminStatsOut(
         total_users=total_users,
@@ -33,8 +33,8 @@ def get_stats(admin: Admin = Depends(require_admin), db: Session = Depends(get_d
 
 @router.get("/", response_model=PaginatedResponse[AdminTaskOut])
 def list_tasks(
-    page: int = 1,
-    page_size: int = 20,
+    page: int = Query(default=1, ge=1),
+    page_size: int = Query(default=20, ge=1, le=100),
     family_id: uuid.UUID | None = None,
     task_status: str | None = None,
     date_from: date | None = None,

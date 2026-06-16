@@ -11,7 +11,11 @@ def get_user_by_phone(db: Session, phone: str) -> User | None:
 
 
 def get_user_by_id(db: Session, user_id: uuid.UUID) -> User | None:
-    return db.query(User).filter(User.id == user_id, User.is_deleted == False).first()
+    return db.query(User).filter(
+        User.id == user_id,
+        User.is_deleted == False,
+        User.is_active == True,
+    ).first()
 
 
 def create_user(db: Session, phone: str, password: str, role: UserRole) -> User:

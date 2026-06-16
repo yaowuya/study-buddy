@@ -1,7 +1,7 @@
 import uuid
 from datetime import datetime
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class AdminLogin(BaseModel):
@@ -20,7 +20,7 @@ class AdminOut(BaseModel):
 
 class AdminPasswordChange(BaseModel):
     old_password: str
-    new_password: str
+    new_password: str = Field(min_length=8, max_length=128)
 
 
 # ─── User schemas ───
@@ -41,8 +41,11 @@ class AdminUserDetailOut(AdminUserOut):
     task_count: int = 0
 
 
+from app.models.user import UserRole
+
+
 class AdminUserUpdate(BaseModel):
-    role: str | None = None
+    role: UserRole | None = None   # 枚举约束，防止写入非法角色
     is_active: bool | None = None
 
 

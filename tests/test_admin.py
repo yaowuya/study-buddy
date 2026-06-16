@@ -62,7 +62,7 @@ def test_admin_change_password(client):
 def test_admin_change_password_wrong_old(client):
     token = admin_login(client)
     resp = client.patch("/api/v1/admin/auth/password", json={
-        "old_password": "wrongold", "new_password": "newpass",
+        "old_password": "wrongold", "new_password": "newpass123",  # min_length=8
     }, headers=admin_headers(token))
     assert resp.status_code == 400
 

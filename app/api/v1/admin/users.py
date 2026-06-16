@@ -1,6 +1,6 @@
 import uuid
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
 from app.core.deps import get_db, require_admin
@@ -16,8 +16,8 @@ router = APIRouter(tags=["admin-users"])
 
 @router.get("/", response_model=PaginatedResponse[AdminUserOut])
 def list_users(
-    page: int = 1,
-    page_size: int = 20,
+    page: int = Query(default=1, ge=1),
+    page_size: int = Query(default=20, ge=1, le=100),
     phone: str | None = None,
     role: str | None = None,
     is_active: bool | None = None,
@@ -45,7 +45,10 @@ def get_user(user_id: uuid.UUID, admin: Admin = Depends(require_admin), db: Sess
     if user.family_id:
         family = db.query(Family).filter(Family.id == user.family_id).first()
         family_code = family.code if family else None
-    task_count = db.query(Task).filter(Task.family_id == user.family_id).count() if user.family_id else 0
+    task_count = db.query(Task).filter(
+        Task.family_id == user.family_id,
+        Task.is_deleted == False,
+    ).count() if user.family_id else 0
     return AdminUserDetailOut(
         id=user.id, phone=user.phone, role=user.role, family_id=user.family_id,
         is_active=user.is_active, is_deleted=user.is_deleted,
