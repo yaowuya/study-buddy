@@ -60,12 +60,13 @@ onMounted(() => {
 
 // ── 表格 ──
 const columns = [
-  { title: '标题', dataIndex: 'title' },
-  { title: '类型', dataIndex: 'type', key: 'type' },
-  { title: '科目', dataIndex: 'subject' },
-  { title: '状态', dataIndex: 'status', key: 'status' },
-  { title: '日期', dataIndex: 'date' },
-  { title: '操作', key: 'action' },
+  { title: '标题', dataIndex: 'title', width: 160 },
+  { title: '内容', dataIndex: 'desc', key: 'desc', width: 200, ellipsis: true },
+  { title: '类型', dataIndex: 'type', key: 'type', width: 80 },
+  { title: '科目', dataIndex: 'subject', width: 80 },
+  { title: '状态', dataIndex: 'status', key: 'status', width: 100 },
+  { title: '日期', dataIndex: 'date', width: 110 },
+  { title: '操作', key: 'action', width: 130 },
 ]
 
 async function fetchData(page = 1) {
@@ -148,6 +149,13 @@ async function handleDelete(record: AdminTaskOut) {
     >
       <template #bodyCell="{ column, record }">
         <template v-if="column.key === 'type'">{{ record.type === 'school' ? '学校' : '家庭' }}</template>
+        <template v-else-if="column.key === 'desc'">
+          <a-tooltip :title="record.desc || '-'" placement="topLeft">
+            <div style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">
+              {{ record.desc || '-' }}
+            </div>
+          </a-tooltip>
+        </template>
         <template v-else-if="column.key === 'status'">
           <a-tag :color="statusColor(record.status)">{{ formatStatus(record.status) }}</a-tag>
         </template>

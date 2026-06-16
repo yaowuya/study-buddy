@@ -3,6 +3,7 @@ export interface AdminTaskOut {
   family_id: string
   type: 'school' | 'home'
   title: string
+  desc: string | null
   status: 'pending' | 'in_progress' | 'submitted' | 'graded'
   date: string
   subject: string | null

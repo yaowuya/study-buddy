@@ -71,6 +71,7 @@ class AdminTaskOut(BaseModel):
     family_id: uuid.UUID
     type: str
     title: str
+    desc: str | None = None
     status: str
     date: str
     subject: str | None = None
