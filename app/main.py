@@ -1,9 +1,8 @@
-import logging
-from pathlib import Path
-
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from app.core.config import settings
+from app.core.logging import setup_logging
 from app.api.v1.auth import router as auth_router
 from app.api.v1.tasks import router as tasks_router
 from app.api.v1.dictation import router as dictation_router
@@ -11,20 +10,7 @@ from app.api.v1.submissions import router as submissions_router
 from app.api.v1.mistakes import router as mistakes_router
 from app.api.v1.tts import router as tts_router
 
-from app.core.config import settings
-
-# 统一日志配置：同时输出到 stderr 和文件
-_LOG_DIR = Path("/app/logs")
-_LOG_DIR.mkdir(parents=True, exist_ok=True)
-
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s %(name)s %(levelname)s %(message)s",
-    handlers=[
-        logging.StreamHandler(),                             # stderr（docker logs 可见）
-        logging.FileHandler(_LOG_DIR / "app.log"),           # 持久化到挂载目录
-    ],
-)
+setup_logging()
 
 app = FastAPI(title="作业陪伴助手", version="0.1.0")
 
