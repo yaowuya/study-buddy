@@ -11,4 +11,7 @@ services:
       - "host.docker.internal:host-gateway"
     volumes:
       - /data/logs/studybuddy:/app/logs
-      - ./tmp:/app/tmp
+      - studybuddy_tmp:/app/tmp
+
+volumes:
+  studybuddy_tmp:
