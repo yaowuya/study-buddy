@@ -11,9 +11,8 @@ from fastapi.responses import FileResponse
 
 from app.core.config import settings
 
-# 配置日志
+# 日志由 app.main 统一配置
 logger = logging.getLogger(__name__)
-logging.basicConfig(level=logging.INFO)
 
 router = APIRouter(prefix="/tts", tags=["tts"])
 

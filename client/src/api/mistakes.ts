@@ -8,10 +8,10 @@ export interface MistakeOut {
 }
 
 export function listMistakes(subject?: string, archived?: boolean) {
-  const params = new URLSearchParams()
-  if (subject) params.set('subject', subject)
-  if (archived !== undefined) params.set('archived', String(archived))
-  const qs = params.toString()
+  const parts: string[] = []
+  if (subject) parts.push(`subject=${subject}`)
+  if (archived !== undefined) parts.push(`archived=${archived}`)
+  const qs = parts.join('&')
   return request<MistakeOut[]>(`/mistakes/${qs ? '?' + qs : ''}`, 'GET')
 }
 

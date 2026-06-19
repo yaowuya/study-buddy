@@ -1,73 +1,67 @@
 <template>
   <view class="login-page">
-    <!-- 背景装饰 -->
-    <view class="bg-decoration-1"></view>
-    <view class="bg-decoration-2"></view>
-
     <!-- 加载中状态 -->
     <view v-if="checking" class="content-wrapper">
-      <view class="logo-section">
-        <view class="logo-icon">
-          <text class="logo-emoji">📚</text>
-        </view>
-        <text class="app-title">作业伙伴</text>
-        <text class="loading-text">正在加载...</text>
+      <view class="logo-blob">
+        <text class="logo-icon-text">📖</text>
       </view>
+      <text class="app-title">作业伙伴</text>
+      <text class="loading-text">正在加载...</text>
     </view>
 
-    <!-- 登录表单 -->
-    <view v-else class="content-wrapper">
-      <!-- Logo 区域 -->
-      <view class="logo-section">
-        <view class="logo-icon">
-          <text class="logo-emoji">📚</text>
+    <!-- ========== 登录视图 ========== -->
+    <view v-else-if="!isRegisterMode" class="login-view">
+      <!-- 有机形状背景装饰 -->
+      <view class="bg-blob bg-blob-lilac"></view>
+      <view class="bg-blob bg-blob-peach"></view>
+
+      <view class="content-wrapper">
+        <!-- Logo 区域 -->
+        <view class="logo-blob">
+          <text class="logo-icon-text">📖</text>
         </view>
         <text class="app-title">作业伙伴</text>
         <text class="app-subtitle">欢迎回来！今天准备学点什么？</text>
-      </view>
 
-      <!-- 表单卡片 -->
-      <view class="form-card">
-        <!-- 角色选择器（仅注册模式显示） -->
-        <view v-if="isRegisterMode" class="role-tabs">
-          <view
-            :class="['role-tab', selectedRole === 'student' ? 'role-tab-active' : '']"
-            @tap="selectedRole = 'student'"
-          >
-            <text>我是学生</text>
+        <!-- 登录卡片 -->
+        <view class="form-card">
+          <!-- 角色选择器 -->
+          <view class="role-tabs">
+            <view
+              :class="['role-tab', selectedRole === 'student' ? 'role-tab-active' : '']"
+              @tap="selectedRole = 'student'"
+            >
+              <text>我是学生</text>
+            </view>
+            <view
+              :class="['role-tab', selectedRole === 'parent' ? 'role-tab-active' : '']"
+              @tap="selectedRole = 'parent'"
+            >
+              <text>我是家长</text>
+            </view>
           </view>
-          <view
-            :class="['role-tab', selectedRole === 'parent' ? 'role-tab-active' : '']"
-            @tap="selectedRole = 'parent'"
-          >
-            <text>我是家长</text>
-          </view>
-        </view>
 
-        <!-- 表单 -->
-        <view class="form-section">
-          <view class="form-field">
-            <text class="field-label">手机号 / 用户名</text>
+          <!-- 表单 -->
+          <view class="form-section">
+            <!-- 用户名 -->
             <view class="input-wrapper">
               <text class="input-icon">👤</text>
               <input
                 v-model="phone"
-                type="number"
-                placeholder="输入您的手机号"
+                type="text"
+                placeholder="手机号/用户名"
                 class="input"
                 maxlength="11"
               />
             </view>
-          </view>
 
-          <view class="form-field">
-            <text class="field-label">密码</text>
+            <!-- 密码 -->
             <view class="input-wrapper">
               <text class="input-icon">🔒</text>
               <input
                 v-model="password"
                 :password="!showPassword"
-                placeholder="输入您的密码"
+                placeholder="密码"
                 class="input"
               />
               <text class="toggle-password" @tap="showPassword = !showPassword">
@@ -76,27 +70,96 @@
             </view>
           </view>
 
-          <button class="btn-submit" :loading="authStore.loading" @tap="handleLogin">
-            {{ isRegisterMode ? '注册' : '登录' }}
+          <!-- 登录按钮 -->
+          <button class="btn-primary-pill" :loading="authStore.loading" @tap="handleLogin">
+            登录
           </button>
-        </view>
 
-        <view class="mode-switch">
-          <text v-if="!isRegisterMode" @tap="isRegisterMode = true">
-            没有账号？<text class="link">立即注册</text>
-          </text>
-          <text v-else @tap="isRegisterMode = false">
-            已有账号？<text class="link">返回登录</text>
-          </text>
+          <!-- 底部链接 -->
+          <view class="login-footer">
+            <text class="footer-link-secondary">忘记密码？</text>
+            <text class="footer-link-primary" @tap="isRegisterMode = true">没有账号？去注册</text>
+          </view>
         </view>
       </view>
     </view>
 
-    <!-- 底部协议 -->
-    <view class="footer">
-      <text class="footer-text">
-        登录即代表您同意 <text class="link">服务协议</text> 和 <text class="link">隐私政策</text>
-      </text>
+    <!-- ========== 注册视图 ========== -->
+    <view v-else class="register-view">
+      <!-- 顶部渐变有机形状背景 -->
+      <view class="register-header-blob"></view>
+
+      <view class="content-wrapper register-content">
+        <!-- 注册卡片 -->
+        <view class="register-card">
+          <!-- 图标 & 标题 -->
+          <view class="register-header">
+            <view class="register-icon-wrap">
+              <text class="register-icon-text">🏫</text>
+            </view>
+            <view class="register-title-row">
+              <text class="app-title">作业伙伴</text>
+              <text class="bounce-emoji">😄</text>
+            </view>
+            <text class="register-subtitle">创建账号，开启学习之旅</text>
+          </view>
+
+          <!-- 角色选择器 -->
+          <view class="role-tabs role-tabs-register">
+            <view
+              :class="['role-tab', selectedRole === 'student' ? 'role-tab-active' : '']"
+              @tap="selectedRole = 'student'"
+            >
+              <text>我是学生</text>
+            </view>
+            <view
+              :class="['role-tab', selectedRole === 'parent' ? 'role-tab-active' : '']"
+              @tap="selectedRole = 'parent'"
+            >
+              <text>我是家长</text>
+            </view>
+          </view>
+
+          <!-- 表单 -->
+          <view class="form-section">
+            <!-- 手机号 -->
+            <view class="input-wrapper input-wrapper-register">
+              <text class="input-icon">📱</text>
+              <input
+                v-model="phone"
+                type="number"
+                placeholder="请输入手机号"
+                class="input"
+                maxlength="11"
+              />
+            </view>
+
+            <!-- 密码 -->
+            <view class="input-wrapper input-wrapper-register">
+              <text class="input-icon">🔒</text>
+              <input
+                v-model="password"
+                :password="!showPassword"
+                placeholder="设置密码"
+                class="input"
+              />
+              <text class="toggle-password" @tap="showPassword = !showPassword">
+                {{ showPassword ? '👁️' : '👁️‍🗨️' }}
+              </text>
+            </view>
+          </view>
+
+          <!-- 注册按钮 -->
+          <button class="btn-register" :loading="authStore.loading" @tap="handleLogin">
+            注册
+          </button>
+
+          <!-- 底部链接 -->
+          <view class="register-footer">
+            <text class="footer-link-secondary footer-link-underline" @tap="isRegisterMode = false">已有账号？去登录</text>
+          </view>
+        </view>
+      </view>
     </view>
   </view>
 </template>
@@ -114,9 +177,7 @@ const selectedRole = ref<'parent' | 'student'>('student')
 const checking = ref(true)
 
 onMounted(async () => {
-  // 等待 auth 初始化完成
   await authStore.init()
-  // 如果已登录，直接跳转
   if (authStore.user) {
     navigateByRole()
   } else {
@@ -130,12 +191,16 @@ async function handleLogin() {
     return
   }
   try {
-    // 先尝试登录
     await authStore.login(phone.value, password.value)
-    // 登录成功，根据用户实际角色导航
+    // 校验选择的角色与账号实际角色是否一致
+    if (authStore.user?.role !== selectedRole.value) {
+      const actualLabel = authStore.user?.role === 'parent' ? '家长' : '学生'
+      uni.showToast({ title: `该账号是${actualLabel}账号，请选择正确角色`, icon: 'none', duration: 2500 })
+      authStore.logout()
+      return
+    }
     navigateByRole()
   } catch (e: any) {
-    // 登录失败，检查是否需要注册
     if (isRegisterMode.value) {
       try {
         await authStore.register(phone.value, password.value, selectedRole.value)
@@ -165,126 +230,99 @@ function navigateByRole() {
 <style lang="scss" scoped>
 @use '@/static/styles/variables.scss' as *;
 
+// ============================================
+// Shared
+// ============================================
 .login-page {
   min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  background: #f8f9ff;
   position: relative;
   overflow: hidden;
-}
-
-// 背景装饰
-.bg-decoration-1 {
-  position: absolute;
-  top: -10%;
-  right: -10%;
-  width: 256px;
-  height: 256px;
-  background: rgba(20, 112, 232, 0.1);
-  border-radius: 50%;
-  filter: blur(60px);
-}
-
-.bg-decoration-2 {
-  position: absolute;
-  bottom: -5%;
-  left: -5%;
-  width: 320px;
-  height: 320px;
-  background: rgba(255, 209, 103, 0.2);
-  border-radius: 50%;
-  filter: blur(60px);
+  background: $color-organic-bg;
 }
 
 .content-wrapper {
-  flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 48px 24px;
+  padding: 0px 24px;
   position: relative;
   z-index: 1;
-}
-
-// Logo 区域
-.logo-section {
-  text-align: center;
-  margin-bottom: 32px;
-}
-
-.logo-icon {
-  width: 80px;
-  height: 80px;
-  background: #1470e8;
-  border-radius: 24px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 12px;
-  box-shadow: 0 8px 24px rgba(20, 112, 232, 0.3);
-}
-
-.logo-emoji {
-  font-size: 40px;
+  min-height: 100vh;
 }
 
 .app-title {
   display: block;
-  font-size: 32px;
-  font-weight: 700;
-  color: #111c2a;
-  margin-bottom: 4px;
+  font-size: 24px;
+  font-weight: 600;
+  color: $color-organic-on-surface;
+  line-height: 32px;
 }
 
 .app-subtitle {
   display: block;
-  font-size: 18px;
-  color: #414754;
+  font-size: 14px;
+  color: $color-organic-text-secondary;
+  line-height: 20px;
+  margin-top: 4px;
+  text-align: center;
 }
 
 .loading-text {
   display: block;
-  font-size: 16px;
-  color: #727785;
+  font-size: 14px;
+  color: $color-organic-text-secondary;
   margin-top: 16px;
 }
 
-// 表单卡片
-.form-card {
-  width: 100%;
-  max-width: 400px;
-  background: #fff;
-  border-radius: 32px;
-  padding: 20px;
-  box-shadow: 0 8px 32px rgba(0, 90, 194, 0.08);
-  border: 1px solid #d8e3f7;
+// Logo - 有机形状
+.logo-blob {
+  width: 128px;
+  height: 128px;
+  background: $color-soft-lilac;
+  border-radius: 41% 59% 70% 30% / 32% 40% 60% 68%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 32px;
+  box-shadow: $shadow-soft;
+  animation: morph 8s ease-in-out infinite alternate;
 }
 
-// 角色选择
+.logo-icon-text {
+  font-size: 48px;
+}
+
+// 角色选择器
 .role-tabs {
   display: flex;
   padding: 4px;
-  background: #e6eeff;
-  border-radius: 16px;
+  background: $color-organic-surface-container-low;
+  border-radius: 9999px;
   margin-bottom: 32px;
+  width: 100%;
+}
+
+.role-tabs-register {
+  border: 1px solid rgba($color-organic-outline-variant, 0.3);
+  margin-bottom: 24px;
 }
 
 .role-tab {
   flex: 1;
-  padding: 12px 16px;
-  border-radius: 12px;
+  padding: 12px 0;
+  border-radius: 9999px;
   text-align: center;
   font-size: 14px;
-  font-weight: 600;
-  color: #414754;
+  font-weight: 400;
+  color: $color-organic-on-surface-variant;
   transition: all 0.2s;
 }
 
 .role-tab-active {
-  background: #fff;
-  color: #0058bd;
+  background: $color-mint-green;
+  color: $color-organic-on-secondary-container;
+  font-weight: 500;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
@@ -292,35 +330,24 @@ function navigateByRole() {
 .form-section {
   display: flex;
   flex-direction: column;
-  gap: 20px;
-}
-
-.form-field {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.field-label {
-  font-size: 14px;
-  font-weight: 600;
-  color: #414754;
-  margin-left: 4px;
+  gap: 16px;
+  margin-bottom: 24px;
+  width: 100%;
 }
 
 .input-wrapper {
   display: flex;
   align-items: center;
-  background: #eff4ff;
-  border: 2px solid transparent;
+  background: $color-organic-surface-container-lowest;
+  border: 1px solid $color-organic-surface-container;
   border-radius: 16px;
-  padding: 12px 16px;
+  padding: 14px 16px;
   transition: all 0.2s;
 }
 
-.input-wrapper:focus-within {
-  border-color: #0058bd;
-  background: #f0f7ff;
+.input-wrapper-register {
+  border-width: 2px;
+  border-color: $color-organic-surface-container-high;
 }
 
 .input-icon {
@@ -330,8 +357,8 @@ function navigateByRole() {
 
 .input {
   flex: 1;
-  font-size: 16px;
-  color: #111c2a;
+  font-size: 14px;
+  color: $color-organic-on-surface;
   background: transparent;
   border: none;
   padding: 0;
@@ -342,52 +369,221 @@ function navigateByRole() {
   padding: 4px;
 }
 
-// 提交按钮
-.btn-submit {
+// 登录按钮 - 黑色胶囊
+.btn-primary-pill {
   width: 100%;
   height: 56px;
-  background: #1470e8;
-  color: #fff;
-  border-radius: 20px;
-  font-size: 24px;
-  font-weight: 600;
+  background: $color-organic-primary;
+  color: $color-organic-on-primary;
+  border-radius: 9999px;
+  font-size: 18px;
+  font-weight: 500;
   border: none;
-  margin-top: 20px;
-  box-shadow: 0 4px 0 rgba(0, 0, 0, 0.2), 0 8px 24px rgba(20, 112, 232, 0.2);
-  transition: all 0.1s;
+  box-shadow: $shadow-soft;
+  transition: all 0.15s;
 }
 
-.btn-submit:active {
-  transform: translateY(4px);
-  box-shadow: 0 0 0 rgba(0, 0, 0, 0.2), 0 4px 16px rgba(20, 112, 232, 0.2);
+.btn-primary-pill:active {
+  opacity: 0.9;
+  transform: scale(0.98);
 }
 
-// 模式切换
-.mode-switch {
-  text-align: center;
-  margin-top: 20px;
+// 底部链接
+.login-footer {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  margin-top: 24px;
+  padding: 0 8px;
+}
+
+.footer-link-secondary {
   font-size: 14px;
-  color: #727785;
+  color: $color-organic-text-secondary;
 }
 
-.mode-switch .link {
-  color: #1470e8;
+.footer-link-primary {
+  font-size: 14px;
+  color: $color-organic-primary;
   font-weight: 500;
 }
 
-// 底部
-.footer {
+.footer-link-underline {
+  font-weight: 600;
+  border-bottom: 1px solid transparent;
+}
+
+// ============================================
+// 登录视图 - 有机形状背景
+// ============================================
+.login-view {
+  min-height: 100vh;
+  position: relative;
+}
+
+.bg-blob {
+  position: absolute;
+  z-index: 0;
+  filter: blur(80px);
+  animation: morph 8s ease-in-out infinite alternate;
+}
+
+.bg-blob-lilac {
+  top: -10%;
+  right: -10%;
+  width: 500px;
+  height: 500px;
+  background: rgba($color-soft-lilac, 0.3);
+}
+
+.bg-blob-peach {
+  bottom: -10%;
+  left: -10%;
+  width: 400px;
+  height: 400px;
+  background: rgba($color-pale-peach, 0.3);
+}
+
+// 登录卡片
+.form-card {
+  width: 100%;
+  max-width: 400px;
+  background: $color-organic-surface-container-lowest;
+  border-radius: 24px;
+  padding: 32px 24px;
+  box-shadow: $shadow-soft;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+// ============================================
+// 注册视图
+// ============================================
+.register-view {
+  min-height: 100vh;
+  position: relative;
+  background: $color-organic-bg;
+}
+
+// 顶部渐变有机形状
+.register-header-blob {
+  position: absolute;
+  top: -10%;
+  left: -10%;
+  width: 120%;
+  height: 384px;
+  background: linear-gradient(135deg, $color-soft-lilac, $color-mint-green-dim);
+  opacity: 0.6;
+  z-index: 0;
+  border-radius: 43% 57% 70% 30% / 30% 30% 70% 70%;
+  animation: morph 12s ease-in-out infinite alternate;
+}
+
+.register-content {
+  justify-content: center;
+}
+
+.register-card {
+  width: 100%;
+  max-width: 400px;
+  background: $color-organic-surface-container-lowest;
+  border-radius: 32px;
   padding: 24px;
+  box-shadow: $shadow-diffused;
+  border: 1px solid rgba($color-mint-green-focus, 0.3);
+  position: relative;
+  z-index: 1;
+}
+
+// 注册头部
+.register-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.register-icon-wrap {
+  width: 80px;
+  height: 80px;
+  background: linear-gradient(135deg, $color-soft-lilac, $color-pale-peach);
+  border-radius: 40%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.register-icon-text {
+  font-size: 40px;
+}
+
+.register-title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.bounce-emoji {
+  font-size: 24px;
+  animation: bounce-emoji 2s ease-in-out infinite;
+}
+
+.register-subtitle {
+  font-size: 14px;
+  color: $color-organic-on-surface-variant;
+  font-weight: 500;
+  margin-top: 4px;
   text-align: center;
 }
 
-.footer-text {
-  font-size: 12px;
-  color: #727785;
+// 注册按钮 - 黑色圆角
+.btn-register {
+  width: 100%;
+  height: 56px;
+  background: $color-organic-primary;
+  color: $color-organic-on-primary;
+  border-radius: 16px;
+  font-size: 18px;
+  font-weight: 500;
+  border: none;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+  margin-top: 8px;
+  transition: all 0.2s;
 }
 
-.link {
-  text-decoration: underline;
-  color: #0058bd;
+.btn-register:active {
+  transform: scale(0.98);
+}
+
+.register-footer {
+  text-align: center;
+  margin-top: 24px;
+}
+
+// ============================================
+// Animations
+// ============================================
+@keyframes morph {
+  0% {
+    border-radius: 41% 59% 70% 30% / 32% 40% 60% 68%;
+  }
+  50% {
+    border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%;
+  }
+  100% {
+    border-radius: 30% 70% 50% 50% / 50% 60% 40% 50%;
+  }
+}
+
+@keyframes bounce-emoji {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
 }
 </style>

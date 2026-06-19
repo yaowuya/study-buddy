@@ -15,8 +15,8 @@ COPY . .
 # 复制并设置 entrypoint 脚本权限
 RUN chmod +x docker-entrypoint.sh
 
-# 创建临时文件目录
-RUN mkdir -p /app/tmp
+# 创建临时文件目录和日志目录
+RUN mkdir -p /app/tmp /app/logs
 
 # 创建非 root 用户
 RUN useradd -m appuser && chown -R appuser:appuser /app

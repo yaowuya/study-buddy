@@ -1,7 +1,7 @@
 services:
   studybuddy-api:
     build: .
-    container_name: studybuddy-api
+    container_name: studybuddy-api-2.0
     restart: always
     ports:
       - "8000:8000"
@@ -10,5 +10,8 @@ services:
     extra_hosts:
       - "host.docker.internal:host-gateway"
     volumes:
-      - ./logs:/app/logs
-      - ./tmp:/app/tmp
+      - /data/logs/studybuddy:/app/logs
+      - studybuddy_tmp:/app/tmp
+
+volumes:
+  studybuddy_tmp:

@@ -1,107 +1,127 @@
 <template>
   <view class="page">
-    <!-- TopAppBar -->
-    <view class="appbar" :style="{ paddingTop: Math.max(statusBarHeight, 12) + 'px' }">
-      <view class="avatar" @tap="showFamilyCode">
-        <text class="material-symbols-outlined">person</text>
-      </view>
-      <view class="appbar-center">
-        <text class="appbar-title">{{ isStudentMode ? '作业伙伴' : '家长助手' }}</text>
-        <text v-if="!isStudentMode" class="appbar-code">家庭连接码：{{ familyCode }}</text>
-      </view>
-      <view class="appbar-icon-btn" @tap="handleLogout">
-        <text class="material-symbols-outlined">logout</text>
-      </view>
+    <!-- Organic Background -->
+    <view class="organic-bg">
+      <view class="blob blob-1"></view>
+      <view class="blob blob-2"></view>
+      <view class="blob blob-3"></view>
     </view>
 
-    <!-- Main Content -->
-    <scroll-view scroll-y class="main" :style="{ paddingTop: (appbarHeight + 8) + 'px' }">
+    <!-- Scrollable Content -->
+    <scroll-view scroll-y class="main" :style="{ paddingTop: (statusBarHeight + 12) + 'px' }">
+      <!-- Header + Filter + Stats -->
+      <view class="header-section">
+        <view class="header-row">
+          <text class="page-title">作业历史</text>
+          <view class="filter-wrapper">
+            <view class="filter-pill glass-card" @tap="showFilterDropdown = !showFilterDropdown">
+              <text class="filter-pill-text">{{ filterLabel }}</text>
+              <text class="material-symbols-outlined filter-pill-arrow">expand_more</text>
+            </view>
+            <view v-if="showFilterDropdown" class="filter-dropdown">
+              <view
+                v-for="opt in filterOptions"
+                :key="opt.value"
+                :class="['filter-option', currentFilter === opt.value ? 'filter-option-active' : '']"
+                @tap="selectFilter(opt.value)"
+              >
+                <text class="filter-option-text">{{ opt.label }}</text>
+              </view>
+            </view>
+          </view>
+        </view>
+
+        <!-- Statistics Card -->
+        <view class="stats-card glass-card">
+          <view class="stat-item">
+            <text class="stat-label">总任务</text>
+            <text class="stat-value stat-total">{{ filteredTasks.length }}</text>
+          </view>
+          <view class="stat-divider"></view>
+          <view class="stat-item">
+            <text class="stat-label">已完成</text>
+            <text class="stat-value stat-pass">{{ passCount }}</text>
+          </view>
+          <view class="stat-divider"></view>
+          <view class="stat-item">
+            <text class="stat-label">待完成</text>
+            <text class="stat-value stat-pending">{{ pendingCount }}</text>
+          </view>
+        </view>
+      </view>
+
       <!-- Empty State -->
       <view v-if="dateGroups.length === 0" class="empty">
-        <text class="material-symbols-outlined empty-icon">history</text>
+        <view class="empty-blob">
+          <text class="material-symbols-outlined empty-icon">history</text>
+        </view>
         <text class="empty-text">暂无历史记录</text>
       </view>
 
       <!-- Date Groups -->
-      <view v-for="group in dateGroups" :key="group.label" class="date-group">
+      <view v-for="(group, gi) in dateGroups" :key="group.label" class="date-group">
+        <!-- Date Header -->
         <view class="date-header">
-          <text class="date-label">{{ group.label }}</text>
+          <view class="date-pill glass-card">
+            <text class="material-symbols-outlined date-pill-icon">stars</text>
+            <text class="date-pill-text">{{ group.label }}</text>
+          </view>
           <view class="date-line"></view>
         </view>
 
         <!-- Task Cards -->
-        <view v-for="task in group.tasks" :key="task.id" class="task-card">
-          <!-- Accent Bar -->
-          <view :class="['accent-bar', `accent-${task.subject || 'default'}`]"></view>
-
-          <!-- Card Content -->
-          <view class="card-content">
-            <!-- Header: Subject + Time + Title -->
-            <view class="card-header">
-              <view class="chip-row">
-                <view :class="['subject-chip', `chip-${task.subject || 'default'}`]">
-                  <text class="chip-text">{{ task.subject || '其他' }}</text>
-                </view>
-                <text v-if="task.updated_at" class="finish-time">{{ formatTime(task.updated_at) }} 完成</text>
-              </view>
-              <text class="task-title">{{ task.title }}</text>
+        <view
+          v-for="(task, ti) in group.tasks"
+          :key="task.id"
+          :class="['task-card glass-card', getCardColor(gi + ti), (gi + ti) % 2 === 0 ? 'stagger-left' : 'stagger-right']"
+        >
+          <!-- Card Top: Title + Status Badge -->
+          <view class="card-top">
+            <text class="card-title">{{ task.title }}</text>
+            <view v-if="task.status === 'graded'" :class="['status-badge glass-card', gradedResult[task.id] ? '' : 'badge-fail']">
+              <text class="material-symbols-outlined badge-icon">{{ gradedResult[task.id] ? 'emoji_events' : 'smart_toy' }}</text>
+              <text class="badge-text">{{ gradedResult[task.id] ? '任务完成' : '不合格' }}</text>
             </view>
+          </view>
 
-            <!-- Task Description -->
-            <view v-if="task.desc" class="task-desc-box">
-              <text class="task-desc-text">{{ task.desc }}</text>
+          <!-- Task Description -->
+          <view v-if="task.desc" class="card-desc">
+            <text class="desc-text">{{ task.desc }}</text>
+          </view>
+
+          <!-- Dictation Words -->
+          <view v-if="task.has_dictation && dictationWords[task.id]?.length" class="dictation-section">
+            <view class="dictation-words">
+              <text v-for="(word, i) in dictationWords[task.id]" :key="i" class="word-pill">{{ word }}</text>
             </view>
+          </view>
 
-            <!-- Dictation Words -->
-            <view v-if="task.has_dictation && dictationWords[task.id]?.length" class="dictation-section">
-              <view class="dictation-header">
-                <text class="material-symbols-outlined dictation-icon">record_voice_over</text>
-                <text class="dictation-label">听写词语</text>
+          <!-- Parent Comment -->
+          <view v-if="task.status === 'graded' && gradedComment[task.id]" class="comment-section">
+            <view class="comment-bubble">
+              <view class="comment-top">
+                <text class="material-symbols-outlined comment-icon">chat_bubble</text>
+                <text class="comment-label">家长评语</text>
               </view>
-              <view class="dictation-words">
-                <text v-for="(word, i) in dictationWords[task.id]" :key="i" class="dictation-word">{{ word }}</text>
-              </view>
+              <text class="comment-text">{{ gradedComment[task.id] }}</text>
             </view>
+          </view>
 
-            <!-- Bottom Section -->
-            <view class="card-bottom">
-              <!-- Parent Comment -->
-              <view v-if="task.status === 'graded' && gradedComment[task.id]" class="comment-box">
-                <view class="comment-header">
-                  <text class="material-symbols-outlined comment-icon">chat_bubble</text>
-                  <text class="comment-label">家长评语</text>
-                </view>
-                <text class="comment-text">{{ gradedComment[task.id] }}</text>
-              </view>
-
-              <!-- Status / Action Row -->
-              <view class="status-row">
-                <!-- Submitted: Pending Grade -->
-                <view v-if="task.status === 'submitted'" class="status-pending">
-                  <text class="pending-hint">{{ isStudentMode ? '等待家长评价' : '请评价' }}</text>
-                  <view v-if="!isStudentMode" class="grade-btns">
-                    <view class="grade-btn btn-pass" @tap="doGrade(task, true)">
-                      <text class="material-symbols-outlined grade-icon">check_circle</text>
-                      <text class="grade-text">合格</text>
-                    </view>
-                    <view class="grade-btn btn-fail" @tap="doGrade(task, false)">
-                      <text class="material-symbols-outlined grade-icon">cancel</text>
-                      <text class="grade-text">不合格</text>
-                    </view>
-                  </view>
-                </view>
-
-                <!-- Graded: Result Badge -->
-                <view v-else-if="task.status === 'graded'" class="status-graded">
-                  <view :class="['result-badge', gradedResult[task.id] ? 'badge-pass' : 'badge-fail']">
-                    <text class="material-symbols-outlined badge-icon">
-                      {{ gradedResult[task.id] ? 'check_circle' : 'cancel' }}
-                    </text>
-                    <text class="badge-text">{{ gradedResult[task.id] ? '合格' : '不合格' }}</text>
-                  </view>
-                </view>
-              </view>
+          <!-- Grading Buttons (parent mode, submitted tasks) -->
+          <view v-if="task.status === 'submitted' && !isStudentMode" class="grade-row">
+            <view class="grade-btn btn-fail" @tap="doGradeFail(task)">
+              <text class="material-symbols-outlined grade-btn-icon">smart_toy</text>
+              <text class="grade-btn-text">需要复习</text>
             </view>
+            <view class="grade-btn btn-pass" @tap="doGradePass(task)">
+              <text class="material-symbols-outlined grade-btn-icon">emoji_events</text>
+              <text class="grade-btn-text">任务完成</text>
+            </view>
+          </view>
+
+          <!-- Student waiting hint -->
+          <view v-if="task.status === 'submitted' && isStudentMode" class="waiting-row">
+            <text class="waiting-text">⏳ 等待家长评价</text>
           </view>
         </view>
       </view>
@@ -111,49 +131,55 @@
 
     <!-- Family Code Modal -->
     <view v-if="showCode" class="modal-overlay" @tap="showCode = false">
-      <view class="modal-content" @tap.stop>
-        <text class="modal-title">家庭连接码</text>
-        <text class="modal-code">{{ familyCode }}</text>
-        <text class="modal-hint">让学生输入此码完成绑定</text>
+      <view class="family-modal" @tap.stop>
+        <view class="family-icon-wrap">
+          <text class="material-symbols-outlined family-icon">family_restroom</text>
+        </view>
+        <text class="family-modal-title">家庭连接码</text>
+        <text class="family-code">{{ familyCode }}</text>
+        <text class="family-hint">让学生输入此码完成绑定</text>
+        <view class="family-close-btn" @tap="showCode = false">
+          <text class="family-close-text">知道了</text>
+        </view>
       </view>
     </view>
 
     <!-- Comment Modal -->
-    <view v-if="commentModal.visible" class="modal-overlay" @tap="cancelModal">
-      <view class="modal-box" @tap.stop>
-        <text class="modal-box-title">添加评语（可选）</text>
+    <view v-if="commentModal.visible" class="modal-overlay" @tap="closeCommentModal">
+      <view class="comment-modal" @tap.stop>
+        <text class="cm-title">添加评语（可选）</text>
         <textarea
           v-model="commentModal.text"
-          class="modal-textarea"
+          class="cm-textarea"
           placeholder="写下你的评语…"
           maxlength="100"
         />
-        <view class="modal-btns">
-          <view class="modal-btn modal-btn-cancel" @tap="cancelModal">
-            <text class="modal-btn-text">跳过</text>
+        <view class="cm-btns">
+          <view class="cm-btn cm-skip" @tap="skipModal">
+            <text class="cm-btn-text cm-skip-text">跳过</text>
           </view>
-          <view class="modal-btn modal-btn-confirm" @tap="confirmModal">
-            <text class="modal-btn-text">确认</text>
+          <view class="cm-btn cm-confirm" @tap="confirmModal">
+            <text class="cm-btn-text cm-confirm-text">确认</text>
           </view>
         </view>
       </view>
     </view>
 
+    <!-- Logout Confirm -->
+    <ConfirmModal
+      v-model:visible="showLogoutConfirm"
+      type="warning"
+      icon="logout"
+      title="退出登录"
+      desc="确定要退出登录吗？"
+      confirmText="退出"
+      cancelText="取消"
+      :flat="true"
+      @confirm="handleLogout"
+    />
+
     <!-- Bottom Nav -->
-    <view class="bottom-nav" :style="{ paddingBottom: safeAreaBottom + 'px' }">
-      <view class="nav-item" @tap="goDashboard">
-        <text class="material-symbols-outlined nav-icon">menu_book</text>
-        <text class="nav-label">作业</text>
-      </view>
-      <view v-if="!isStudentMode" class="nav-item" @tap="goCreate">
-        <text class="material-symbols-outlined nav-icon">add_circle</text>
-        <text class="nav-label">布置</text>
-      </view>
-      <view class="nav-item nav-item-active">
-        <text class="material-symbols-outlined nav-icon">history</text>
-        <text class="nav-label">历史</text>
-      </view>
-    </view>
+    <BottomNav active="grading" :navItems="isStudentMode ? studentNavItems : parentNavItems" />
   </view>
 </template>
 
@@ -162,18 +188,80 @@ import { ref, computed, reactive, onMounted } from 'vue'
 import { onShow } from '@dcloudio/uni-app'
 import { useAuthStore } from '@/stores/auth'
 import { useTasksStore } from '@/stores/tasks'
+import { useSyncStore } from '@/stores/sync'
 import { gradeSubmission, listSubmissions, submitTask as apiSubmitTask } from '@/api/submissions'
 import { getDictationItems } from '@/api/dictation'
 import type { TaskOut } from '@/api/tasks'
+import BottomNav from '@/components/BottomNav.vue'
+import ConfirmModal from '@/components/ConfirmModal.vue'
+import type { NavItem } from '@/components/BottomNav.vue'
+
+const parentNavItems: NavItem[] = [
+  { key: 'dashboard', icon: 'book', label: '作业', url: '/pages/parent/dashboard' },
+  { key: 'create', icon: 'add_circle', label: '布置', url: '/pages/parent/task-create' },
+  { key: 'grading', icon: 'history', label: '历史', url: '/pages/parent/grading' },
+]
+
+const studentNavItems: NavItem[] = [
+  { key: 'home', icon: 'book', label: '作业', url: '/pages/student/home' },
+  { key: 'grading', icon: 'history', label: '历史', url: '/pages/parent/grading' },
+]
 
 const authStore = useAuthStore()
 const tasksStore = useTasksStore()
+const syncStore = useSyncStore()
 const showCode = ref(false)
+const showLogoutConfirm = ref(false)
 const familyCode = ref('加载中')
 
 const statusBarHeight = ref(0)
-const safeAreaBottom = ref(0)
-const appbarHeight = ref(88) // 增加默认值
+
+// 日期筛选
+const currentFilter = ref('month')
+const showFilterDropdown = ref(false)
+const filterOptions = [
+  { value: 'today', label: '今日' },
+  { value: 'week', label: '本周' },
+  { value: 'month', label: '本月' },
+  { value: 'year', label: '今年' },
+]
+const filterLabel = computed(() => filterOptions.find(o => o.value === currentFilter.value)?.label || '本周')
+
+function selectFilter(value: string) {
+  currentFilter.value = value
+  showFilterDropdown.value = false
+  loadTasksForFilter()
+}
+
+function formatDate(d: Date): string {
+  const y = d.getFullYear()
+  const m = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  return `${y}-${m}-${day}`
+}
+
+function parseDate(dateStr: string): Date {
+  // 兼容 Android 真机：避免 new Date("2026-06-15") 返回 Invalid Date
+  const parts = dateStr.split('-')
+  if (parts.length === 3) {
+    return new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]))
+  }
+  return new Date(dateStr)
+}
+
+function loadTasksForFilter() {
+  gradedResult && Object.keys(gradedResult).forEach(k => delete gradedResult[k])
+  Object.keys(gradedComment).forEach(k => delete gradedComment[k])
+  Object.keys(dictationWords).forEach(k => delete dictationWords[k])
+
+  const [rangeStart, rangeEnd] = getDateRange(currentFilter.value)
+  const dateFrom = formatDate(rangeStart)
+  const dateTo = formatDate(rangeEnd)
+  console.log('[grading] loadTasksForFilter called:', { dateFrom, dateTo })
+  tasksStore.fetchAllTasks(dateFrom, dateTo).then(loadGradedInfo).catch((err) => {
+    console.error('[grading] fetchAllTasks failed:', err)
+  })
+}
 
 // 是否为学生模式（只读）
 const isStudentMode = computed(() => authStore.isStudent())
@@ -213,9 +301,52 @@ function handleLogout() {
   authStore.logout()
 }
 
+function showFamilyCode() {
+  showCode.value = true
+}
+
 const allTasks = computed(() =>
   (Array.isArray(tasksStore.tasks) ? tasksStore.tasks : [])
     .filter(t => t.status === 'submitted' || t.status === 'graded')
+)
+
+function getDateRange(filter: string): [Date, Date] {
+  const now = new Date()
+  const start = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+  let end = new Date(start)
+  if (filter === 'today') {
+    end = new Date(start)
+  } else if (filter === 'week') {
+    const day = start.getDay()
+    const diff = day === 0 ? -6 : 1 - day // Monday as first day
+    start.setDate(start.getDate() + diff)
+    end = new Date(start)
+    end.setDate(end.getDate() + 6)
+  } else if (filter === 'month') {
+    start.setDate(1)
+    end = new Date(now.getFullYear(), now.getMonth() + 1, 0)
+  } else if (filter === 'year') {
+    start.setMonth(0, 1)
+    end = new Date(now.getFullYear(), 11, 31)
+  }
+  end.setHours(23, 59, 59, 999)
+  return [start, end]
+}
+
+const filteredTasks = computed(() => {
+  const [rangeStart, rangeEnd] = getDateRange(currentFilter.value)
+  return allTasks.value.filter(t => {
+    const d = parseDate(t.date)
+    return d >= rangeStart && d <= rangeEnd
+  })
+})
+
+const passCount = computed(() =>
+  filteredTasks.value.filter(t => t.status === 'graded' && gradedResult[t.id]).length
+)
+
+const pendingCount = computed(() =>
+  filteredTasks.value.filter(t => t.status === 'submitted').length
 )
 
 const dateGroups = computed(() => {
@@ -223,31 +354,24 @@ const dateGroups = computed(() => {
   const yesterday = new Date(today); yesterday.setDate(yesterday.getDate() - 1)
   const map = new Map<string, { label: string; sortKey: string; tasks: TaskOut[] }>()
 
-  for (const task of allTasks.value) {
-    const d = new Date(task.date); d.setHours(0, 0, 0, 0)
+  for (const task of filteredTasks.value) {
+    const d = parseDate(task.date); d.setHours(0, 0, 0, 0)
     let label: string, sortKey: string
     if (d.getTime() === today.getTime()) {
-      label = '今天'; sortKey = '0'
+      label = '今天'; sortKey = `9_${task.date}`   // 最大，排最前
     } else if (d.getTime() === yesterday.getTime()) {
-      label = '昨天'; sortKey = '1'
+      label = '昨天'; sortKey = `8_${task.date}`   // 第二大
     } else {
       label = `${d.getMonth() + 1}月${d.getDate()}日`; sortKey = `2_${task.date}`
     }
     if (!map.has(sortKey)) map.set(sortKey, { label, sortKey, tasks: [] })
     map.get(sortKey)!.tasks.push(task)
   }
-  return [...map.values()].sort((a, b) => a.sortKey.localeCompare(b.sortKey))
+  return [...map.values()].sort((a, b) => b.sortKey.localeCompare(a.sortKey))
 })
 
-function formatTime(isoStr: string) {
-  try {
-    const d = new Date(isoStr)
-    return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
-  } catch { return '' }
-}
-
 async function loadGradedInfo() {
-  for (const task of allTasks.value) {
+  for (const task of filteredTasks.value) {
     // 加载批改结果
     if (task.status === 'graded' && !(task.id in gradedResult)) {
       try {
@@ -270,11 +394,45 @@ async function loadGradedInfo() {
   }
 }
 
-async function doGrade(task: TaskOut, isCorrect: boolean) {
+function getCardColor(index: number): string {
+  const colors = ['card-lilac', 'card-mint', 'card-peach', 'card-green']
+  return colors[index % colors.length]
+}
+
+async function doGradePass(task: TaskOut) {
   commentModal.task = task
-  commentModal.isCorrect = isCorrect
+  commentModal.isCorrect = true
   commentModal.text = ''
   commentModal.visible = true
+}
+
+async function doGradeFail(task: TaskOut) {
+  if (submitting[task.id]) return
+  submitting[task.id] = true
+  try {
+    let subs = await listSubmissions(task.id)
+    if (subs.length === 0) {
+      try {
+        const created = await apiSubmitTask(task.id)
+        subs = [created]
+      } catch {
+        subs = await listSubmissions(task.id)
+      }
+    }
+    if (subs.length === 0) {
+      uni.showToast({ title: '找不到提交记录', icon: 'none' })
+      return
+    }
+    await gradeSubmission(subs[0].id, false, '还需要复习哦')
+    gradedResult[task.id] = false
+    gradedComment[task.id] = '还需要复习哦'
+    loadTasksForFilter()
+    uni.showToast({ title: '已标记需要复习', icon: 'success' })
+  } catch (e: any) {
+    uni.showToast({ title: e.message || '提交失败', icon: 'none' })
+  } finally {
+    delete submitting[task.id]
+  }
 }
 
 async function submitGrade(comment: string) {
@@ -298,7 +456,7 @@ async function submitGrade(comment: string) {
     await gradeSubmission(subs[0].id, commentModal.isCorrect, comment || undefined)
     gradedResult[task.id] = commentModal.isCorrect
     gradedComment[task.id] = comment
-    await tasksStore.fetchAllTasks()
+    loadTasksForFilter()
     uni.showToast({ title: commentModal.isCorrect ? '已标记合格' : '已标记不合格', icon: 'success' })
   } catch (e: any) {
     uni.showToast({ title: e.message || '提交失败', icon: 'none' })
@@ -307,9 +465,12 @@ async function submitGrade(comment: string) {
   }
 }
 
-function cancelModal() {
+function closeCommentModal() {
   commentModal.visible = false
-  submitGrade('')
+}
+
+function skipModal() {
+  commentModal.visible = false
 }
 
 function confirmModal() {
@@ -317,314 +478,438 @@ function confirmModal() {
   submitGrade(commentModal.text.trim())
 }
 
-function showFamilyCode() {
-  if (!isStudentMode.value) {
-    showCode.value = true
-  }
-}
-
-function goDashboard() {
-  if (isStudentMode.value) {
-    uni.redirectTo({ url: '/pages/student/home' })
-  } else {
-    uni.redirectTo({ url: '/pages/parent/dashboard' })
-  }
-}
-
-function goCreate() {
-  uni.redirectTo({ url: '/pages/parent/task-create' })
-}
-
-onMounted(() => {
+onMounted(async () => {
   const info = uni.getSystemInfoSync()
   statusBarHeight.value = info.statusBarHeight || 0
-  safeAreaBottom.value = info.safeAreaInsets?.bottom || 0
-  // AppBar 高度 = statusBarHeight + 顶部padding + 内容高度(56) + 底部padding
-  appbarHeight.value = Math.max(statusBarHeight.value, 12) + 56 + 12
+  await authStore.init()
   loadFamilyCode()
 })
 
 onShow(() => {
-  tasksStore.fetchAllTasks().then(loadGradedInfo)
+  syncStore.stop()   // 停掉 home 页的定时同步，防止 fetchTodayTasks 覆盖历史数据
+  loadTasksForFilter()
 })
 </script>
 
 <style lang="scss" scoped>
 @use '@/static/styles/variables.scss' as *;
 
-// 补充缺失的变量
-$color-on-primary-fixed: #001a41;
-$color-on-tertiary-fixed: #00201d;
-
 .material-symbols-outlined {
   font-family: 'Material Symbols Outlined';
-  font-weight: normal;
-  font-style: normal;
-  font-size: 24px;
-  line-height: 1;
-  letter-spacing: normal;
-  text-transform: none;
-  display: inline-block;
-  white-space: nowrap;
-  word-wrap: normal;
-  direction: ltr;
+  font-weight: normal; font-style: normal; line-height: 1;
+  letter-spacing: normal; text-transform: none; display: inline-block;
+  white-space: nowrap; word-wrap: normal; direction: ltr;
   font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
 }
 
 .page {
   min-height: 100vh;
-  background: $color-surface;
-  font-family: $font-family-body;
+  background: $color-organic-bg;
+  font-family: 'Inter', sans-serif;
+  position: relative;
 }
 
-// AppBar
-.appbar {
+// ─── Organic Background ───
+.organic-bg {
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  z-index: 100;
-  background: #fff;
-  border-bottom: 1px solid $color-surface-container;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 $spacing-margin;
-  padding-bottom: 12px;
-  min-height: 64px;
+  top: 0; left: 0; right: 0; bottom: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+
+  .blob {
+    position: absolute;
+    filter: blur(60px);
+    opacity: 0.5;
+  }
+
+  .blob-1 {
+    top: -10%; left: -10%;
+    width: 50vw; height: 50vw;
+    background: $color-soft-lilac;
+    border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%;
+  }
+
+  .blob-2 {
+    bottom: -10%; right: -10%;
+    width: 60vw; height: 60vw;
+    background: $color-pale-peach;
+    border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%;
+  }
+
+  .blob-3 {
+    top: 40%; left: 60%;
+    width: 40vw; height: 40vw;
+    background: $color-mint-green-bright;
+    border-radius: 50%;
+  }
+}
+
+// ─── Glass Card Shared ───
+.glass-card {
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 2px solid rgba(255, 255, 255, 0.8);
+}
+
+// ─── Main Scroll ───
+.main {
+  position: relative;
+  z-index: 1;
+  padding: 0 16px;
   box-sizing: border-box;
+  height: 100vh;
 }
 
-.avatar {
-  width: 40px;
-  height: 40px;
-  border-radius: $radius-full;
-  background: $color-primary-fixed;
+// ─── Header Section ───
+.header-section {
+  margin-bottom: 16px;
+}
+
+.header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.page-title {
+  font-family: 'Inter', sans-serif;
+  font-size: 24px;
+  font-weight: 800;
+  color: $color-organic-on-surface;
+  line-height: 32px;
+}
+
+// ─── Filter Dropdown ───
+.filter-wrapper {
+  position: relative;
+}
+
+.filter-pill {
   display: flex;
   align-items: center;
-  justify-content: center;
-  color: $color-on-primary-fixed;
-  border: 2px solid $color-surface-container-highest;
+  gap: 4px;
+  padding: 8px 20px;
+  border-radius: 9999px;
+  background: $color-organic-surface-container-lowest;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  cursor: pointer;
+  transition: all 0.15s;
+  &:active { transform: scale(0.97); }
 }
 
-.appbar-center {
+.filter-pill-text {
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  color: $color-organic-on-surface;
+  line-height: 16px;
+}
+
+.filter-pill-arrow {
+  font-size: 16px !important;
+  color: $color-organic-on-surface-variant;
+}
+
+.filter-dropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  min-width: 100px;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  border-radius: 16px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+  padding: 4px;
+  z-index: 100;
+}
+
+.filter-option {
+  padding: 8px 16px;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.15s;
+  &:active { background: rgba($color-mint-green-bright, 0.3); }
+}
+
+.filter-option-active {
+  background: rgba($color-mint-green-bright, 0.4);
+}
+
+.filter-option-text {
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  color: $color-organic-on-surface;
+  line-height: 18px;
+}
+
+// ─── Statistics Card ───
+.stats-card {
+  display: flex;
+  background: $color-organic-surface-container-lowest;
+  border-radius: 32px;
+  padding: 16px;
+  box-shadow: 0 16px 32px rgba(0, 0, 0, 0.06);
+  gap: 0;
+}
+
+.stat-item {
+  flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
+  min-height: 48px;
+  padding: 8px 0;
 }
 
-.appbar-title {
-  font-family: $font-family;
-  font-size: 20px;
-  font-weight: 800;
-  color: $color-primary;
+.stat-label {
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  color: $color-organic-text-secondary;
+  line-height: 16px;
+  margin-bottom: 4px;
 }
 
-.appbar-code {
-  font-family: $font-family;
-  font-size: $font-label-sm;
-  font-weight: 500;
-  color: $color-on-surface-variant;
-  margin-top: 2px;
+.stat-value {
+  font-family: 'Inter', sans-serif;
+  font-size: 36px;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  line-height: 44px;
 }
 
-.appbar-icon-btn {
-  width: 40px;
-  height: 40px;
-  border-radius: $radius-full;
+.stat-total { color: $color-organic-primary; }
+.stat-pass { color: $color-organic-secondary; }
+.stat-pending { color: $color-error; }
+
+.stat-divider {
+  width: 1px;
+  align-self: stretch;
+  background: rgba($color-organic-outline-variant, 0.3);
+  margin: 0;
+}
+
+// ─── Empty State ───
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 0;
+  gap: 16px;
+}
+
+.empty-blob {
+  width: 80px; height: 80px;
+  border-radius: 50% 50% 40% 60% / 60% 40% 60% 40%;
+  background: $color-soft-lilac;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: $color-on-surface-variant;
 }
 
-// Main
-.main {
-  padding: 0 $spacing-margin;
-  box-sizing: border-box;
+.empty-icon {
+  font-size: 40px;
+  color: rgba($color-organic-on-surface, 0.4);
 }
 
-// Date Group
+.empty-text {
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  color: $color-organic-text-secondary;
+}
+
+// ─── Date Group ───
 .date-group {
   display: flex;
   flex-direction: column;
-  gap: $spacing-md;
-  margin-bottom: $spacing-sm;
+  gap: 12px;
+  margin-bottom: 24px;
+  padding: 0 8px;
 }
 
 .date-header {
   display: flex;
   align-items: center;
-  gap: $spacing-sm;
+  gap: 16px;
+  margin-bottom: 4px;
 }
 
-.date-label {
-  font-family: $font-family;
-  font-size: $font-headline-lg;
-  font-weight: 600;
-  color: $color-on-surface;
+.date-pill {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border-radius: 9999px;
+  background: $color-organic-surface-container-lowest;
+  box-shadow: 0 16px 32px rgba(0, 0, 0, 0.06);
   white-space: nowrap;
+  width: auto;
+  box-sizing: border-box;
+}
+
+.date-pill-icon {
+  font-size: 14px !important;
+  color: $color-organic-secondary;
+  font-family: 'Material Symbols Outlined';
+  font-weight: normal; font-style: normal;
+  line-height: 1;
+  letter-spacing: normal; text-transform: none;
+  white-space: nowrap; word-wrap: normal; direction: ltr;
+  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+}
+
+.date-pill-text {
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  color: $color-organic-on-surface;
+  line-height: 14px;
 }
 
 .date-line {
   flex: 1;
-  height: 1px;
-  background: rgba($color-outline-variant, 0.3);
-  border-radius: $radius-full;
+  height: 0;
+  border-top: 2px dashed rgba($color-organic-outline-variant, 0.5);
 }
 
-// Task Card
+// ─── Task Card ───
 .task-card {
-  background: $color-surface-container-lowest;
-  border-radius: $radius-lg;
-  padding: $spacing-md;
-  border: 1px solid $color-surface-container;
+  border-radius: 32px;
+  padding: 24px;
+  box-shadow: 0 16px 32px rgba(0, 0, 0, 0.06);
+  transition: transform 0.3s;
+  margin: 0 4px;
+}
+
+.stagger-left {
+  transform: translateX(-6px) rotate(-1deg);
+}
+
+.stagger-right {
+  transform: translateX(6px) rotate(1deg);
+}
+
+// Card color variants
+.card-lilac { background: rgba($color-soft-lilac, 0.6); }
+.card-mint { background: rgba($color-mint-green, 0.6); }
+.card-peach { background: rgba($color-pale-peach, 0.6); }
+.card-green { background: rgba($color-mint-green-bright, 0.6); }
+
+// ─── Card Top ───
+.card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 16px;
+}
+
+.card-title {
+  font-family: 'Inter', sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+  color: $color-organic-on-surface;
+  line-height: 24px;
+  flex: 1;
+  margin-right: 8px;
+}
+
+// ─── Status Badge ───
+.status-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 9999px;
+  background: $color-organic-surface-container-lowest;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-  display: flex;
-  flex-direction: column;
-  position: relative;
-  overflow: hidden;
-}
-
-.accent-bar {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 6px;
-  height: 100%;
-  border-radius: $radius-lg 0 0 $radius-lg;
-}
-
-.accent-语文 { background: $color-tertiary-fixed-dim; }
-.accent-数学 { background: $color-primary-fixed-dim; }
-.accent-英语 { background: $color-secondary-fixed-dim; }
-.accent-科学 { background: $color-outline; }
-.accent-default { background: $color-outline-variant; }
-
-.card-content {
-  margin-left: $spacing-sm;
-  display: flex;
-  flex-direction: column;
-  gap: $spacing-xs;
-}
-
-// Header
-.card-header {
-  display: flex;
-  flex-direction: column;
-  gap: $spacing-xs;
-}
-
-.chip-row {
-  display: flex;
-  align-items: center;
-  gap: $spacing-xs;
-}
-
-.subject-chip {
-  padding: 2px 12px;
-  border-radius: $radius-full;
-  font-family: $font-family;
-  font-size: $font-label-sm;
-  font-weight: 600;
   white-space: nowrap;
+  flex-shrink: 0;
 }
 
-.chip-语文 { background: $color-tertiary-fixed; color: $color-on-tertiary-fixed; }
-.chip-数学 { background: $color-primary-fixed; color: $color-on-primary-fixed; }
-.chip-英语 { background: $color-secondary-fixed; color: #251a00; }
-.chip-科学 { background: $color-surface-container-highest; color: $color-on-surface-variant; }
-.chip-default { background: $color-surface-container-highest; color: $color-on-surface-variant; }
-
-.finish-time {
-  font-family: $font-family;
-  font-size: $font-label-sm;
-  color: $color-outline;
-}
-
-.task-title {
-  font-family: $font-family-body;
-  font-size: $font-body-lg;
-  font-weight: 500;
-  color: $color-on-surface;
-}
-
-// Task Description
-.task-desc-box {
-  margin-top: $spacing-xs;
-  background: $color-surface-container-low;
-  border-radius: $radius-lg;
-  padding: $spacing-sm;
-}
-
-.task-desc-text {
-  font-size: $font-body-md;
-  color: $color-on-surface-variant;
-  line-height: 1.5;
-}
-
-// Dictation Section
-.dictation-section {
-  margin-top: $spacing-xs;
-  background: $color-surface-container-low;
-  border-radius: $radius-lg;
-  padding: $spacing-sm;
-}
-
-.dictation-header {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  margin-bottom: $spacing-xs;
-}
-
-.dictation-icon {
+.badge-icon {
   font-size: 16px;
-  color: $color-tertiary;
+  color: $color-organic-secondary;
 }
 
-.dictation-label {
-  font-family: $font-family;
-  font-size: $font-label-sm;
-  font-weight: 600;
-  color: $color-tertiary;
+.badge-text {
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  color: $color-organic-secondary;
+}
+
+.badge-fail {
+  .badge-icon { color: $color-error; }
+  .badge-text { color: $color-error; background: rgba($color-error, 0.08); padding: 1px 4px; border-radius: 4px; }
+}
+
+.badge-fail.status-badge {
+  background: rgba($color-error, 0.1);
+  border-color: rgba($color-error, 0.2);
+}
+
+// ─── Card Description ───
+.card-desc {
+  margin-bottom: 20px;
+}
+
+.desc-text {
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  color: rgba($color-organic-on-surface, 0.9);
+}
+
+// ─── Dictation Words ───
+.dictation-section {
+  margin-bottom: 16px;
 }
 
 .dictation-words {
   display: flex;
   flex-wrap: wrap;
-  gap: $spacing-xs;
+  gap: 8px;
 }
 
-.dictation-word {
-  background: #fff;
-  padding: 4px 12px;
-  border-radius: $radius-md;
-  font-family: $font-family;
-  font-size: $font-body-md;
-  color: $color-on-surface;
-  border: 1px solid $color-surface-container-highest;
+.word-pill {
+  padding: 6px 12px;
+  border-radius: 9999px;
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  color: $color-organic-on-surface;
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.8);
 }
 
-// Bottom Section
-.card-bottom {
-  margin-top: $spacing-xs;
-  padding-top: $spacing-sm;
-  border-top: 1px solid $color-surface-container;
-  display: flex;
-  flex-direction: column;
-  gap: $spacing-sm;
+// ─── Comment Section ───
+.comment-section {
+  margin-top: 16px;
 }
 
-// Comment Box
-.comment-box {
-  background: $color-surface-container-low;
-  border-radius: $radius-lg;
-  padding: $spacing-sm;
-  border-left: 2px solid $color-primary;
+.comment-bubble {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-radius: 16px;
+  padding: 12px;
+  border-left: 3px solid $color-organic-secondary;
 }
 
-.comment-header {
+.comment-top {
   display: flex;
   align-items: center;
   gap: 4px;
@@ -633,289 +918,237 @@ $color-on-tertiary-fixed: #00201d;
 
 .comment-icon {
   font-size: 14px;
-  color: $color-primary;
+  color: $color-organic-secondary;
 }
 
 .comment-label {
-  font-family: $font-family;
-  font-size: $font-label-sm;
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
   font-weight: 600;
-  color: $color-primary;
+  color: $color-organic-secondary;
 }
 
 .comment-text {
-  font-size: $font-body-md;
-  color: $color-on-surface;
-  line-height: 1.5;
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  color: $color-organic-on-surface;
+  line-height: 20px;
 }
 
-// Status Row
-.status-row {
+// ─── Grade Row ───
+.grade-row {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.status-pending {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  width: 100%;
-}
-
-.pending-hint {
-  font-family: $font-family;
-  font-size: $font-label-md;
-  color: $color-primary;
-}
-
-.grade-btns {
-  display: flex;
-  gap: $spacing-sm;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 2px dashed rgba(255, 255, 255, 0.5);
 }
 
 .grade-btn {
   display: flex;
   align-items: center;
-  gap: 4px;
-  padding: 6px 14px;
-  border-radius: $radius-full;
-  border-bottom: 3px solid transparent;
-  &:active {
-    border-bottom-width: 0;
-    transform: translateY(3px);
-  }
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border-radius: 9999px;
+  border: 2px solid rgba(255, 255, 255, 0.8);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  transition: all 0.15s;
+  &:active { transform: scale(0.95); opacity: 0.9; }
 }
 
-.btn-pass {
-  background: $color-tertiary;
-  border-bottom-color: #004d45;
+.grade-btn-icon {
+  font-size: 16px;
+}
+
+.grade-btn-text {
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  font-weight: 700;
 }
 
 .btn-fail {
   background: $color-error;
-  border-bottom-color: #7d0f0f;
+  .grade-btn-text, .grade-btn-icon { color: #fff; }
 }
 
-.grade-icon {
-  font-size: 16px;
-  color: #fff;
+.btn-pass {
+  background: $color-mint-green-dim;
+  .grade-btn-text, .grade-btn-icon { color: $color-organic-on-secondary-container; }
 }
 
-.grade-text {
-  font-family: $font-family;
-  font-size: $font-label-md;
-  font-weight: 600;
-  color: #fff;
+// ─── Waiting Row ───
+.waiting-row {
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 2px dashed rgba(255, 255, 255, 0.5);
+  text-align: right;
 }
 
-// Result Badge
-.result-badge {
+.waiting-text {
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  color: $color-organic-text-secondary;
+}
+
+// ─── Bottom Spacer ───
+.bottom-spacer {
+  height: 120px;
+}
+
+// ═══════════════════════════════════════════════════
+//  Modals
+// ═══════════════════════════════════════════════════
+
+.modal-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(28, 27, 28, 0.3);
+  backdrop-filter: blur(4px);
   display: flex;
   align-items: center;
-  gap: 4px;
-  padding: 4px 12px;
-  border-radius: $radius-full;
+  justify-content: center;
+  z-index: 999;
+  padding: 24px;
 }
 
-.badge-pass {
-  background: rgba($color-tertiary-container, 0.2);
-}
-
-.badge-fail {
-  background: rgba($color-error, 0.12);
-}
-
-.badge-icon {
-  font-size: 16px;
-  .badge-pass & { color: $color-tertiary; }
-  .badge-fail & { color: $color-error; }
-}
-
-.badge-text {
-  font-family: $font-family;
-  font-size: $font-label-md;
-  font-weight: 600;
-  .badge-pass & { color: $color-tertiary; }
-  .badge-fail & { color: $color-error; }
-}
-
-// Empty State
-.empty {
+// ─── Family Code Modal ───
+.family-modal {
+  background: $color-organic-surface-container-lowest;
+  width: 100%;
+  max-width: 360px;
+  border-radius: 24px;
+  overflow: hidden;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.08);
+  padding: 32px 24px 24px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  padding: 80px 0;
-  gap: $spacing-md;
 }
 
-.empty-icon {
-  font-size: 64px;
-  color: $color-outline-variant;
-}
-
-.empty-text {
-  font-size: $font-body-md;
-  color: $color-on-surface-variant;
-}
-
-.bottom-spacer {
-  height: 100px;
-}
-
-// Modals
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.4);
+.family-icon-wrap {
+  width: 64px; height: 64px;
+  border-radius: 50% 50% 40% 60% / 60% 40% 60% 40%;
+  background: $color-soft-lilac;
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 200;
+  margin-bottom: 20px;
 }
 
-.modal-content {
-  background: #fff;
-  padding: $spacing-lg;
-  border-radius: $radius-2xl;
-  text-align: center;
-  width: 300px;
+.family-icon {
+  font-size: 32px;
+  color: rgba($color-organic-on-surface, 0.6);
 }
 
-.modal-title {
-  font-size: $font-card-title;
+.family-modal-title {
+  font-family: 'Inter', sans-serif;
+  font-size: 24px;
   font-weight: 600;
-  display: block;
-  margin-bottom: $spacing-md;
+  color: $color-organic-on-surface;
+  margin-bottom: 16px;
 }
 
-.modal-code {
+.family-code {
+  font-family: 'Inter', sans-serif;
   font-size: 40px;
   font-weight: 700;
-  color: $color-primary;
+  color: $color-organic-secondary;
   letter-spacing: 8px;
-  display: block;
-  margin-bottom: $spacing-sm;
+  margin-bottom: 8px;
 }
 
-.modal-hint {
-  font-size: $font-body-md;
-  color: $color-on-surface-variant;
+.family-hint {
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  color: $color-organic-text-secondary;
+  margin-bottom: 24px;
 }
 
-.modal-box {
-  background: #fff;
-  border-radius: $radius-2xl;
-  padding: $spacing-md;
+.family-close-btn {
+  width: 100%;
+  padding: 14px 0;
+  border-radius: 16px;
+  background: $color-organic-primary;
+  text-align: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transition: all 0.15s;
+  &:active { transform: scale(0.97); }
+}
+
+.family-close-text {
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  color: #fff;
+}
+
+// ─── Comment Modal ───
+.comment-modal {
+  background: $color-organic-surface-container-lowest;
+  border-radius: 24px;
+  padding: 20px;
   width: 320px;
   max-width: 90vw;
   display: flex;
   flex-direction: column;
-  gap: $spacing-md;
+  gap: 16px;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.08);
 }
 
-.modal-box-title {
-  font-family: $font-family;
-  font-size: $font-body-lg;
+.cm-title {
+  font-family: 'Inter', sans-serif;
+  font-size: 18px;
   font-weight: 600;
-  color: $color-on-surface;
+  color: $color-organic-on-surface;
   text-align: center;
 }
 
-.modal-textarea {
-  background: $color-surface-container;
-  border: 2px solid $color-outline-variant;
-  border-radius: $radius-xl;
-  padding: $spacing-sm;
-  font-size: $font-body-md;
-  color: $color-on-surface;
+.cm-textarea {
+  background: $color-organic-surface-container-low;
+  border: 2px solid $color-organic-outline-variant;
+  border-radius: 16px;
+  padding: 12px;
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  color: $color-organic-on-surface;
   height: 80px;
   width: 100%;
   box-sizing: border-box;
 }
 
-.modal-btns {
+.cm-btns {
   display: flex;
-  gap: $spacing-sm;
+  gap: 12px;
 }
 
-.modal-btn {
+.cm-btn {
   flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: $spacing-sm;
-  border-radius: $radius-xl;
-  border-bottom: 3px solid transparent;
-  &:active {
-    border-bottom-width: 0;
-    transform: translateY(3px);
-  }
+  padding: 14px 0;
+  border-radius: 16px;
+  transition: all 0.15s;
+  &:active { transform: scale(0.97); }
 }
 
-.modal-btn-cancel {
-  background: $color-surface-container;
-  border-bottom-color: $color-outline-variant;
+.cm-skip {
+  background: $color-organic-surface-container;
 }
 
-.modal-btn-confirm {
-  background: $color-primary;
-  border-bottom-color: #004494;
+.cm-confirm {
+  background: $color-dark-green;
+  box-shadow: 0 4px 12px rgba(29, 59, 22, 0.2);
 }
 
-.modal-btn-text {
-  font-family: $font-family;
-  font-size: $font-label-md;
-  font-weight: 600;
-  .modal-btn-cancel & { color: $color-on-surface-variant; }
-  .modal-btn-confirm & { color: #fff; }
-}
-
-// Bottom Nav
-.bottom-nav {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  z-index: 100;
-  background: #fff;
-  border-top: 1px solid $color-surface-container;
-  border-top-left-radius: $radius-2xl;
-  border-top-right-radius: $radius-2xl;
-  display: flex;
-  justify-content: space-around;
-  align-items: center;
-  padding-top: 12px;
-  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.05);
-}
-
-.nav-item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 6px 24px;
-  color: $color-outline;
-}
-
-.nav-item-active {
-  background: rgba($color-primary-container, 0.2);
-  color: $color-primary;
-  border-radius: $radius-full;
-}
-
-.nav-icon {
-  font-size: 24px;
-  margin-bottom: 2px;
-}
-
-.nav-label {
-  font-family: $font-family;
-  font-size: 10px;
+.cm-btn-text {
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
   font-weight: 500;
 }
+
+.cm-skip-text { color: $color-organic-on-surface; }
+.cm-confirm-text { color: #fff; }
 </style>

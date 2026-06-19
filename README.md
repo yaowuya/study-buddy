@@ -11,12 +11,13 @@
 
 ## 技术栈
 
-| 层 | 技术 |
-|---|---|
-| 后端 | FastAPI + SQLAlchemy 2.x + PostgreSQL + JWT |
-| 客户端 | UniApp + Vue 3 + TypeScript + Pinia |
-| TTS | 设备本地语音合成（APP: plus.speech, H5: SpeechSynthesis） |
-| 同步 | 30 秒轮询 |
+
+| 层     | 技术                                                      |
+| ------ | --------------------------------------------------------- |
+| 后端   | FastAPI + SQLAlchemy 2.x + PostgreSQL + JWT               |
+| 客户端 | UniApp + Vue 3 + TypeScript + Pinia                       |
+| TTS    | 设备本地语音合成（APP: plus.speech, H5: SpeechSynthesis） |
+| 同步   | 30 秒轮询                                                 |
 
 ## 项目结构
 
@@ -48,7 +49,7 @@ study-buddy/
 
 - Python 3.11+
 - Node.js 18+
-- PostgreSQL（默认 `postgres:root@localhost:5432/studybuddy`）
+- MySQL（默认 `mysql+pymysql://root:root@localhost:3306/studybuddy`）
 
 ### 后端
 
@@ -94,26 +95,27 @@ npm run build:h5
 
 ## API 概览
 
-| 模块 | 接口 | 说明 |
-|------|------|------|
-| 认证 | `POST /api/v1/auth/register` | 注册（自动创建家庭） |
-| | `POST /api/v1/auth/login` | 登录 |
-| | `GET /api/v1/auth/me` | 获取当前用户 |
-| | `GET /api/v1/auth/family` | 获取家庭连接码 |
-| | `POST /api/v1/auth/bind` | 家长绑定家庭 |
-| | `POST /api/v1/auth/student-bind` | 学生绑定家庭 |
-| 任务 | `POST /api/v1/tasks/` | 创建任务 |
-| | `GET /api/v1/tasks/` | 查询任务列表 |
-| | `GET /api/v1/tasks/{id}` | 获取任务详情 |
-| | `PATCH /api/v1/tasks/{id}/status` | 更新任务状态 |
-| | `DELETE /api/v1/tasks/{id}` | 删除任务 |
-| 听写 | `POST /api/v1/dictation/` | 创建听写词组 |
-| | `GET /api/v1/dictation/{task_id}` | 获取听写词组 |
-| 提交 | `POST /api/v1/submissions/` | 提交作业 |
-| | `GET /api/v1/submissions/` | 查询提交列表 |
-| | `POST /api/v1/submissions/{id}/grade` | 批改作业 |
-| 错题 | `GET /api/v1/mistakes/` | 查询错题列表 |
-| | `POST /api/v1/mistakes/{id}/archive` | 归档错题 |
+
+| 模块 | 接口                                  | 说明                 |
+| ---- | ------------------------------------- | -------------------- |
+| 认证 | `POST /api/v1/auth/register`          | 注册（自动创建家庭） |
+|      | `POST /api/v1/auth/login`             | 登录                 |
+|      | `GET /api/v1/auth/me`                 | 获取当前用户         |
+|      | `GET /api/v1/auth/family`             | 获取家庭连接码       |
+|      | `POST /api/v1/auth/bind`              | 家长绑定家庭         |
+|      | `POST /api/v1/auth/student-bind`      | 学生绑定家庭         |
+| 任务 | `POST /api/v1/tasks/`                 | 创建任务             |
+|      | `GET /api/v1/tasks/`                  | 查询任务列表         |
+|      | `GET /api/v1/tasks/{id}`              | 获取任务详情         |
+|      | `PATCH /api/v1/tasks/{id}/status`     | 更新任务状态         |
+|      | `DELETE /api/v1/tasks/{id}`           | 删除任务             |
+| 听写 | `POST /api/v1/dictation/`             | 创建听写词组         |
+|      | `GET /api/v1/dictation/{task_id}`     | 获取听写词组         |
+| 提交 | `POST /api/v1/submissions/`           | 提交作业             |
+|      | `GET /api/v1/submissions/`            | 查询提交列表         |
+|      | `POST /api/v1/submissions/{id}/grade` | 批改作业             |
+| 错题 | `GET /api/v1/mistakes/`               | 查询错题列表         |
+|      | `POST /api/v1/mistakes/{id}/archive`  | 归档错题             |
 
 ## 许可证
 

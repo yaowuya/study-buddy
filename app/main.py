@@ -1,6 +1,8 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from app.core.config import settings
+from app.core.logging import setup_logging
 from app.api.v1.auth import router as auth_router
 from app.api.v1.tasks import router as tasks_router
 from app.api.v1.dictation import router as dictation_router
@@ -8,7 +10,7 @@ from app.api.v1.submissions import router as submissions_router
 from app.api.v1.mistakes import router as mistakes_router
 from app.api.v1.tts import router as tts_router
 
-from app.core.config import settings
+setup_logging()
 
 app = FastAPI(title="作业陪伴助手", version="0.1.0")
 

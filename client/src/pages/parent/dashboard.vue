@@ -1,107 +1,117 @@
 <template>
   <view class="page">
-    <!-- AppBar -->
+    <!-- TopAppBar -->
     <view class="appbar" :style="{ paddingTop: Math.max(statusBarHeight, 12) + 'px' }">
       <view class="appbar-left">
         <view class="avatar-circle">
           <text class="material-symbols-outlined">person</text>
         </view>
-        <text class="appbar-title">作业伙伴</text>
+        <text class="appbar-title">今日作业</text>
+      </view>
+      <view class="appbar-right" @tap="handleLogout">
+        <text class="material-symbols-outlined">logout</text>
       </view>
     </view>
 
     <!-- Main -->
     <scroll-view scroll-y class="main" :style="{ paddingTop: (appbarHeight + 8) + 'px' }">
-      <!-- Hero Overview Card -->
+      <!-- Hero Progress Card -->
       <view class="hero-card">
-        <view class="hero-deco"></view>
-        <view class="hero-top">
-          <text class="material-symbols-outlined hero-icon">sentiment_satisfied</text>
-          <text class="hero-title">今日作业概览</text>
+        <view class="hero-content">
+          <view class="hero-top">
+            <text class="material-symbols-outlined hero-icon">mood</text>
+            <text class="hero-title">今日作业概览</text>
+          </view>
+          <text class="hero-body">
+            今天共有 <text class="hero-num">{{ tasks.length }}</text> 项作业，已完成
+            <text class="hero-num-done">{{ doneCount }}</text> 项。
+          </text>
+          <view class="progress-section">
+            <view class="progress-row">
+              <text class="progress-label">整体进度</text>
+              <text class="progress-pct">{{ progressPct }}%</text>
+            </view>
+            <view class="progress-bar-bg">
+              <view class="progress-bar-fill" :style="{ width: progressPct + '%' }"></view>
+            </view>
+          </view>
         </view>
-        <text class="hero-body">
-          今天共有 <text class="hero-num">{{ tasks.length }}</text> 项作业，已完成
-          <text class="hero-num-done">{{ doneCount }}</text> 项。
-        </text>
-        <view class="progress-row">
-          <text class="progress-label">整体进度</text>
-          <text class="progress-pct">{{ progressPct }}%</text>
+      </view>
+
+      <!-- Family Code -->
+      <view class="family-code-card" @tap="copyFamilyCode">
+        <view class="family-code-left">
+          <text class="material-symbols-outlined family-icon">family_restroom</text>
+          <text class="family-label">家庭码:</text>
+          <text class="family-code">{{ familyCode }}</text>
         </view>
-        <view class="progress-bar-bg">
-          <view class="progress-bar-fill" :style="{ width: progressPct + '%' }"></view>
-        </view>
+        <text class="material-symbols-outlined copy-icon">content_copy</text>
       </view>
 
       <!-- Pending Tasks -->
       <view class="section">
         <text class="section-label">待完成 ({{ pendingTasks.length }})</text>
         <view v-for="task in pendingTasks" :key="task.id" class="task-card">
-          <view class="task-card-top">
-            <view :class="['task-icon-box', `icon-${task.subject || 'default'}`]">
-              <text class="material-symbols-outlined">{{ subjectIcon(task.subject) }}</text>
+          <!-- Task Header -->
+          <view class="task-header">
+            <view :class="['task-icon-circle', `icon-bg-${task.subject || 'default'}`]">
+              <text class="material-symbols-outlined task-icon">{{ subjectIcon(task.subject) }}</text>
             </view>
-            <view class="task-card-info">
-              <view class="title-row">
-                <text class="task-card-title">{{ task.title }}</text>
-                <view v-if="task.has_dictation" class="dictation-tag" @tap="previewDictation(task)">
-                  <text class="material-symbols-outlined tag-icon">record_voice_over</text>
-                  <text class="tag-text">听写</text>
-                </view>
-              </view>
-              <view v-if="task.duration" class="task-meta">
-                <text class="material-symbols-outlined meta-icon">timer</text>
-                <text class="task-meta-text">预计 {{ task.duration }} 分钟</text>
-              </view>
+            <text class="task-title">{{ task.title }}</text>
+            <view v-if="task.has_dictation" class="badge badge-dictation">
+              <text class="material-symbols-outlined badge-icon">record_voice_over</text>
+              <text class="badge-text">听写</text>
+            </view>
+            <view :class="['badge', `badge-${task.status}`]">
+              <text class="badge-text">{{ statusLabel(task.status) }}</text>
             </view>
           </view>
-          <text v-if="task.desc" class="task-desc">{{ task.desc }}</text>
-          <view class="btn-row">
-            <view v-if="task.has_dictation" class="preview-btn" @tap="previewDictation(task)">
-              <text class="material-symbols-outlined btn-icon">volume_up</text>
-              <text class="btn-text">预览听写</text>
+
+          <!-- Task Content -->
+          <view :class="['task-content', `content-bg-${task.subject || 'default'}`]">
+            <text class="content-date">{{ formatDate(task.date) }}</text>
+            <view v-if="task.desc" class="content-body">
+              <text class="content-desc" v-for="(line, i) in descLines(task.desc)" :key="i">{{ line }}</text>
             </view>
-            <view class="edit-btn" @tap="editTask(task)">
-              <text class="material-symbols-outlined btn-icon">edit</text>
-              <text class="btn-text">编辑</text>
+          </view>
+
+          <!-- Task Actions -->
+          <view class="task-actions">
+            <view v-if="task.has_dictation" :class="['action-btn', `action-bg-${task.subject || 'default'}`]" @tap="previewDictation(task)">
+              <text class="material-symbols-outlined action-icon">visibility</text>
+              <text class="action-text">预览听写</text>
+            </view>
+            <view :class="['action-btn', `action-bg-${task.subject || 'default'}`, task.has_dictation ? 'action-btn-flex' : '']" @tap="editTask(task)">
+              <text class="material-symbols-outlined action-icon">edit</text>
+              <text class="action-text">编辑</text>
             </view>
           </view>
         </view>
         <view v-if="pendingTasks.length === 0" class="empty-hint">
-          <text class="empty-hint-text">暂无待完成任务</text>
+          <text class="empty-hint-text">暂无待完成任务 🎉</text>
         </view>
       </view>
+
+      <!-- Divider -->
+      <view v-if="doneTasks.length > 0" class="section-divider"></view>
 
       <!-- Completed Tasks -->
       <view v-if="doneTasks.length > 0" class="section">
         <text class="section-label section-label-done">已完成 ({{ doneTasks.length }})</text>
         <view v-for="task in doneTasks" :key="task.id" class="task-card task-card-done">
-          <view class="task-card-top">
-            <view :class="['task-icon-box', `icon-${task.subject || 'default'}`, 'icon-done']">
-              <text class="material-symbols-outlined">{{ subjectIcon(task.subject) }}</text>
+          <view class="task-header">
+            <view :class="['task-icon-circle', `icon-bg-${task.subject || 'default'}`, 'icon-done']">
+              <text class="material-symbols-outlined task-icon">{{ subjectIcon(task.subject) }}</text>
             </view>
-            <view class="task-card-info">
-              <view class="title-row">
-                <text class="task-card-title task-title-done">{{ task.title }}</text>
-                <view v-if="task.has_dictation" class="dictation-tag dictation-tag-done" @tap="previewDictation(task)">
-                  <text class="material-symbols-outlined tag-icon">record_voice_over</text>
-                  <text class="tag-text">听写</text>
-                </view>
-              </view>
-              <text v-if="task.desc" class="task-meta-text">{{ task.desc }}</text>
-            </view>
-            <view class="check-circle">
-              <text class="material-symbols-outlined check-icon">check</text>
+            <text class="task-title task-title-done">{{ task.title }}</text>
+            <view class="badge badge-completed">
+              <text class="material-symbols-outlined badge-icon-sm">check_circle</text>
+              <text class="badge-text">已完成</text>
             </view>
           </view>
-        </view>
-      </view>
-
-      <!-- Family Code Modal -->
-      <view v-if="showCode" class="modal-overlay" @tap="showCode = false">
-        <view class="modal-content" @tap.stop>
-          <text class="modal-title">家庭连接码</text>
-          <text class="modal-code">{{ familyCode }}</text>
-          <text class="modal-hint">让学生输入此码完成绑定</text>
+          <view class="task-content task-content-done">
+            <text class="content-desc content-desc-done">{{ task.desc || '无描述' }}</text>
+          </view>
         </view>
       </view>
 
@@ -114,29 +124,37 @@
               <text class="material-symbols-outlined">close</text>
             </view>
           </view>
-          <text class="dictation-modal-subtitle">{{ dictationModal.taskTitle }}</text>
+          <view class="dictation-modal-info">
+            <text class="dictation-modal-subtitle">{{ dictationModal.taskTitle }}</text>
+            <view class="shuffle-btn" @tap="shuffleWords">
+              <text class="material-symbols-outlined shuffle-icon">shuffle</text>
+              <text class="shuffle-text">乱序</text>
+            </view>
+          </view>
 
           <view v-if="dictationModal.loading" class="dictation-loading">
-            <text>加载中...</text>
+            <text class="dictation-loading-text">加载中...</text>
           </view>
-          <view v-else class="dictation-words">
+          <view v-else class="dictation-words-grid">
             <view
               v-for="(word, i) in dictationModal.words"
               :key="i"
-              :class="['word-chip', playingIndex === i ? 'word-chip-playing' : '']"
+              :class="['word-card', playingIndex === i ? 'word-card-playing' : '', i % 2 === 0 ? 'word-card-lilac' : 'word-card-mint']"
               @tap="playWord(word, i)"
             >
               <text class="word-text">{{ word }}</text>
-              <text class="material-symbols-outlined word-play-icon">
-                {{ playingIndex === i ? 'volume_up' : 'play_arrow' }}
-              </text>
+              <view class="word-play-btn">
+                <text class="material-symbols-outlined word-play-icon">
+                  {{ playingIndex === i ? 'volume_up' : 'play_arrow' }}
+                </text>
+              </view>
             </view>
           </view>
 
           <view class="dictation-modal-actions">
             <view class="play-all-btn" @tap="playAllWords">
-              <text class="material-symbols-outlined">playlist_play</text>
-              <text>顺序播放</text>
+              <text class="material-symbols-outlined play-all-icon">playlist_play</text>
+              <text class="play-all-text">顺序播放</text>
             </view>
           </view>
         </view>
@@ -145,21 +163,21 @@
       <view class="bottom-spacer"></view>
     </scroll-view>
 
+    <!-- 退出登录确认弹窗 -->
+    <ConfirmModal
+      v-model:visible="showLogoutConfirm"
+      type="warning"
+      icon="logout"
+      title="退出登录"
+      desc="确定要退出吗？"
+      cancel-text="取消"
+      confirm-text="确定"
+      :flat="true"
+      @confirm="confirmLogout"
+    />
+
     <!-- Bottom Nav -->
-    <view class="bottom-nav" :style="{ paddingBottom: safeAreaBottom + 'px' }">
-      <view class="nav-item nav-item-active">
-        <text class="material-symbols-outlined nav-icon">auto_stories</text>
-        <text class="nav-label">作业</text>
-      </view>
-      <view class="nav-item" @tap="goCreate">
-        <text class="material-symbols-outlined nav-icon">add_circle</text>
-        <text class="nav-label">布置</text>
-      </view>
-      <view class="nav-item" @tap="goGrading">
-        <text class="material-symbols-outlined nav-icon">history</text>
-        <text class="nav-label">历史</text>
-      </view>
-    </view>
+    <BottomNav active="dashboard" :navItems="parentNavItems" />
   </view>
 </template>
 
@@ -172,16 +190,24 @@ import { useSyncStore } from '@/stores/sync'
 import { getDictationItems } from '@/api/dictation'
 import type { TaskOut } from '@/api/tasks'
 import { BASE_URL } from '@/api/config'
+import BottomNav from '@/components/BottomNav.vue'
+import ConfirmModal from '@/components/ConfirmModal.vue'
+import type { NavItem } from '@/components/BottomNav.vue'
+
+const parentNavItems: NavItem[] = [
+  { key: 'dashboard', icon: 'assignment', label: '作业', url: '/pages/parent/dashboard' },
+  { key: 'create', icon: 'calendar_today', label: '布置', url: '/pages/parent/task-create' },
+  { key: 'grading', icon: 'history', label: '历史', url: '/pages/parent/grading' },
+]
 
 const authStore = useAuthStore()
 const tasksStore = useTasksStore()
 const syncStore = useSyncStore()
-const showCode = ref(false)
 const familyCode = ref('加载中')
 
 const statusBarHeight = ref(0)
 const safeAreaBottom = ref(0)
-const appbarHeight = ref(88) // 增加默认值，确保不被遮住
+const appbarHeight = ref(88)
 
 // Dictation preview
 const dictationModal = reactive({
@@ -192,6 +218,7 @@ const dictationModal = reactive({
   words: [] as string[],
 })
 const playingIndex = ref(-1)
+const showLogoutConfirm = ref(false)
 
 async function loadFamilyCode() {
   if (!authStore.user?.family_id) {
@@ -207,6 +234,22 @@ async function loadFamilyCode() {
   }
 }
 
+function copyFamilyCode() {
+  uni.setClipboardData({
+    data: familyCode.value,
+    success: () => uni.showToast({ title: '已复制家庭码', icon: 'success' })
+  })
+}
+
+function handleLogout() {
+  showLogoutConfirm.value = true
+}
+
+function confirmLogout() {
+  authStore.logout()
+  uni.reLaunch({ url: '/pages/auth/login' })
+}
+
 const tasks = computed(() => Array.isArray(tasksStore.tasks) ? tasksStore.tasks : [])
 const pendingTasks = computed(() => tasks.value.filter(t => t.status === 'pending' || t.status === 'in_progress'))
 const doneTasks = computed(() => tasks.value.filter(t => t.status === 'submitted' || t.status === 'graded'))
@@ -217,8 +260,30 @@ const progressPct = computed(() => {
 })
 
 function subjectIcon(subject: string | null) {
-  const map: Record<string, string> = { '语文': 'edit_note', '数学': 'calculate', '英语': 'translate', '科学': 'science' }
+  const map: Record<string, string> = { '语文': 'menu_book', '数学': 'calculate', '英语': 'language', '科学': 'science' }
   return map[subject || ''] || 'assignment'
+}
+
+function statusLabel(status: string) {
+  const map: Record<string, string> = { 'pending': '未开始', 'in_progress': '进行中', 'submitted': '已提交', 'graded': '已批改' }
+  return map[status] || status
+}
+
+function formatDate(dateStr: string) {
+  const parts = dateStr.split('-')
+  const d = parts.length === 3
+    ? new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]))
+    : new Date(dateStr)
+  const weekDays = ['周日', '周一', '周二', '周三', '周四', '周五', '周六']
+  const m = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  const wd = weekDays[d.getDay()]
+  return `${d.getFullYear()}.${m}.${day}${wd}练习:`
+}
+
+function descLines(desc: string | null) {
+  if (!desc) return []
+  return desc.split('\n').filter(l => l.trim())
 }
 
 function editTask(task: TaskOut) {
@@ -243,6 +308,15 @@ async function previewDictation(task: TaskOut) {
   }
 }
 
+function shuffleWords() {
+  const words = [...dictationModal.words]
+  for (let i = words.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [words[i], words[j]] = [words[j], words[i]]
+  }
+  dictationModal.words = words
+}
+
 function closeDictationModal() {
   dictationModal.visible = false
   stopSpeech()
@@ -256,45 +330,29 @@ function getTTSAudioUrl(text: string, rate: number = 1.0): string {
 
 function speak(text: string): Promise<void> {
   return new Promise((resolve) => {
-    console.log('[TTS] 开始播放:', text)
-
     try {
       if (dashboardAudioContext) {
         dashboardAudioContext.destroy()
       }
-
       const url = getTTSAudioUrl(text)
-      console.log('[TTS] 请求 URL:', url)
-
       dashboardAudioContext = uni.createInnerAudioContext()
       dashboardAudioContext.volume = 1.0
       dashboardAudioContext.src = url
 
       dashboardAudioContext.onCanplay(() => {
-        console.log('[TTS] 音频可播放')
         dashboardAudioContext?.play()
       })
-
-      dashboardAudioContext.onPlay(() => {
-        console.log('[TTS] 正在播放')
-      })
-
       dashboardAudioContext.onEnded(() => {
-        console.log('[TTS] 播放完成')
         dashboardAudioContext?.destroy()
         dashboardAudioContext = null
         resolve()
       })
-
-      dashboardAudioContext.onError((e) => {
-        console.error('[TTS] 播放失败:', e)
-        console.error('[TTS] 失败 URL:', url)
+      dashboardAudioContext.onError(() => {
         dashboardAudioContext?.destroy()
         dashboardAudioContext = null
         resolve()
       })
-    } catch (e) {
-      console.error('[TTS] 异常:', e)
+    } catch {
       resolve()
     }
   })
@@ -328,19 +386,10 @@ async function playAllWords() {
   playingIndex.value = -1
 }
 
-function goCreate() {
-  uni.redirectTo({ url: '/pages/parent/task-create' })
-}
-
-function goGrading() {
-  uni.redirectTo({ url: '/pages/parent/grading' })
-}
-
 onMounted(() => {
   const info = uni.getSystemInfoSync()
   statusBarHeight.value = info.statusBarHeight || 0
   safeAreaBottom.value = info.safeAreaInsets?.bottom || 0
-  // AppBar 高度 = statusBarHeight + 顶部padding + 内容高度(56) + 底部padding
   appbarHeight.value = Math.max(statusBarHeight.value, 12) + 56 + 12
   tasksStore.loadCached()
   loadFamilyCode()
@@ -375,221 +424,260 @@ onUnmounted(() => {
   font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
 }
 
-.page { min-height: 100vh; background: $color-surface; font-family: $font-family-body; }
+.page { min-height: 100vh; background: $color-organic-bg; font-family: 'Inter', $font-family-body; }
 
-// AppBar
+// ─── TopAppBar ───
 .appbar {
   position: fixed; top: 0; left: 0; right: 0; z-index: 100;
-  background: #fff; border-bottom: 2px solid #f1f5f9;
+  background: #fff; border-bottom: none;
   display: flex; align-items: center; justify-content: space-between;
   padding-left: $spacing-margin; padding-right: $spacing-margin;
-  padding-bottom: 12px;
-  padding-top: 12px;
+  padding-bottom: 12px; padding-top: 12px;
   min-height: 64px; box-sizing: border-box;
 }
 .appbar-left { display: flex; align-items: center; gap: $spacing-sm; }
 .avatar-circle {
   width: 40px; height: 40px; border-radius: $radius-full;
-  background: $color-surface-container; display: flex; align-items: center; justify-content: center;
-  color: $color-primary;
+  background: $color-mint-light; display: flex; align-items: center; justify-content: center;
+  color: $color-dark-green;
 }
-.appbar-title { font-family: $font-family; font-size: 18px; font-weight: 700; color: #2563eb; }
+.appbar-title { font-family: 'Inter', sans-serif; font-size: 24px; font-weight: 600; color: $color-dark-green; line-height: 32px; }
+.appbar-right {
+  width: 40px; height: 40px; border-radius: $radius-full;
+  display: flex; align-items: center; justify-content: center;
+  color: $color-dark-green; opacity: 0.6;
+  &:active { opacity: 1; background: $color-mint-light; }
+}
 
-// Main scroll area
+// ─── Main Scroll Area ───
 .main { flex: 1; padding-left: $spacing-margin; padding-right: $spacing-margin; box-sizing: border-box; width: 100%; }
 
-// Hero card
+// ─── Hero Card ───
 .hero-card {
-  background: $color-primary-container; border-radius: $radius-2xl;
-  padding: $spacing-md; margin-bottom: $spacing-lg;
+  background: $color-mint-light;
+  border-radius: 40px 120px 40px 120px;
+  padding: 32px; margin-bottom: 16px;
   position: relative; overflow: hidden;
-  box-shadow: 0 4px 16px rgba(0, 88, 189, 0.15);
+  box-shadow: 0 4px 16px rgba(29, 59, 22, 0.08);
 }
-.hero-deco {
-  position: absolute; right: 0; top: 0; width: 128px; height: 128px;
-  background: linear-gradient(to bottom-left, rgba(255,255,255,0.2), transparent);
-  border-bottom-left-radius: $radius-full; pointer-events: none;
-}
-.hero-top { display: flex; align-items: center; gap: $spacing-sm; margin-bottom: $spacing-xs; }
-.hero-icon { color: $color-on-primary-fixed-variant; font-size: 28px; }
-.hero-title { font-family: $font-family; font-size: $font-headline-lg; font-weight: 600; color: #fefcff; }
-.hero-body { font-size: $font-body-md; color: rgba(254,252,255,0.9); display: block; margin-bottom: $spacing-sm; }
-.hero-num { font-weight: 700; }
-.hero-num-done { font-weight: 700; color: $color-tertiary-fixed; }
-.progress-row { display: flex; justify-content: space-between; margin-bottom: 4px; }
-.progress-label { font-size: $font-label-sm; color: rgba(254,252,255,0.8); }
-.progress-pct { font-size: $font-label-sm; color: #fefcff; font-weight: 600; }
+.hero-content { position: relative; z-index: 1; }
+.hero-top { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+.hero-icon { color: $color-dark-green; font-size: 24px; }
+.hero-title { font-family: 'Inter', sans-serif; font-size: 24px; font-weight: 700; color: $color-dark-green; line-height: 32px; }
+.hero-body { font-size: 14px; color: rgba(29, 59, 22, 0.8); display: block; margin-bottom: 24px; font-weight: 500; line-height: 20px; }
+.hero-num { font-weight: 700; font-size: 18px; color: $color-dark-green; }
+.hero-num-done { font-weight: 700; font-size: 18px; color: $color-dark-green; }
+.progress-section { display: flex; flex-direction: column; gap: 8px; }
+.progress-row { display: flex; justify-content: space-between; align-items: center; }
+.progress-label { font-size: 12px; color: rgba(29, 59, 22, 0.8); font-weight: 600; }
+.progress-pct { font-size: 14px; color: $color-dark-green; font-weight: 700; }
 .progress-bar-bg {
-  width: 100%; height: 16px; background: $color-on-primary-fixed-variant;
+  width: 100%; height: 12px; background: rgba(29, 59, 22, 0.1);
   border-radius: $radius-full; overflow: hidden;
 }
-.progress-bar-fill { height: 100%; background: $color-tertiary-fixed; border-radius: $radius-full; transition: width 0.3s; }
+.progress-bar-fill { height: 100%; background: $color-dark-green; border-radius: $radius-full; transition: width 0.3s; }
 
-// Sections
-.section { margin-bottom: $spacing-lg; }
-.section-label {
-  font-family: $font-family; font-size: $font-label-md; font-weight: 600;
-  color: $color-on-surface-variant; letter-spacing: 0.05em; display: block; margin-bottom: $spacing-md;
+// ─── Family Code Card ───
+.family-code-card {
+  display: flex; align-items: center; justify-content: space-between;
+  background: rgba(255, 255, 255, 0.5); border-radius: 24px;
+  padding: 16px; margin-bottom: 24px;
+  border: 1px solid rgba($color-organic-outline-variant, 0.1);
 }
-.section-label-done { opacity: 0.8; }
+.family-code-left { display: flex; align-items: center; gap: 8px; }
+.family-icon { font-size: 20px; color: rgba(29, 59, 22, 0.6); }
+.family-label { font-size: 12px; color: rgba(29, 59, 22, 0.7); font-weight: 500; }
+.family-code { font-size: 14px; color: $color-dark-green; font-weight: 700; letter-spacing: 2px; }
+.copy-icon { font-size: 18px; color: rgba(29, 59, 22, 0.6); }
 
-// Task cards
+// ─── Section ───
+.section { margin-bottom: 24px; }
+.section-label {
+  font-family: 'Inter', sans-serif; font-size: 18px; font-weight: 700;
+  color: $color-dark-green; display: block; margin-bottom: 24px;
+  line-height: 24px;
+}
+.section-label-done { color: $color-organic-on-surface-variant; }
+.section-divider { height: 1px; background: rgba($color-organic-outline-variant, 0.3); margin: 8px 0; }
+
+// ─── Task Card ───
 .task-card {
-  background: $color-surface-container-lowest; border-radius: $radius-xl;
-  padding: $card-padding; border: 2px solid $color-surface-container-highest;
-  box-shadow: 0 4px 12px rgba(0, 88, 189, 0.04); margin-bottom: $spacing-md;
-  display: flex; flex-direction: column; gap: $spacing-sm;
+  background: $color-organic-surface-container-lowest;
+  border-radius: 24px; padding: 24px;
+  box-shadow: 0px 12px 32px rgba(0, 0, 0, 0.06);
+  margin-bottom: 16px;
+  display: flex; flex-direction: column; gap: 16px;
 }
 .task-card-done {
-  background: rgba(0, 131, 121, 0.06); border-color: rgba(0, 104, 95, 0.2);
+  background: $color-organic-surface-container-high;
+  opacity: 0.8;
 }
-.task-card-top { display: flex; align-items: center; gap: $spacing-sm; }
-.task-icon-box {
-  width: 48px; height: 48px; border-radius: $radius-xl; flex-shrink: 0;
-  display: flex; align-items: center; justify-content: center;
-  background: $color-primary-fixed; color: $color-primary;
-}
-.icon-语文 { background: $color-surface-container; color: $color-tertiary; }
-.icon-数学 { background: $color-primary-fixed; color: $color-primary; }
-.icon-英语 { background: $color-secondary-fixed; color: $color-secondary; }
-.icon-科学 { background: $color-tertiary-fixed; color: $color-on-tertiary-fixed-variant; }
-.icon-default { background: $color-surface-container; color: $color-on-surface-variant; }
-.icon-done { opacity: 0.7; }
-.task-card-info { flex: 1; display: flex; flex-direction: column; justify-content: center; }
-.title-row { display: flex; align-items: center; gap: $spacing-xs; flex-wrap: wrap; line-height: 1; }
-.task-card-title {
-  font-family: $font-family; font-size: 18px; font-weight: 700;
-  color: $color-on-surface; line-height: 24px;
-}
-.dictation-tag {
-  display: inline-flex; align-items: center; gap: 2px;
-  background: $color-tertiary-container; padding: 2px 8px; border-radius: $radius-full;
-  height: 24px; box-sizing: border-box;
-}
-.tag-icon { font-size: 14px; color: $color-on-tertiary-container; line-height: 1; }
-.tag-text { font-size: 12px; font-weight: 600; color: $color-on-tertiary-container; line-height: 1; }
-.dictation-tag-done { background: rgba(0, 131, 121, 0.15); }
-.task-title-done { color: $color-tertiary; }
-.task-meta { display: flex; align-items: center; gap: 4px; margin-top: 4px; }
-.meta-icon { font-size: 14px; color: $color-on-surface-variant; }
-.task-meta-text { font-size: $font-label-sm; color: $color-on-surface-variant; }
-.task-desc {
-  font-size: $font-body-md; color: $color-on-surface-variant;
-  background: $color-surface-bright; padding: $spacing-sm;
-  border-radius: $radius-lg; border: 1px solid rgba($color-outline-variant, 0.3);
-}
-.check-circle {
-  width: 32px; height: 32px; border-radius: $radius-full;
-  background: $color-tertiary; display: flex; align-items: center; justify-content: center;
-  flex-shrink: 0;
-}
-.check-icon { color: $color-on-tertiary; font-size: 20px; }
 
-// Button row
-.btn-row { display: flex; gap: $spacing-sm; }
-.preview-btn, .edit-btn {
-  flex: 1;
-  display: flex; align-items: center; justify-content: center; gap: 6px;
-  padding: $spacing-sm; border-radius: $radius-xl;
-  font-family: $font-family; font-size: $font-label-md; font-weight: 600;
-  border-bottom: 3px solid transparent;
-  &:active { border-bottom-width: 0; transform: translateY(3px); }
+// Task Header
+.task-header { display: flex; align-items: center; gap: 8px; }
+.task-icon-circle {
+  width: 30px; height: 30px; border-radius: $radius-full;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
 }
-.preview-btn {
-  background: $color-tertiary-container; color: $color-on-tertiary-container;
-  border-bottom-color: $color-on-tertiary-fixed-variant;
+.icon-bg-语文 { background: $color-soft-lilac; color: #4e453c; }
+.icon-bg-数学 { background: $color-pale-peach; color: #4e453c; }
+.icon-bg-英语 { background: $color-mint-green-bright; color: $color-dark-green; }
+.icon-bg-科学 { background: $color-soft-lilac; color: $color-dark-green; }
+.icon-bg-default { background: $color-organic-surface-container; color: $color-organic-on-surface-variant; }
+.icon-done { opacity: 0.6; }
+
+.task-icon { font-size: 15px; }
+.task-title {
+  font-family: 'Inter', sans-serif; font-size: 16px; font-weight: 700;
+  color: $color-dark-green; line-height: 22px; flex: 1; min-width: 0;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
-.edit-btn {
-  background: $color-primary; color: $color-on-primary;
-  border-bottom-color: $color-on-primary-fixed-variant;
+.task-title-done { text-decoration: line-through; color: rgba(29, 59, 22, 0.6); }
+
+// Badges
+.badge {
+  display: inline-flex; align-items: center; gap: 3px;
+  padding: 4px 10px; border-radius: $radius-full;
+  font-size: 12px; font-weight: 700; line-height: 16px; flex-shrink: 0;
 }
-.btn-icon { font-size: 16px; }
-.btn-text { color: inherit; }
+.badge-dictation { background: $color-on-secondary-fixed-variant; color: #fff; }
+.badge-pending { background: $color-organic-surface-variant; color: $color-organic-on-surface-variant; font-weight: 600; }
+.badge-in_progress { background: $color-pale-peach; color: $color-organic-on-surface-variant; font-weight: 600; }
+.badge-completed { background: rgba($color-mint-light, 0.6); color: $color-dark-green; font-weight: 600; }
+.badge-icon { font-size: 13px; }
+.badge-icon-sm { font-size: 13px; }
+.badge-text { color: inherit; font-size: 12px; font-weight: 600; }
+
+// Task Content
+.task-content {
+  border-radius: 16px; padding: 20px;
+  font-size: 14px; color: $color-organic-on-surface-variant;
+}
+.content-bg-语文 { background: rgba($color-soft-lilac, 0.3); }
+.content-bg-数学 { background: rgba($color-pale-peach, 0.3); }
+.content-bg-英语 { background: $color-mint-light; }
+.content-bg-科学 { background: rgba($color-soft-lilac, 0.3); }
+.content-bg-default { background: $color-organic-surface-container; }
+
+.content-date {
+  font-weight: 700; color: $color-dark-green; display: block;
+  margin-bottom: 12px; letter-spacing: 1px; font-size: 14px;
+}
+.content-body { display: flex; flex-direction: column; gap: 12px; }
+.content-desc {
+  color: rgba(29, 59, 22, 0.9); font-weight: 500; font-size: 14px; line-height: 20px;
+}
+.content-desc-done { text-decoration: line-through; color: rgba(29, 59, 22, 0.6); }
+.task-content-done { background: rgba($color-organic-surface-container, 0.5); }
+
+// Task Actions
+.task-actions { display: flex; gap: 12px; }
+.action-btn {
+  flex: 1; display: flex; align-items: center; justify-content: center; gap: 8px;
+  padding: 12px 0; border-radius: $radius-full;
+  font-family: 'Inter', sans-serif; font-size: 14px; font-weight: 700;
+  color: $color-organic-on-surface-variant;
+  &:active { opacity: 0.8; transform: scale(0.98); }
+}
+.action-bg-语文 { background: $color-soft-lilac; }
+.action-bg-数学 { background: $color-pale-peach; }
+.action-bg-英语 { background: $color-mint-green-bright; color: $color-dark-green; }
+.action-bg-科学 { background: $color-soft-lilac; }
+.action-bg-default { background: $color-organic-surface-variant; }
+.action-btn-flex { flex: 1; }
+.action-icon { font-size: 20px; }
+.action-text { color: inherit; font-size: 14px; font-weight: 700; }
 
 .empty-hint { padding: $spacing-md; text-align: center; }
-.empty-hint-text { color: $color-on-surface-variant; font-size: $font-body-md; }
-.bottom-spacer { height: 100px; }
+.empty-hint-text { color: $color-organic-on-surface-variant; font-size: 14px; }
+.bottom-spacer { height: 120px; }
 
-// Modal
+// ─── Dictation Preview Modal (Organic Style) ───
 .modal-overlay {
   position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-  background: rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; z-index: 999;
+  background: rgba(28, 27, 28, 0.2); backdrop-filter: blur(4px);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 999; padding: $spacing-margin;
 }
-.modal-content {
-  background: #fff; padding: $spacing-lg; border-radius: $radius-2xl; text-align: center; width: 300px;
-}
-.modal-title { font-size: $font-card-title; font-weight: 600; display: block; margin-bottom: $spacing-md; }
-.modal-code { font-size: 40px; font-weight: 700; color: $color-primary; letter-spacing: 8px; display: block; margin-bottom: $spacing-sm; }
-.modal-hint { font-size: $font-body-md; color: $color-on-surface-variant; display: block; }
-
-// Dictation Preview Modal
 .dictation-modal {
-  background: #fff; border-radius: $radius-2xl; width: 340px; max-width: 90vw;
-  max-height: 80vh; display: flex; flex-direction: column; overflow: hidden;
+  background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(12px);
+  border-radius: 32px; width: 100%; max-width: 360px;
+  padding: 24px; padding-bottom: 48px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  position: relative;
 }
 .dictation-modal-header {
   display: flex; align-items: center; justify-content: space-between;
-  padding: $spacing-md; border-bottom: 1px solid $color-surface-container-high;
+  margin-bottom: 16px;
 }
 .dictation-modal-title {
-  font-family: $font-family; font-size: $font-headline-lg; font-weight: 600;
-  color: $color-on-surface;
+  font-family: 'Inter', sans-serif; font-size: 24px; font-weight: 600;
+  color: $color-organic-primary;
 }
 .close-btn {
   width: 36px; height: 36px; border-radius: $radius-full;
-  background: $color-surface-container; display: flex; align-items: center; justify-content: center;
-  color: $color-on-surface-variant;
+  display: flex; align-items: center; justify-content: center;
+  color: $color-organic-text-secondary;
+}
+.dictation-modal-info {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 16px;
 }
 .dictation-modal-subtitle {
-  font-size: $font-body-md; color: $color-on-surface-variant;
-  padding: 0 $spacing-md $spacing-sm;
+  font-size: 14px; color: $color-organic-text-secondary;
 }
-.dictation-loading {
-  padding: $spacing-xl; text-align: center; color: $color-on-surface-variant;
+.shuffle-btn {
+  display: flex; align-items: center; gap: 4px;
+  background: rgba($color-organic-surface-container-highest, 0.5);
+  padding: 6px 12px; border-radius: $radius-full;
+  font-size: 13px; font-weight: 500; color: $color-organic-primary;
 }
-.dictation-words {
-  display: flex; flex-wrap: wrap; gap: $spacing-sm;
-  padding: $spacing-md; overflow-y: auto;
+.shuffle-icon { font-size: 18px; }
+.shuffle-text { font-size: 13px; font-weight: 500; }
+
+.dictation-loading { padding: 32px; text-align: center; }
+.dictation-loading-text { color: $color-organic-on-surface-variant; font-size: 14px; }
+
+// Words Grid - Organic card style
+.dictation-words-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
 }
-.word-chip {
-  display: flex; align-items: center; gap: $spacing-xs;
-  background: $color-surface-container; padding: $spacing-sm $spacing-md;
-  border-radius: $radius-xl; border: 2px solid transparent;
+.word-card {
+  padding: 14px; display: flex; align-items: center; justify-content: space-between;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
   transition: all 0.2s;
+  &:active { transform: scale(0.97); }
 }
-.word-chip-playing {
-  background: $color-tertiary-container; border-color: $color-tertiary;
+.word-card-lilac { background: rgba($color-soft-lilac, 0.4); border-radius: 65% 35% 58% 42% / 47% 41% 59% 53%; }
+.word-card-mint { background: rgba($color-mint-green, 0.4); border-radius: 45% 55% 42% 58% / 54% 48% 52% 46%; }
+.word-card-playing { box-shadow: 0 4px 16px rgba(29, 59, 22, 0.15); }
+
+.word-text {
+  font-family: 'Inter', sans-serif; font-size: 18px; font-weight: 600;
+  color: $color-organic-primary; margin-left: 8px;
 }
-.word-text { font-family: $font-family; font-size: $font-body-lg; font-weight: 600; color: $color-on-surface; }
-.word-play-icon { font-size: 20px; color: $color-on-surface-variant; }
-.word-chip-playing .word-play-icon { color: $color-tertiary; }
+.word-play-btn {
+  width: 32px; height: 32px; border-radius: $radius-full;
+  background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(4px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  display: flex; align-items: center; justify-content: center;
+}
+.word-play-icon { font-size: 16px; color: $color-organic-primary; }
+.word-card-playing .word-play-icon { color: $color-dark-green; }
+
 .dictation-modal-actions {
-  padding: $spacing-md; border-top: 1px solid $color-surface-container-high;
+  position: absolute; bottom: -28px; left: 0; right: 0;
+  display: flex; justify-content: center;
 }
 .play-all-btn {
-  display: flex; align-items: center; justify-content: center; gap: $spacing-sm;
-  background: $color-primary; color: $color-on-primary;
-  padding: $spacing-sm $spacing-md; border-radius: $radius-xl;
-  font-family: $font-family; font-size: $font-label-md; font-weight: 600;
-  border-bottom: 3px solid $color-on-primary-fixed-variant;
-  &:active { border-bottom-width: 0; transform: translateY(3px); }
+  width: 85%; background: $color-organic-primary; color: $color-organic-on-primary;
+  border-radius: $radius-full; height: 56px;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+  &:active { transform: scale(0.98); }
 }
+.play-all-icon { font-size: 24px; }
+.play-all-text { font-family: 'Inter', sans-serif; font-size: 18px; font-weight: 600; color: #fff; }
 
-// Bottom Nav
-.bottom-nav {
-  position: fixed; bottom: 0; left: 0; right: 0; z-index: 100;
-  background: #fff; border-top: 2px solid #f1f5f9;
-  display: flex; justify-content: space-around; align-items: center;
-  height: 80px; padding-left: $spacing-md; padding-right: $spacing-md;
-  box-shadow: 0 -4px 10px rgba(58, 134, 255, 0.05);
-}
-.nav-item {
-  display: flex; flex-direction: column; align-items: center; justify-content: center;
-  padding: 6px 20px; color: #94a3b8;
-}
-.nav-item-active {
-  background: #dbeafe; color: #1d4ed8; border-radius: $radius-2xl;
-}
-.nav-icon { font-size: 24px; }
-.nav-label { font-family: $font-family; font-size: 12px; font-weight: 500; margin-top: 4px; }
 </style>

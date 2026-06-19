@@ -14,4 +14,9 @@ page {
   background-color: $color-surface;
   color: $color-on-surface;
 }
+
+// scroll-view 内容区顶部留白
+.uni-scroll-view-content {
+  padding-top: 20px;
+}
 </style>
