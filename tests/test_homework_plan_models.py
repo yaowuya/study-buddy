@@ -1,6 +1,8 @@
 import uuid
 from datetime import date
 
+from pathlib import Path
+
 from sqlalchemy import UniqueConstraint
 
 from app.core.config import settings
@@ -28,6 +30,16 @@ def test_plan_models_and_task_source_constraints():
         and set(constraint.columns.keys()) == {"source_plan_id", "date"}
         for constraint in Task.__table__.constraints
     )
+
+
+def test_plan_migration_is_storage_safe_and_reversible():
+    migration = Path("alembic/versions/d14f8c9a2b61_add_homework_plans.py").read_text(encoding="utf-8")
+
+    assert 'down_revision: Union[str, None] = "c7919be721dd"' in migration
+    assert 'sa.Column("source_plan_id", GUID(), nullable=True)' in migration
+    assert '"uq_tasks_source_plan_date", "tasks", ["source_plan_id", "date"]' in migration
+    assert 'op.drop_column("tasks", "source_plan_id")' in migration
+    assert "sa.Uuid()" not in migration
 
 
 def test_plan_dictation_items_are_ordered_without_task_delete_cascade():
