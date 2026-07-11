@@ -2,7 +2,7 @@ import uuid
 from datetime import date
 from enum import StrEnum
 
-from sqlalchemy import String, Date, ForeignKey, Integer, Text, Boolean
+from sqlalchemy import String, Date, ForeignKey, Integer, Text, Boolean, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db_types import GUID
@@ -23,6 +23,9 @@ class TaskStatus(StrEnum):
 
 class Task(Base):
     __tablename__ = "tasks"  # 任务表
+    __table_args__ = (
+        UniqueConstraint("source_plan_id", "date", name="uq_tasks_source_plan_date"),
+    )
 
     id: Mapped[uuid.UUID] = mapped_column(GUID(), primary_key=True, default=uuid.uuid4)  # 任务ID
     family_id: Mapped[uuid.UUID] = mapped_column(GUID(), ForeignKey("families.id"), nullable=False, index=True)  # 所属家庭ID
@@ -34,6 +37,10 @@ class Task(Base):
     date: Mapped[date] = mapped_column(Date, nullable=False, index=True)  # 任务日期
     subject: Mapped[str | None] = mapped_column(String(20), nullable=True)  # 科目（如：语文、数学）
     is_deleted: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)  # 软删除标记
+    source_plan_id: Mapped[uuid.UUID | None] = mapped_column(
+        GUID(), ForeignKey("homework_plans.id"), nullable=True, index=True
+    )
 
     dictation_items: Mapped[list["DictationItem"]] = relationship(back_populates="task", cascade="all, delete-orphan")
     submission: Mapped["Submission | None"] = relationship(back_populates="task", uselist=False)
+    source_plan: Mapped["HomeworkPlan | None"] = relationship(back_populates="tasks")
