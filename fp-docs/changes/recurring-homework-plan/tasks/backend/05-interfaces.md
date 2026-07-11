@@ -1,0 +1,24 @@
+# Backend Interface Ledger
+
+| Interface | Owner Task | Contract | Consumers | Verification |
+| --- | --- | --- | --- | --- |
+| `Settings.BUSINESS_TIMEZONE`, `MAX_HOMEWORK_PLAN_DAYS` | `backend-001` | `str="Asia/Shanghai"`, `int=366` | schemas, API | `tests/test_homework_plan_schemas.py::test_business_date_uses_configured_timezone` |
+| `HomeworkPlan`, `HomeworkPlanDictationItem` | `backend-001` | UUID models; fields/relations/constraints exactly as backend design | CRUD, materializer, migration | `tests/test_homework_plan_models.py::test_plan_models_and_task_source_constraints` |
+| `Task.source_plan_id` | `backend-001` | `UUID | None`, FK `homework_plans.id`, unique with `Task.date` | Task output, materializer | `tests/test_homework_plan_models.py::test_duplicate_plan_date_is_rejected` |
+| Alembic revision | `backend-002` | creates both plan tables, nullable Task source FK, indexes and unique constraint; downgrade reverses | deployment | `tests/test_homework_plan_models.py::test_migration_upgrade_preserves_existing_tasks` |
+| `HomeworkPlanCreate` | `backend-003` | type/title/desc/duration/subject/range_type/start_date/end_date/dictation_items; resolves week/month/custom against server date | POST plan | `tests/test_homework_plan_schemas.py::test_create_ranges_and_dictation_validation` |
+| `HomeworkPlanUpdate` | `backend-003` | complete editable payload plus required `updated_at`; actual dates only | PATCH plan | `tests/test_homework_plan_schemas.py::test_update_requires_complete_payload_and_token` |
+| `HomeworkPlanOut`, `HomeworkPlanDetailOut` | `backend-003` | persistent fields plus status/count/date-derived fields; detail includes ordered items | GET APIs | `tests/test_homework_plans_api.py::test_parent_lists_and_gets_plan` |
+| `MaterializeResult`, `PlanMaterializeResult` | `backend-003` | created/success/failed counts; plan_id/status/created_dates/error_code | service and POST materialize | `tests/test_homework_plans_api.py::test_materialize_returns_structured_partial_result` |
+| `create_plan(db, family_id, created_by, command)` | `backend-004` | persists plan and normalized ordered template items, commits plan | POST plan | `tests/test_homework_plan_crud.py::test_create_plan_persists_ordered_items` |
+| `get_active_plans(db, family_id, today)` | `backend-004` | nondeleted `end_date>=today`, generated counts aggregated | GET list | `tests/test_homework_plan_crud.py::test_active_plans_are_family_scoped_and_aggregated` |
+| `get_plan_for_family`, `update_plan`, `soft_delete_plan` | `backend-004` | 404 isolation at API; lock protocol; update token conflict; delete idempotent | detail/PATCH/DELETE | `tests/test_homework_plan_crud.py::test_update_and_delete_preserve_generated_snapshot` |
+| `date_range(start, end)` | `backend-005` | inclusive ascending dates; empty when end before start | materializer | `tests/test_homework_plan_materializer.py::test_date_range_handles_leap_day_and_empty_range` |
+| `materialize_family_plans(session_factory, family_id, through_date)` | `backend-005` | candidate query includes expired plans; independent transaction per plan; returns `MaterializeResult` | POST materialize, create API | `tests/test_homework_plan_materializer.py::test_backfills_missing_dates_idempotently` |
+| Plan lock protocol | `backend-006` | shared `_lock_plan` acquires plan row first with `FOR UPDATE`; family/deletion/date revalidated afterward; IntegrityError accepted only when every target `(source_plan_id, date)` exists | CRUD/materializer | `tests/test_homework_plan_concurrency.py` (PostgreSQL; skip-gated by `TEST_POSTGRES_URL`) |
+| `POST /api/v1/homework-plans/` | `backend-007` | parent; create template; if starts today, commit then materialize; response detail | client creation | `tests/test_homework_plans_api.py::test_parent_creates_plan_and_today_snapshot` |
+| `GET /api/v1/homework-plans/`, `GET /{plan_id}` | `backend-007` | parent; active list/detail; family isolation | dashboard/edit client | `tests/test_homework_plans_api.py::test_parent_lists_and_gets_plan` |
+| `PATCH /api/v1/homework-plans/{plan_id}` | `backend-008` | parent; full replacement; 409 stale token; started start_date immutable | edit client | `tests/test_homework_plans_api.py::test_patch_conflict_and_snapshot_isolation` |
+| `DELETE /api/v1/homework-plans/{plan_id}` | `backend-008` | parent; idempotent soft delete; keep tasks | dashboard client | `tests/test_homework_plans_api.py::test_delete_is_idempotent_and_stops_future_generation` |
+| `POST /api/v1/homework-plans/materialize` | `backend-009` | parent/student; server business today; HTTP 200 partial result | task-page clients | `tests/test_homework_plans_api.py::test_materialize_returns_structured_partial_result` |
+| `GET /api/v1/tasks/` compatibility | `backend-009` | pure read, ordinary tasks only, optional `source_plan_id` | existing clients | `tests/test_homework_plans_api.py::test_get_tasks_never_materializes` |

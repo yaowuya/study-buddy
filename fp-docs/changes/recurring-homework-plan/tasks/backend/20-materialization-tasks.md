@@ -57,7 +57,7 @@ git add app/crud/homework_plan.py tests/test_homework_plan_crud.py
 git commit -m "实现周期作业计划生命周期"
 ```
 
-- [ ] **Task backend-005: 实现遗漏日期与快照物化服务**
+- [x] **Task backend-005: 实现遗漏日期与快照物化服务**
 
 **Files:**
 - Create: `app/services/__init__.py`, `app/services/homework_plan_materializer.py`, `tests/test_homework_plan_materializer.py`
@@ -123,7 +123,7 @@ git add app/services tests/test_homework_plan_materializer.py
 git commit -m "实现周期作业遗漏补生成"
 ```
 
-- [ ] **Task backend-006: 验证并发锁、幂等冲突和编辑删除竞争**
+- [x] **Task backend-006: 验证并发锁、幂等冲突和编辑删除竞争**
 
 **Files:**
 - Modify: `app/crud/homework_plan.py`, `app/services/homework_plan_materializer.py`

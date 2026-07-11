@@ -105,6 +105,15 @@ def _tokens_equal(actual: datetime, supplied: datetime) -> bool:
     return actual == supplied
 
 
+def _lock_plan(db: Session, plan_id: uuid.UUID) -> HomeworkPlan | None:
+    return (
+        db.query(HomeworkPlan)
+        .filter(HomeworkPlan.id == plan_id)
+        .with_for_update()
+        .one_or_none()
+    )
+
+
 def update_plan(
     db: Session,
     plan_id: uuid.UUID,
@@ -112,17 +121,8 @@ def update_plan(
     command: HomeworkPlanUpdate,
     today: date,
 ) -> HomeworkPlan | None:
-    plan = (
-        db.query(HomeworkPlan)
-        .filter(
-            HomeworkPlan.id == plan_id,
-            HomeworkPlan.family_id == family_id,
-            HomeworkPlan.is_deleted.is_(False),
-        )
-        .with_for_update()
-        .one_or_none()
-    )
-    if plan is None:
+    plan = _lock_plan(db, plan_id)
+    if plan is None or plan.family_id != family_id or plan.is_deleted:
         return None
     if not _tokens_equal(plan.updated_at, command.updated_at):
         raise PlanVersionConflict
@@ -145,13 +145,8 @@ def soft_delete_plan(
     plan_id: uuid.UUID,
     family_id: uuid.UUID,
 ) -> HomeworkPlan | None:
-    plan = (
-        db.query(HomeworkPlan)
-        .filter(HomeworkPlan.id == plan_id, HomeworkPlan.family_id == family_id)
-        .with_for_update()
-        .one_or_none()
-    )
-    if plan is None:
+    plan = _lock_plan(db, plan_id)
+    if plan is None or plan.family_id != family_id:
         return None
     if not plan.is_deleted:
         plan.is_deleted = True
