@@ -18,7 +18,9 @@ Confirmed execution decisions:
 
 - backend-002; owner `tasks/backend/10-domain-tasks.md`; checkbox reconciled; commit `d0e4749`; tests `./.venv/Scripts/python.exe -m pytest tests/test_homework_plan_models.py tests/test_migrations_mysql.py -v` (4 passed), `./.venv/Scripts/python.exe -m alembic upgrade head --sql` and `alembic heads` (single head `d14f8c9a2b61`); inline review clean.
 
-- backend-003; owner `tasks/backend/10-domain-tasks.md`; checkbox reconciled; commit pending; TDD red `./.venv/Scripts/python.exe -m pytest tests/test_homework_plan_schemas.py::test_create_ranges_and_dictation_validation -v` (`ModuleNotFoundError`); tests `./.venv/Scripts/python.exe -m pytest tests/test_homework_plan_schemas.py tests/test_tasks.py -q` (15 passed), `rm -f test.db && ./.venv/Scripts/python.exe -m pytest tests/ -q` (62 passed); inline review clean; report `.fp-execute/reports/backend-003-report.md`.
+- backend-003; owner `tasks/backend/10-domain-tasks.md`; checkbox reconciled; commit `0b358c1`; TDD red `./.venv/Scripts/python.exe -m pytest tests/test_homework_plan_schemas.py::test_create_ranges_and_dictation_validation -v` (`ModuleNotFoundError`); tests `./.venv/Scripts/python.exe -m pytest tests/test_homework_plan_schemas.py tests/test_tasks.py -q` (15 passed), `rm -f test.db && ./.venv/Scripts/python.exe -m pytest tests/ -q` (62 passed); inline review clean; report `.fp-execute/reports/backend-003-report.md`.
+
+- backend-004; owner `tasks/backend/20-materialization-tasks.md`; checkbox reconciled; commit pending; TDD red `./.venv/Scripts/python.exe -m pytest tests/test_homework_plan_crud.py::test_active_plans_are_family_scoped_and_aggregated -v` (`ModuleNotFoundError`); tests `./.venv/Scripts/python.exe -m pytest tests/test_homework_plan_crud.py -v` (3 passed), `rm -f test.db && ./.venv/Scripts/python.exe -m pytest tests/ -q` (65 passed); report `.fp-execute/reports/backend-004-report.md`.
 
 ## In Progress
 - None

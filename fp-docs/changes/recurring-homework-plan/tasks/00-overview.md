@@ -28,6 +28,6 @@
 
 | End | Complete | Total |
 | --- | ---: | ---: |
-| Backend | 3 | 9 |
+| Backend | 4 | 9 |
 | Frontend | 0 | 10 |
-| Overall | 3 | 19 |
+| Overall | 4 | 19 |
