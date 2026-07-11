@@ -36,6 +36,7 @@ class TaskOut(BaseModel):
     status: TaskStatus
     date: DateType
     subject: str | None = None
+    source_plan_id: uuid.UUID | None = None
     has_dictation: bool = False
 
     model_config = {"from_attributes": True}

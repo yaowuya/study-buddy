@@ -16,6 +16,7 @@ def test_create_task(client, register_and_get_token, auth_headers):
     assert data["title"] == "语文作业"
     assert data["type"] == "school"
     assert data["status"] == "pending"
+    assert data["source_plan_id"] is None
 
 
 def test_list_tasks(client, register_and_get_token, auth_headers):
