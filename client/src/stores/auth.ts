@@ -3,6 +3,7 @@ import { ref } from 'vue'
 import { setToken, removeToken, getToken } from '@/utils/storage'
 import * as authApi from '@/api/auth'
 import type { UserOut } from '@/api/auth'
+import { useHomeworkPlansStore } from '@/stores/homework-plans'
 
 export const useAuthStore = defineStore('auth', () => {
   const user = ref<UserOut | null>(null)
@@ -47,6 +48,7 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   function logout() {
+    useHomeworkPlansStore().reset()
     user.value = null
     removeToken()
     uni.reLaunch({ url: '/pages/auth/login' })
