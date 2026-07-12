@@ -27,48 +27,27 @@
         </scroll-view>
       </view>
 
+      <!-- ========== 作业时间计划 ========== -->
+      <view class="card">
+        <text class="card-heading">作业时间计划</text>
+        <picker :range="rangeOptions" range-key="label" :value="rangeIndex" @change="handleRangeChange">
+          <view class="range-picker"><text>{{ rangeOptions[rangeIndex].label }}</text><text class="material-symbols-outlined">expand_more</text></view>
+        </picker>
+        <view v-if="rangeType === 'custom'" class="date-range-row">
+          <picker mode="date" :value="startDate" :start="today" @change="handleStartDateChange"><view class="date-picker"><text>开始日期</text><text>{{ startDate }}</text></view></picker>
+          <picker mode="date" :value="endDate" :start="startDate" @change="handleEndDateChange"><view class="date-picker"><text>结束日期</text><text>{{ endDate }}</text></view></picker>
+        </view>
+        <text class="range-summary">{{ rangeSummary }}</text>
+        <text v-if="dateError" class="field-error">{{ dateError }}</text>
+      </view>
+
       <!-- ========== 作业标题卡片 ========== -->
       <view class="card">
         <text class="card-heading">为作业起个好名字</text>
         <input v-model="form.title" class="field-input" placeholder="输入作业标题" />
       </view>
 
-      <!-- ========== 听写设置卡片 (mint-gradient 特殊卡片) ========== -->
-      <view class="dictation-card">
-        <!-- 标题行 + 开关 -->
-        <view class="dictation-header">
-          <view class="dictation-title-row">
-            <text class="material-symbols-outlined ms-dictation-icon">record_voice_over</text>
-            <text class="card-heading dictation-heading">开启听写之旅</text>
-          </view>
-          <view :class="['toggle', dictationEnabled ? 'toggle-on' : '']" @tap="dictationEnabled = !dictationEnabled">
-            <view class="toggle-thumb">
-              <text v-if="dictationEnabled" class="material-symbols-outlined ms-toggle-check">check</text>
-            </view>
-          </view>
-        </view>
-
-        <!-- 词汇输入区域 (毛玻璃内区) -->
-        <view :class="['dictation-inner', dictationEnabled ? '' : 'dictation-inner-disabled']">
-          <view class="word-input-row">
-            <input v-model="wordInput" class="word-input" placeholder="输入需要听写的生字或单词..." @confirm="addWord" />
-            <view class="add-word-btn" @tap="addWord">
-              <text class="add-word-btn-text">添加</text>
-            </view>
-          </view>
-          <view v-if="dictationWords.length > 0" class="word-tags">
-            <view v-for="(w, i) in dictationWords" :key="i" class="word-tag">
-              <text class="word-tag-text">{{ w }}</text>
-              <text class="material-symbols-outlined ms-tag-close" @tap="removeWord(i)">close</text>
-            </view>
-          </view>
-        </view>
-
-        <!-- 提示文字 -->
-        <text :class="['dictation-hint', dictationEnabled ? '' : 'dictation-hint-disabled']">
-          输入需要听写的生字或单词，我们将为您生成专门的听写卡片。
-        </text>
-      </view>
+      <DictationConfig v-model:enabled="dictationEnabled" v-model:words="dictationWords" :error="dictationError" @clear-error="dictationError = ''" />
 
       <!-- ========== 详细说明卡片 ========== -->
       <view class="card">
@@ -83,8 +62,8 @@
       </view>
 
       <!-- ========== 发布按钮 (绿色渐变胶囊) ========== -->
-      <view class="submit-btn" @tap="handleSubmit">
-        <text class="submit-text">发布作业</text>
+      <view :class="['submit-btn', submitting ? 'submit-btn-disabled' : '']" @tap="handleSubmit">
+        <text class="submit-text">{{ submitting ? '发布中…' : '发布作业' }}</text>
       </view>
 
       <view class="bottom-spacer"></view>
@@ -99,6 +78,9 @@
 import { ref, reactive, onMounted } from 'vue'
 import { createTask } from '@/api/tasks'
 import { createDictationItems } from '@/api/dictation'
+import { createHomeworkPlan } from '@/api/homework-plans'
+import { addCalendarDays, formatRangeSummary, localToday } from '@/utils/local-date'
+import DictationConfig from '@/components/DictationConfig.vue'
 import BottomNav from '@/components/BottomNav.vue'
 import type { NavItem } from '@/components/BottomNav.vue'
 
@@ -112,7 +94,19 @@ const statusBarHeight = ref(0)
 const safeAreaBottom = ref(0)
 const dictationEnabled = ref(false)
 const dictationWords = ref<string[]>([])
-const wordInput = ref('')
+const dictationError = ref('')
+const submitting = ref(false)
+const today = localToday()
+const rangeType = ref<'today' | 'week' | 'month' | 'custom'>('today')
+const startDate = ref(today)
+const endDate = ref(addCalendarDays(today, 6))
+const dateError = ref('')
+const rangeOptions = [
+  { label: '今日作业', value: 'today' }, { label: '最近一周', value: 'week' },
+  { label: '最近一个月', value: 'month' }, { label: '自定义范围', value: 'custom' },
+] as const
+const rangeIndex = ref(0)
+const rangeSummary = ref('仅发布为今天的一份作业')
 
 // 图标名对应 publish_job.html 的 Material Symbols
 const subjects = [
@@ -130,7 +124,7 @@ const form = reactive({
   title: defaultTitle('语文'),
   desc: '',
   duration: null as number | null,
-  date: new Date().toISOString().slice(0, 10),
+  date: today,
   subject: '语文' as string,
 })
 
@@ -143,40 +137,40 @@ function selectSubject(subject: string) {
   form.subject = subject
 }
 
-function addWord() {
-  const w = wordInput.value.trim()
-  if (w && !dictationWords.value.includes(w)) {
-    dictationWords.value.push(w)
-  }
-  wordInput.value = ''
+function handleRangeChange(event: any) {
+  rangeIndex.value = Number(event.detail.value)
+  rangeType.value = rangeOptions[rangeIndex.value].value
+  dateError.value = ''
+  if (rangeType.value === 'today') rangeSummary.value = '仅发布为今天的一份作业'
+  else if (rangeType.value === 'week') rangeSummary.value = formatRangeSummary(today, addCalendarDays(today, 6))
+  else if (rangeType.value === 'month') rangeSummary.value = formatRangeSummary(today, addCalendarDays(today, 29))
+  else rangeSummary.value = formatRangeSummary(startDate.value, endDate.value)
 }
-
-function removeWord(i: number) {
-  dictationWords.value.splice(i, 1)
-}
+function handleStartDateChange(event: any) { startDate.value = event.detail.value; dateError.value = ''; rangeSummary.value = formatRangeSummary(startDate.value, endDate.value) }
+function handleEndDateChange(event: any) { endDate.value = event.detail.value; dateError.value = ''; rangeSummary.value = formatRangeSummary(startDate.value, endDate.value) }
 
 async function handleSubmit() {
+  if (submitting.value) return
   if (!form.title.trim()) {
-    uni.showToast({ title: '请输入任务标题', icon: 'none' })
-    return
+    uni.showToast({ title: '请输入任务标题', icon: 'none' }); return
   }
+  if (rangeType.value === 'custom' && (startDate.value < today || endDate.value < startDate.value)) {
+    dateError.value = startDate.value < today ? '开始日期不能早于今天' : '结束日期不能早于开始日期'; return
+  }
+  if (dictationEnabled.value && !dictationWords.value.length) { dictationError.value = '开启听写后，请至少添加一个词条'; return }
+  submitting.value = true
   try {
-    const task = await createTask({
-      type: form.type,
-      title: form.title,
-      desc: form.desc || undefined,
-      duration: form.duration || undefined,
-      date: form.date,
-      subject: form.subject || undefined,
-    })
-    if (dictationEnabled.value && dictationWords.value.length > 0) {
-      await createDictationItems(task.id, dictationWords.value.map(w => ({ content: w })))
+    if (rangeType.value === 'today') {
+      const task = await createTask({ type: form.type, title: form.title, desc: form.desc || undefined, duration: form.duration || undefined, date: today, subject: form.subject || undefined })
+      if (dictationEnabled.value) await createDictationItems(task.id, dictationWords.value.map(content => ({ content })))
+      uni.showToast({ title: '今日作业已发布', icon: 'success' })
+    } else {
+      await createHomeworkPlan({ type: form.type, title: form.title, desc: form.desc || undefined, duration: form.duration || undefined, subject: form.subject || undefined, range_type: rangeType.value, start_date: rangeType.value === 'custom' ? startDate.value : undefined, end_date: rangeType.value === 'custom' ? endDate.value : undefined, dictation_items: dictationEnabled.value ? dictationWords.value.map(content => ({ content })) : [] })
+      uni.showToast({ title: '作业计划已创建', icon: 'success' })
     }
-    uni.showToast({ title: '发布成功', icon: 'success' })
     setTimeout(() => uni.redirectTo({ url: '/pages/parent/dashboard' }), 500)
-  } catch (e: any) {
-    uni.showToast({ title: e.message, icon: 'none' })
-  }
+  } catch (e: any) { uni.showToast({ title: e.message, icon: 'none' }) }
+  finally { submitting.value = false }
 }
 
 onMounted(() => {
@@ -209,6 +203,15 @@ $outline-variant: #e2e8f0;
 $text-secondary: #6B7280;
 $dark-green: #3a692e;
 $on-secondary-fixed-variant: #225119;
+
+.range-picker { min-height:48px; padding:0 16px; border-radius:12px; background:$surface-field; display:flex; align-items:center; justify-content:space-between; }
+.date-range-row { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:12px; }
+.date-picker { min-height:58px; padding:9px 12px; border-radius:12px; background:$surface-field; display:flex; flex-direction:column; gap:5px; font-size:13px; }
+.date-picker text:first-child { color:$text-secondary; font-size:11px; }
+.range-summary { display:block; margin-top:12px; padding:10px 12px; border-radius:10px; background:$green-secondary-container; color:$dark-green; font-size:13px; }
+.field-error { display:block; margin-top:8px; color:#c62828; font-size:12px; }
+.submit-btn-disabled { opacity:.6; pointer-events:none; }
+@media (max-width: 375px) { .date-range-row { grid-template-columns:1fr; } }
 
 // ================================================================
 // Material Symbols Outlined 基础样式
