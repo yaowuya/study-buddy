@@ -28,6 +28,7 @@ def _to_task_out(task: Task) -> TaskOut:
         status=task.status,
         date=task.date,
         subject=task.subject,
+        source_plan_id=task.source_plan_id,
         has_dictation=len(task.dictation_items) > 0,
     )
 

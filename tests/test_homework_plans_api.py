@@ -1,7 +1,7 @@
 from datetime import date, timedelta
 
 from app.api.v1 import homework_plans as plans_api
-from app.database import SessionLocal
+from tests.conftest import TestSessionLocal
 from app.models.homework_plan import HomeworkPlan
 from app.models.task import Task
 
@@ -121,6 +121,30 @@ def test_started_plan_rejects_start_date_change(client, register_and_get_token, 
         json=_full_update(plan, start_date=(today + timedelta(days=1)).isoformat()),
     )
     assert changed.status_code == 422
+
+
+def test_student_materializes_but_get_tasks_remains_pure(client, register_and_get_token, auth_headers, monkeypatch):
+    parent_headers, student_headers = _register_family(client, register_and_get_token, auth_headers, "0007")
+    today = date(2026, 7, 11)
+    monkeypatch.setattr(plans_api, "business_today", lambda: today)
+    monkeypatch.setattr(plans_api, "SessionLocal", TestSessionLocal)
+    plan = client.post(
+        "/api/v1/homework-plans/",
+        headers=parent_headers,
+        json={"type": "home", "title": "同步计划", "range_type": "week"},
+    ).json()
+
+    # Creating an active plan materializes today. GET is pure and must not add another row.
+    before = client.get("/api/v1/tasks/", headers=student_headers).json()
+    again = client.get("/api/v1/tasks/", headers=student_headers).json()
+    assert len(again) == len(before)
+
+    sync = client.post("/api/v1/homework-plans/materialize", headers=student_headers)
+    assert sync.status_code == 200, sync.text
+    assert sync.json()["created_count"] == 0
+    tasks = client.get("/api/v1/tasks/", headers=student_headers).json()
+    assert any(task["source_plan_id"] == plan["id"] for task in tasks)
+    assert client.get("/api/v1/homework-plans/", headers=student_headers).status_code == 403
 
 
 def test_plan_template_never_appears_in_task_list(client, register_and_get_token, auth_headers, monkeypatch):

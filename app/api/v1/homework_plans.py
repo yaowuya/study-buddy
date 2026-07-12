@@ -6,7 +6,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from app.core.config import settings
-from app.core.deps import get_db, require_parent
+from app.core.deps import get_db, get_current_user, require_parent
 from app.crud import homework_plan as plan_crud
 from app.crud.homework_plan import PlanDateConflict, PlanVersionConflict
 from app.database import SessionLocal
@@ -18,6 +18,7 @@ from app.schemas.homework_plan import (
     HomeworkPlanDetailOut,
     HomeworkPlanOut,
     HomeworkPlanUpdate,
+    MaterializeResult,
 )
 from app.services.homework_plan_materializer import materialize_family_plans
 
@@ -88,6 +89,12 @@ def list_homework_plans(
     _require_family(user)
     today = business_today()
     return [_plan_out(row.plan, today, row.generated_count) for row in plan_crud.get_active_plans(db, user.family_id, today)]
+
+
+@router.post("/materialize", response_model=MaterializeResult)
+def materialize_homework_plans(user: User = Depends(get_current_user)):
+    _require_family(user)
+    return materialize_family_plans(SessionLocal, user.family_id, business_today())
 
 
 @router.get("/{plan_id}", response_model=HomeworkPlanDetailOut)
