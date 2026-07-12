@@ -8,11 +8,17 @@ from sqlalchemy.orm import Session
 from app.core.config import settings
 from app.core.deps import get_db, require_parent
 from app.crud import homework_plan as plan_crud
+from app.crud.homework_plan import PlanDateConflict, PlanVersionConflict
 from app.database import SessionLocal
 from app.models.homework_plan import HomeworkPlan
 from app.models.user import User
 from app.schemas.dictation_item import DictationItemCreate
-from app.schemas.homework_plan import HomeworkPlanCreate, HomeworkPlanDetailOut, HomeworkPlanOut
+from app.schemas.homework_plan import (
+    HomeworkPlanCreate,
+    HomeworkPlanDetailOut,
+    HomeworkPlanOut,
+    HomeworkPlanUpdate,
+)
 from app.services.homework_plan_materializer import materialize_family_plans
 
 router = APIRouter(prefix="/homework-plans", tags=["homework-plans"])
@@ -95,3 +101,35 @@ def get_homework_plan(
     if plan is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Homework plan not found")
     return _plan_detail(plan, business_today(), generated_count=len(plan.tasks))
+
+
+@router.patch("/{plan_id}", response_model=HomeworkPlanDetailOut)
+def update_homework_plan(
+    plan_id: uuid.UUID,
+    body: HomeworkPlanUpdate,
+    user: User = Depends(require_parent),
+    db: Session = Depends(get_db),
+):
+    _require_family(user)
+    try:
+        plan = plan_crud.update_plan(db, plan_id, user.family_id, body, business_today())
+    except PlanVersionConflict:
+        raise HTTPException(status.HTTP_409_CONFLICT, "Homework plan has changed")
+    except PlanDateConflict as exc:
+        raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, str(exc))
+    if plan is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Homework plan not found")
+    return _plan_detail(plan, business_today(), generated_count=len(plan.tasks))
+
+
+@router.delete("/{plan_id}")
+def delete_homework_plan(
+    plan_id: uuid.UUID,
+    user: User = Depends(require_parent),
+    db: Session = Depends(get_db),
+):
+    _require_family(user)
+    plan = plan_crud.soft_delete_plan(db, plan_id, user.family_id)
+    if plan is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Homework plan not found")
+    return {"ok": True}
