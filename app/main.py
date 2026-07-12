@@ -15,6 +15,7 @@ from app.api.v1.admin import router as admin_router
 from app.api.v1.homework_plans import router as homework_plans_router
 
 from app.core.config import settings
+from app.core.version import APP_VERSION
 from app.database import SessionLocal
 from app.crud.admin import seed_admin
 
@@ -30,7 +31,7 @@ async def lifespan(app: FastAPI):
     yield
 
 
-app = FastAPI(title="作业陪伴助手", version="0.1.0", lifespan=lifespan)
+app = FastAPI(title="作业陪伴助手", version=APP_VERSION, lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
@@ -52,7 +53,7 @@ app.include_router(homework_plans_router, prefix="/api/v1")
 
 @app.get("/health")
 def health_check():
-    return {"status": "ok"}
+    return {"status": "ok", "version": APP_VERSION}
 
 
 # 挂载管理后台静态文件（构建产物放在 static/admin/）

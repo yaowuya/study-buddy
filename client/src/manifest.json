@@ -2,8 +2,8 @@
     "name" : "作业陪伴",
     "appid" : "__UNI__0979881",
     "description" : "",
-    "versionName" : "1.1.0",
-    "versionCode" : "100",
+    "versionName" : "1.2.0",
+    "versionCode" : "120",
     "transformPx" : false,
     /* 5+App特有相关 */
     "app-plus" : {
