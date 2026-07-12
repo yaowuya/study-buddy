@@ -2,7 +2,7 @@ import uuid
 from dataclasses import dataclass
 from datetime import date, datetime, timezone
 
-from sqlalchemy import func
+from sqlalchemy import case, func
 from sqlalchemy.orm import Session, selectinload
 
 from app.models.homework_plan import HomeworkPlan, HomeworkPlanDictationItem
@@ -76,7 +76,12 @@ def get_active_plans(db: Session, family_id: uuid.UUID, today: date) -> list[Act
             HomeworkPlan.is_deleted.is_(False),
             HomeworkPlan.end_date >= today,
         )
-        .order_by(HomeworkPlan.start_date, HomeworkPlan.created_at, HomeworkPlan.id)
+        .order_by(
+            case((HomeworkPlan.start_date <= today, 0), else_=1),
+            HomeworkPlan.start_date,
+            HomeworkPlan.updated_at.desc(),
+            HomeworkPlan.id,
+        )
         .all()
     )
     return [ActivePlanRow(plan=plan, generated_count=int(count)) for plan, count in rows]

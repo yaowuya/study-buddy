@@ -161,6 +161,7 @@ import { useTasksStore } from '@/stores/tasks'
 import { useSyncStore } from '@/stores/sync'
 import { useHomeworkPlansStore } from '@/stores/homework-plans'
 import { useAuthStore } from '@/stores/auth'
+import { synchronizeHomeworkPage } from '@/utils/homework-plan-flow'
 import { getDictationItems } from '@/api/dictation'
 import type { TaskOut } from '@/api/tasks'
 import BottomNav from '@/components/BottomNav.vue'
@@ -287,9 +288,11 @@ onMounted(() => {
 })
 
 onShow(async () => {
-  try { await plansStore.materialize() }
-  catch { uni.showToast({ title: '计划作业同步失败，请稍后重试', icon: 'none' }) }
-  await tasksStore.fetchTodayTasks()
+  await synchronizeHomeworkPage({
+    materialize: () => plansStore.materialize(),
+    fetchTasks: () => tasksStore.fetchTodayTasks(),
+    onSyncError: () => uni.showToast({ title: '计划作业同步失败，请稍后重试', icon: 'none' }),
+  })
   syncStore.start()
 })
 </script>

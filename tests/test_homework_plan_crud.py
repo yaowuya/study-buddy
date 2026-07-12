@@ -109,6 +109,21 @@ def test_active_plans_are_family_scoped_and_aggregated(db):
     assert [(row.plan.id, row.generated_count) for row in rows] == [(mine.id, 1)]
 
 
+def test_active_plans_sort_active_then_start_then_recent_update(db):
+    family, parent = make_family_parent(db, "100006", "13000000006")
+    today = date(2026, 7, 11)
+    upcoming = create_plan(db, family.id, parent.id, plan_command(title="即将开始", start_date=date(2026, 7, 12), end_date=date(2026, 7, 13)), today)
+    older = create_plan(db, family.id, parent.id, plan_command(title="较早更新", end_date=date(2026, 7, 13)), today)
+    newer = create_plan(db, family.id, parent.id, plan_command(title="最近更新", end_date=date(2026, 7, 13)), today)
+    older.updated_at = datetime(2026, 7, 10, tzinfo=timezone.utc)
+    newer.updated_at = datetime(2026, 7, 11, tzinfo=timezone.utc)
+    db.commit()
+
+    rows = get_active_plans(db, family.id, today)
+
+    assert [row.plan.id for row in rows] == [newer.id, older.id, upcoming.id]
+
+
 def test_update_and_delete_preserve_generated_snapshot(db):
     family, parent = make_family_parent(db, "100004", "13000000004")
     other, _ = make_family_parent(db, "100005", "13000000005")

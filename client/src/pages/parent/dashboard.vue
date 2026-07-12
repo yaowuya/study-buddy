@@ -202,6 +202,7 @@ import { useHomeworkPlansStore } from '@/stores/homework-plans'
 import { getDictationItems } from '@/api/dictation'
 import type { TaskOut } from '@/api/tasks'
 import { BASE_URL } from '@/api/config'
+import { synchronizeHomeworkPage } from '@/utils/homework-plan-flow'
 import BottomNav from '@/components/BottomNav.vue'
 import ConfirmModal from '@/components/ConfirmModal.vue'
 import HomeworkPlanCard from '@/components/HomeworkPlanCard.vue'
@@ -421,9 +422,12 @@ onMounted(() => {
 })
 
 onShow(async () => {
-  try { await plansStore.materialize() }
-  catch { plansStore.syncWarning = '计划作业同步失败，请稍后重试' }
-  await Promise.allSettled([tasksStore.fetchTodayTasks(), plansStore.fetchActivePlans()])
+  await synchronizeHomeworkPage({
+    materialize: () => plansStore.materialize(),
+    fetchTasks: () => tasksStore.fetchTodayTasks(),
+    fetchPlans: () => plansStore.fetchActivePlans(),
+    onSyncError: () => { plansStore.syncWarning = '计划作业同步失败，请稍后重试' },
+  })
   if (plansStore.syncWarning) uni.showToast({ title: plansStore.syncWarning, icon: 'none' })
   syncStore.start()
 })
