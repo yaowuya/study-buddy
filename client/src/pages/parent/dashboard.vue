@@ -203,6 +203,7 @@ import { getDictationItems } from '@/api/dictation'
 import type { TaskOut } from '@/api/tasks'
 import { BASE_URL } from '@/api/config'
 import { synchronizeHomeworkPage } from '@/utils/homework-plan-flow'
+import { taskDescriptionLines } from '@/utils/task-description'
 import BottomNav from '@/components/BottomNav.vue'
 import ConfirmModal from '@/components/ConfirmModal.vue'
 import HomeworkPlanCard from '@/components/HomeworkPlanCard.vue'
@@ -308,8 +309,7 @@ function formatDate(dateStr: string) {
 }
 
 function descLines(desc: string | null) {
-  if (!desc) return []
-  return desc.split('\n').filter(l => l.trim())
+  return taskDescriptionLines(desc)
 }
 
 function editTask(task: TaskOut) {

@@ -15,6 +15,8 @@ describe('HomeworkPlanCard', () => {
     expect(wrapper.text()).toContain('进行中')
     expect(wrapper.text()).toContain('已生成 1 / 7 份')
     expect(wrapper.text()).toContain('听写 · 3 个词')
+    expect(wrapper.find('.delete-btn .material-symbols-outlined').text()).toBe('delete')
+    expect(wrapper.find('.delete-btn').element.tagName).not.toBe('BUTTON')
     await wrapper.find('.edit-btn').trigger('tap')
     await wrapper.find('.delete-btn').trigger('tap')
     expect(wrapper.emitted('edit')).toEqual([['p1']])

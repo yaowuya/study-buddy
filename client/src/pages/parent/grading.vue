@@ -13,19 +13,25 @@
       <view class="header-section">
         <view class="header-row">
           <text class="page-title">作业历史</text>
-          <view class="filter-wrapper">
-            <view class="filter-pill glass-card" @tap="showFilterDropdown = !showFilterDropdown">
-              <text class="filter-pill-text">{{ filterLabel }}</text>
-              <text class="material-symbols-outlined filter-pill-arrow">expand_more</text>
+          <view class="header-actions">
+            <view v-if="!isStudentMode" class="mistake-book-link" @tap="openMistakeBook">
+              <text class="material-symbols-outlined">error_outline</text>
+              <text>错题本</text>
             </view>
-            <view v-if="showFilterDropdown" class="filter-dropdown">
-              <view
-                v-for="opt in filterOptions"
-                :key="opt.value"
-                :class="['filter-option', currentFilter === opt.value ? 'filter-option-active' : '']"
-                @tap="selectFilter(opt.value)"
-              >
-                <text class="filter-option-text">{{ opt.label }}</text>
+            <view class="filter-wrapper">
+              <view class="filter-pill glass-card" @tap="showFilterDropdown = !showFilterDropdown">
+                <text class="filter-pill-text">{{ filterLabel }}</text>
+                <text class="material-symbols-outlined filter-pill-arrow">expand_more</text>
+              </view>
+              <view v-if="showFilterDropdown" class="filter-dropdown">
+                <view
+                  v-for="opt in filterOptions"
+                  :key="opt.value"
+                  :class="['filter-option', currentFilter === opt.value ? 'filter-option-active' : '']"
+                  @tap="selectFilter(opt.value)"
+                >
+                  <text class="filter-option-text">{{ opt.label }}</text>
+                </view>
               </view>
             </view>
           </view>
@@ -297,6 +303,10 @@ async function loadFamilyCode() {
   }
 }
 
+function openMistakeBook() {
+  uni.navigateTo({ url: '/pages/parent/mistake-book' })
+}
+
 function handleLogout() {
   authStore.logout()
 }
@@ -469,8 +479,9 @@ function closeCommentModal() {
   commentModal.visible = false
 }
 
-function skipModal() {
+async function skipModal() {
   commentModal.visible = false
+  await submitGrade('')
 }
 
 function confirmModal() {
@@ -579,6 +590,27 @@ onShow(() => {
   font-weight: 800;
   color: $color-organic-on-surface;
   line-height: 32px;
+}
+
+.header-actions,
+.mistake-book-link {
+  display: flex;
+  align-items: center;
+}
+
+.header-actions {
+  gap: 8px;
+}
+
+.mistake-book-link {
+  gap: 4px;
+  padding: 8px 12px;
+  border-radius: 9999px;
+  background: $color-organic-surface-container-lowest;
+  color: $color-organic-on-surface;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
 }
 
 // ─── Filter Dropdown ───

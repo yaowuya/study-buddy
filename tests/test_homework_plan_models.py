@@ -1,5 +1,7 @@
 import uuid
 from datetime import date
+from importlib.metadata import version
+from zoneinfo import ZoneInfo
 
 from pathlib import Path
 
@@ -30,6 +32,11 @@ def test_plan_models_and_task_source_constraints():
         and set(constraint.columns.keys()) == {"source_plan_id", "date"}
         for constraint in Task.__table__.constraints
     )
+
+
+def test_business_timezone_is_available_in_runtime_environment():
+    assert version("tzdata")
+    assert ZoneInfo(settings.BUSINESS_TIMEZONE).key == "Asia/Shanghai"
 
 
 def test_plan_migration_is_storage_safe_and_reversible():

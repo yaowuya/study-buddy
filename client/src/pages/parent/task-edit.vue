@@ -33,39 +33,12 @@
         <input v-model="form.title" class="field-input" placeholder="输入作业标题" />
       </view>
 
-      <!-- ========== 听写设置卡片 ========== -->
-      <view class="dictation-card">
-        <view class="dictation-header">
-          <view class="dictation-title-row">
-            <text class="material-symbols-outlined ms-dictation-icon">record_voice_over</text>
-            <text class="card-heading dictation-heading">开启听写之旅</text>
-          </view>
-          <view :class="['toggle', dictationEnabled ? 'toggle-on' : '']" @tap="dictationEnabled = !dictationEnabled">
-            <view class="toggle-thumb">
-              <text v-if="dictationEnabled" class="material-symbols-outlined ms-toggle-check">check</text>
-            </view>
-          </view>
-        </view>
-
-        <view :class="['dictation-inner', dictationEnabled ? '' : 'dictation-inner-disabled']">
-          <view class="word-input-row">
-            <input v-model="wordInput" class="word-input" placeholder="输入需要听写的生字或单词..." @confirm="addWord" />
-            <view class="add-word-btn" @tap="addWord">
-              <text class="add-word-btn-text">添加</text>
-            </view>
-          </view>
-          <view v-if="dictationWords.length > 0" class="word-tags">
-            <view v-for="(w, i) in dictationWords" :key="i" class="word-tag">
-              <text class="word-tag-text">{{ w }}</text>
-              <text class="material-symbols-outlined ms-tag-close" @tap="removeWord(i)">close</text>
-            </view>
-          </view>
-        </view>
-
-        <text :class="['dictation-hint', dictationEnabled ? '' : 'dictation-hint-disabled']">
-          输入需要听写的生字或单词，我们将为您生成专门的听写卡片。
-        </text>
-      </view>
+      <DictationConfig
+        v-model:enabled="dictationEnabled"
+        v-model:words="dictationWords"
+        :error="dictationError"
+        @clear-error="dictationError = ''"
+      />
 
       <!-- ========== 详细说明卡片 ========== -->
       <view class="card">
@@ -118,6 +91,7 @@ import { getTask, updateTask, deleteTask } from '@/api/tasks'
 import { getDictationItems, createDictationItems, deleteDictationItems } from '@/api/dictation'
 import BottomNav from '@/components/BottomNav.vue'
 import ConfirmModal from '@/components/ConfirmModal.vue'
+import DictationConfig from '@/components/DictationConfig.vue'
 import type { NavItem } from '@/components/BottomNav.vue'
 
 const parentNavItems: NavItem[] = [
@@ -131,7 +105,7 @@ const statusBarHeight = ref(0)
 const safeAreaBottom = ref(0)
 const dictationEnabled = ref(false)
 const dictationWords = ref<string[]>([])
-const wordInput = ref('')
+const dictationError = ref('')
 const showDeleteConfirm = ref(false)
 
 const subjects = [
@@ -149,18 +123,6 @@ const form = reactive({
 
 function selectSubject(subject: string) {
   form.subject = subject
-}
-
-function addWord() {
-  const w = wordInput.value.trim()
-  if (w && !dictationWords.value.includes(w)) {
-    dictationWords.value.push(w)
-  }
-  wordInput.value = ''
-}
-
-function removeWord(i: number) {
-  dictationWords.value.splice(i, 1)
 }
 
 function goBack() {
@@ -190,6 +152,10 @@ async function loadTask() {
 async function handleSubmit() {
   if (!form.title.trim()) {
     uni.showToast({ title: '请输入任务标题', icon: 'none' })
+    return
+  }
+  if (dictationEnabled.value && !dictationWords.value.length) {
+    dictationError.value = '开启听写后，请至少添加一个词条'
     return
   }
   try {
@@ -366,72 +332,6 @@ $on-secondary-fixed-variant: #225119;
   padding: 14px 16px; font-size: 14px; color: $on-surface;
   height: 120px; box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.03);
 }
-
-// ================================================================
-// Dictation Card
-// ================================================================
-.dictation-card {
-  background: $surface-card; border-radius: 24px; padding: 20px; margin-bottom: 20px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.05), 0 4px 20px rgba(0,0,0,0.02);
-  border: 1px solid $green-tag-container; position: relative; overflow: hidden;
-
-  &::before {
-    content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0;
-    background: linear-gradient(135deg, rgba(220,252,231,0.4) 0%, rgba(255,255,255,0) 100%);
-    pointer-events: none; z-index: 0;
-  }
-}
-.dictation-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; position: relative; z-index: 1; }
-.dictation-title-row { display: flex; align-items: center; gap: 8px; }
-.ms-dictation-icon { font-size: 24px; color: $dark-green; font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
-.dictation-heading { margin-bottom: 0; }
-
-.dictation-inner {
-  background: rgba(255,255,255,0.5); border-radius: 16px;
-  position: relative; z-index: 1; transition: opacity 0.3s;
-}
-.dictation-inner-disabled { opacity: 0.5; pointer-events: none; }
-
-.word-input-row { display: flex; gap: 8px; margin-bottom: 16px; }
-.word-input {
-  flex: 1; background: $surface-field; border: none; border-radius: 12px;
-  padding: 12px 16px; font-size: 14px; color: $on-surface;
-  min-height: 44px; box-shadow: inset 0 2px 4px rgba(0,0,0,0.03);
-}
-.add-word-btn {
-  display: flex; align-items: center; justify-content: center;
-  background: $green-primary; color: #ffffff; padding: 12px 20px;
-  border-radius: 12px; white-space: nowrap; box-shadow: 0 2px 8px rgba(76,175,80,0.15);
-}
-.add-word-btn-text { color: #ffffff; font-size: 14px; font-weight: 500; }
-
-.word-tags { display: flex; flex-wrap: wrap; gap: 10px; }
-.word-tag {
-  display: flex; align-items: center; gap: 4px;
-  padding: 6px 14px; border-radius: 9999px;
-  background: rgba($green-tag-container, 0.5); border: 1px solid $green-tag-container;
-}
-.word-tag-text { font-size: 14px; font-weight: 500; color: $on-secondary-fixed-variant; margin-right: 4px; }
-.ms-tag-close { font-size: 16px; color: rgba($on-secondary-fixed-variant, 0.5); }
-
-.dictation-hint {
-  font-size: 14px; color: $on-surface-variant; margin-top: 16px;
-  position: relative; z-index: 1; display: block; line-height: 20px;
-}
-.dictation-hint-disabled { opacity: 0.5; }
-
-// ================================================================
-// Toggle Switch
-// ================================================================
-.toggle { width: 44px; height: 24px; border-radius: 9999px; background: $surface-field; position: relative; transition: background 0.2s; }
-.toggle-on { background: $green-primary; }
-.toggle-thumb {
-  position: absolute; top: 2px; left: 2px; width: 20px; height: 20px;
-  border-radius: 9999px; background: #ffffff; border: 1px solid #d1d5db;
-  display: flex; align-items: center; justify-content: center; transition: transform 0.2s;
-  .toggle-on & { transform: translateX(20px); border-color: #ffffff; }
-}
-.ms-toggle-check { font-size: 14px; color: #ffffff; line-height: 1; }
 
 // ================================================================
 // Save Button (薄荷绿渐变胶囊)

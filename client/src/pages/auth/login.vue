@@ -71,7 +71,7 @@
           </view>
 
           <!-- 登录按钮 -->
-          <button class="btn-primary-pill" :loading="authStore.loading" @tap="handleLogin">
+          <button class="btn-primary-pill" :loading="authStore.loading" @tap="handleSubmit">
             登录
           </button>
 
@@ -150,7 +150,7 @@
           </view>
 
           <!-- 注册按钮 -->
-          <button class="btn-register" :loading="authStore.loading" @tap="handleLogin">
+          <button class="btn-register" :loading="authStore.loading" @tap="handleSubmit">
             注册
           </button>
 
@@ -167,6 +167,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useAuthStore } from '@/stores/auth'
+import { authenticateFromForm } from '@/utils/auth-form'
 
 const authStore = useAuthStore()
 const phone = ref('')
@@ -185,15 +186,20 @@ onMounted(async () => {
   }
 })
 
-async function handleLogin() {
+async function handleSubmit() {
   if (!phone.value || !password.value) {
     uni.showToast({ title: '请输入手机号和密码', icon: 'none' })
     return
   }
   try {
-    await authStore.login(phone.value, password.value)
-    // 校验选择的角色与账号实际角色是否一致
-    if (authStore.user?.role !== selectedRole.value) {
+    await authenticateFromForm(
+      isRegisterMode.value,
+      phone.value,
+      password.value,
+      selectedRole.value,
+      authStore,
+    )
+    if (!isRegisterMode.value && authStore.user?.role !== selectedRole.value) {
       const actualLabel = authStore.user?.role === 'parent' ? '家长' : '学生'
       uni.showToast({ title: `该账号是${actualLabel}账号，请选择正确角色`, icon: 'none', duration: 2500 })
       authStore.logout()
@@ -201,16 +207,7 @@ async function handleLogin() {
     }
     navigateByRole()
   } catch (e: any) {
-    if (isRegisterMode.value) {
-      try {
-        await authStore.register(phone.value, password.value, selectedRole.value)
-        navigateByRole()
-      } catch (regError: any) {
-        uni.showToast({ title: regError.message, icon: 'none' })
-      }
-    } else {
-      uni.showToast({ title: e.message, icon: 'none' })
-    }
+    uni.showToast({ title: e.message, icon: 'none' })
   }
 }
 

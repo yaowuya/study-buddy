@@ -40,12 +40,12 @@
       </view>
 
       <!-- Main Playback Cloud -->
-      <view class="playback-cloud">
+      <view v-if="!allPlayed" class="playback-cloud">
         <view class="playback-status">
           <view class="playback-status-badge">
             <text class="playback-status-text">{{ currentIndex >= 0 ? '正在朗读...' : '准备好了吗？' }}</text>
           </view>
-          <text class="playback-word-number">第 {{ (currentIndex >= 0 ? currentIndex + 1 : (nextUnplayedIndex + 1)) }} 个</text>
+          <text class="playback-word-number">{{ dictationPositionLabel(currentIndex, nextUnplayedIndex) }}</text>
         </view>
 
         <!-- Bouncy Playback Button -->
@@ -127,6 +127,9 @@ import { getDictationItems } from '@/api/dictation'
 import { useTasksStore } from '@/stores/tasks'
 import type { DictationItemOut } from '@/api/dictation'
 import { BASE_URL } from '@/api/config'
+import { getTask } from '@/api/tasks'
+import { dictationPositionLabel } from '@/utils/dictation-progress'
+import { shouldStartDictationTask } from '@/utils/dictation-task-status'
 
 const taskId = ref('')
 const taskIds = ref<string[]>([])
@@ -193,11 +196,11 @@ async function loadItems() {
   try {
     items.value = await getDictationItems(taskId.value)
     if (taskId.value) {
-      await tasksStore.updateStatus(taskId.value, 'in_progress')
-      const task = tasksStore.tasks.find(t => t.id === taskId.value)
-      if (task) {
-        taskTitle.value = task.title
+      const task = await getTask(taskId.value)
+      if (shouldStartDictationTask(task.status)) {
+        await tasksStore.updateStatus(taskId.value, 'in_progress')
       }
+      taskTitle.value = task.title
     }
   } catch (e: any) {
     uni.showToast({ title: e.message, icon: 'none' })

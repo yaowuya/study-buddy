@@ -12,6 +12,7 @@
       "runtimeExecutable": "npm",
       "runtimeArgs": ["run", "dev:h5"],
       "port": 5173,
+      "autoPort": true,
       "cwd": "client"
     }
   ]
