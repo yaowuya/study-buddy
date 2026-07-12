@@ -435,7 +435,7 @@ async function nextTask() {
   currentTaskIndex.value++
   taskId.value = taskIds.value[currentTaskIndex.value]
 
-  Object.keys(playedWords).forEach(key => delete playedWords[key])
+  Object.keys(playedWords).forEach(key => delete playedWords[Number(key)])
   showAnswers.value = false
   currentIndex.value = -1
   isPlaying.value = false
