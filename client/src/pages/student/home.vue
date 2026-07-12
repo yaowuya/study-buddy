@@ -159,6 +159,7 @@ import { ref, reactive, computed, onMounted, watch } from 'vue'
 import { onShow } from '@dcloudio/uni-app'
 import { useTasksStore } from '@/stores/tasks'
 import { useSyncStore } from '@/stores/sync'
+import { useHomeworkPlansStore } from '@/stores/homework-plans'
 import { useAuthStore } from '@/stores/auth'
 import { getDictationItems } from '@/api/dictation'
 import type { TaskOut } from '@/api/tasks'
@@ -173,6 +174,7 @@ const studentNavItems: NavItem[] = [
 
 const tasksStore = useTasksStore()
 const syncStore = useSyncStore()
+const plansStore = useHomeworkPlansStore()
 const authStore = useAuthStore()
 const statusBarHeight = ref(0)
 const safeAreaBottom = ref(0)
@@ -284,8 +286,10 @@ onMounted(() => {
   tasksStore.loadCached()
 })
 
-onShow(() => {
-  tasksStore.fetchTodayTasks()
+onShow(async () => {
+  try { await plansStore.materialize() }
+  catch { uni.showToast({ title: '计划作业同步失败，请稍后重试', icon: 'none' }) }
+  await tasksStore.fetchTodayTasks()
   syncStore.start()
 })
 </script>
