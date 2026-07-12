@@ -87,7 +87,7 @@ def update_command(plan, **overrides):
 def test_create_plan_persists_ordered_items(db):
     family, parent = make_family_parent(db, "100001", "13000000001")
 
-    plan = create_plan(db, family.id, parent.id, plan_command())
+    plan = create_plan(db, family.id, parent.id, plan_command(), date(2026, 7, 11))
 
     assert plan.family_id == family.id
     assert [item.content for item in plan.dictation_items] == ["甲", "乙"]
@@ -99,8 +99,8 @@ def test_active_plans_are_family_scoped_and_aggregated(db):
     family_a, parent_a = make_family_parent(db, "100002", "13000000002")
     family_b, parent_b = make_family_parent(db, "100003", "13000000003")
     today = date(2026, 7, 11)
-    mine = create_plan(db, family_a.id, parent_a.id, plan_command(end_date=today))
-    create_plan(db, family_b.id, parent_b.id, plan_command(end_date=today))
+    mine = create_plan(db, family_a.id, parent_a.id, plan_command(end_date=today), today)
+    create_plan(db, family_b.id, parent_b.id, plan_command(end_date=today), today)
     db.add(Task(family_id=family_a.id, source_plan_id=mine.id, date=today, type="home", title="快照"))
     db.commit()
 
@@ -113,7 +113,7 @@ def test_update_and_delete_preserve_generated_snapshot(db):
     family, parent = make_family_parent(db, "100004", "13000000004")
     other, _ = make_family_parent(db, "100005", "13000000005")
     today = date(2026, 7, 11)
-    plan = create_plan(db, family.id, parent.id, plan_command())
+    plan = create_plan(db, family.id, parent.id, plan_command(), date(2026, 7, 11))
     snapshot = Task(
         family_id=family.id,
         source_plan_id=plan.id,

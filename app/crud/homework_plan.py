@@ -36,8 +36,9 @@ def create_plan(
     family_id: uuid.UUID,
     created_by: uuid.UUID,
     command: HomeworkPlanCreate,
+    today: date | None = None,
 ) -> HomeworkPlan:
-    start_date, end_date = command.resolve_dates(date.today())
+    start_date, end_date = command.resolve_dates(today or date.today())
     plan = HomeworkPlan(
         family_id=family_id,
         created_by=created_by,

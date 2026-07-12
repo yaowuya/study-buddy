@@ -12,6 +12,7 @@ from app.api.v1.submissions import router as submissions_router
 from app.api.v1.mistakes import router as mistakes_router
 from app.api.v1.tts import router as tts_router
 from app.api.v1.admin import router as admin_router
+from app.api.v1.homework_plans import router as homework_plans_router
 
 from app.core.config import settings
 from app.database import SessionLocal
@@ -46,6 +47,7 @@ app.include_router(submissions_router, prefix="/api/v1")
 app.include_router(mistakes_router, prefix="/api/v1")
 app.include_router(tts_router, prefix="/api/v1")
 app.include_router(admin_router, prefix="/api/v1")
+app.include_router(homework_plans_router, prefix="/api/v1")
 
 
 @app.get("/health")
