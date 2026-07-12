@@ -115,6 +115,15 @@
         </view>
       </view>
 
+      <view class="section-divider"></view>
+      <view class="section plan-section">
+        <text class="section-label">进行中的作业计划 ({{ plansStore.activePlans.length }})</text>
+        <text v-if="plansStore.syncWarning" class="plan-warning">{{ plansStore.syncWarning }}</text>
+        <view v-if="plansStore.listLoading && !plansStore.activePlans.length" class="empty-hint"><text class="empty-hint-text">正在加载作业计划…</text></view>
+        <view v-else-if="!plansStore.activePlans.length" class="empty-hint" @tap="goCreate"><text class="empty-hint-text">暂无进行中的作业计划，去布置</text></view>
+        <HomeworkPlanCard v-for="plan in plansStore.activePlans" :key="plan.id" :plan="plan" :busy="plansStore.deleting" @edit="editPlan" @delete="requestDeletePlan" />
+      </view>
+
       <!-- Dictation Preview Modal -->
       <view v-if="dictationModal.visible" class="modal-overlay" @tap="closeDictationModal">
         <view class="dictation-modal" @tap.stop>
@@ -176,6 +185,8 @@
       @confirm="confirmLogout"
     />
 
+    <ConfirmModal v-model:visible="showDeletePlanConfirm" type="warning" icon="delete" title="删除这个计划？" desc="删除后将停止生成后续作业，已经生成的作业仍会保留。" cancel-text="取消" confirm-text="确认删除" :flat="true" @confirm="confirmDeletePlan" />
+
     <!-- Bottom Nav -->
     <BottomNav active="dashboard" :navItems="parentNavItems" />
   </view>
@@ -187,11 +198,13 @@ import { onShow } from '@dcloudio/uni-app'
 import { useAuthStore } from '@/stores/auth'
 import { useTasksStore } from '@/stores/tasks'
 import { useSyncStore } from '@/stores/sync'
+import { useHomeworkPlansStore } from '@/stores/homework-plans'
 import { getDictationItems } from '@/api/dictation'
 import type { TaskOut } from '@/api/tasks'
 import { BASE_URL } from '@/api/config'
 import BottomNav from '@/components/BottomNav.vue'
 import ConfirmModal from '@/components/ConfirmModal.vue'
+import HomeworkPlanCard from '@/components/HomeworkPlanCard.vue'
 import type { NavItem } from '@/components/BottomNav.vue'
 
 const parentNavItems: NavItem[] = [
@@ -203,6 +216,7 @@ const parentNavItems: NavItem[] = [
 const authStore = useAuthStore()
 const tasksStore = useTasksStore()
 const syncStore = useSyncStore()
+const plansStore = useHomeworkPlansStore()
 const familyCode = ref('加载中')
 
 const statusBarHeight = ref(0)
@@ -219,6 +233,17 @@ const dictationModal = reactive({
 })
 const playingIndex = ref(-1)
 const showLogoutConfirm = ref(false)
+const showDeletePlanConfirm = ref(false)
+const deletingPlanId = ref('')
+function goCreate() { uni.redirectTo({ url: '/pages/parent/task-create' }) }
+function editPlan(id: string) { uni.navigateTo({ url: `/pages/parent/homework-plan-edit?id=${id}` }) }
+function requestDeletePlan(id: string) { deletingPlanId.value = id; showDeletePlanConfirm.value = true }
+async function confirmDeletePlan() {
+  if (!deletingPlanId.value) return
+  try { await plansStore.deletePlan(deletingPlanId.value); uni.showToast({ title: '计划已删除，已有作业不受影响', icon: 'none' }) }
+  catch (e: any) { uni.showToast({ title: e.message || '删除失败', icon: 'none' }) }
+  finally { deletingPlanId.value = '' }
+}
 
 async function loadFamilyCode() {
   if (!authStore.user?.family_id) {
@@ -395,8 +420,11 @@ onMounted(() => {
   loadFamilyCode()
 })
 
-onShow(() => {
-  tasksStore.fetchTodayTasks()
+onShow(async () => {
+  try { await plansStore.materialize() }
+  catch { plansStore.syncWarning = '计划作业同步失败，请稍后重试' }
+  await Promise.allSettled([tasksStore.fetchTodayTasks(), plansStore.fetchActivePlans()])
+  if (plansStore.syncWarning) uni.showToast({ title: plansStore.syncWarning, icon: 'none' })
   syncStore.start()
 })
 
@@ -499,6 +527,9 @@ onUnmounted(() => {
 }
 .section-label-done { color: $color-organic-on-surface-variant; }
 .section-divider { height: 1px; background: rgba($color-organic-outline-variant, 0.3); margin: 8px 0; }
+
+.plan-section { margin-top: 24px; }
+.plan-warning { display:block; margin:-12px 0 16px; padding:10px 12px; border-radius:12px; background:#fff4dc; color:#765b12; font-size:12px; }
 
 // ─── Task Card ───
 .task-card {
