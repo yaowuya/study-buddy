@@ -31,7 +31,34 @@ Confirmed execution decisions:
 ## Minor Findings
 - None
 
-## Events
-- 2026-07-11 plan_review blocked: timezone and maximum range required user decisions.
-- 2026-07-11 decision_resolved: timezone `Asia/Shanghai` and maximum range 366 days confirmed.
-- 2026-07-11 plan_review pass: canonical split plans, interfaces, cross-end dependencies and visual contracts accepted for serial SDD.
+
+## Reconciled Completion Evidence
+
+The owner checkboxes are authoritative and resolve to 19/19 complete. Evidence reconstructed from the branch history and final validation:
+
+- backend-004 `932c06d`; CRUD lifecycle tests and full backend regression passed.
+- backend-005 `311843d`; materializer tests passed; snapshot/backfill behavior covered.
+- backend-006 `78845bf`; SQLite regression passed; PostgreSQL concurrency tests present but environment-gated.
+- backend-007 `b7d569e`; create/list/detail API and permission tests passed.
+- backend-008 `143a22c`; update/delete, optimistic conflict, date and family tests passed.
+- backend-009 `196dc53`; explicit synchronization and Task compatibility tests passed.
+- frontend-001 `f33a897`; Vitest baseline and local date utility.
+- frontend-002 `fa0ab22`; plan API contract and request mapping.
+- frontend-003 `57ee8bd`; independent plan store, sync de-duplication and logout reset.
+- frontend-004 `3e0eafb`; conditional DictationConfig component.
+- frontend-005 `fa78bf5`; range selector, validation and create branching.
+- frontend-006 `daa98a5`; activity plan card.
+- frontend-007 `1819021`; parent Dashboard synchronization and plan management area.
+- frontend-008 `789cdd5`; student non-blocking materialization flow.
+- frontend-009/frontend-010 `d46e4bb`; route and full plan edit/delete flow.
+- review remediation `41b7b89`, `55614e6`; type correction, edit conflict/back flow, ordering and expanded behavioral tests.
+
+Final verification on 2026-07-12:
+- `./.venv/Scripts/python.exe -m pytest tests/ -q` → 75 passed, 3 PostgreSQL tests skipped because `TEST_POSTGRES_URL` is unavailable.
+- `cd client && npm test -- --run` → 6 files, 11 tests passed.
+- `cd client && npm run type-check` → PASS.
+- `cd client && npm run build:h5` → PASS (non-blocking Sass legacy warnings).
+
+## Review Remediation
+- Initial strict review: `.fp-execute/reviews/20260712-1645-final-review.md` (FAIL).
+- Remediation completed in `55614e6`; PostgreSQL execution remains an environment-dependent residual verification item.
