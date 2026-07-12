@@ -5,6 +5,7 @@
     { "path": "pages/parent/dashboard", "style": { "navigationBarTitleText": "今日作业", "navigationStyle": "custom" } },
     { "path": "pages/parent/task-create", "style": { "navigationBarTitleText": "发布任务", "navigationStyle": "custom" } },
     { "path": "pages/parent/task-edit", "style": { "navigationBarTitleText": "编辑任务", "navigationStyle": "custom" } },
+    { "path": "pages/parent/homework-plan-edit", "style": { "navigationBarTitleText": "编辑作业计划", "navigationStyle": "custom" } },
     { "path": "pages/parent/dictation-config", "style": { "navigationBarTitleText": "听写配置" } },
     { "path": "pages/parent/grading", "style": { "navigationBarTitleText": "作业批改", "navigationStyle": "custom" } },
     { "path": "pages/parent/mistake-book", "style": { "navigationBarTitleText": "错题本" } },
