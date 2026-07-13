@@ -7,6 +7,8 @@ __pycache__
 .env
 venv
 .venv
+.claude/
+.superpowers/
 *.db
 alembic/versions/__pycache__
 tests
