@@ -9,6 +9,16 @@ def test_entrypoint_has_stdout_fallback_when_log_dir_is_not_writable():
     assert "--error-logfile -" in script
 
 
+def test_dockerfile_uses_requirements_once_and_labels_release_version():
+    dockerfile = Path("Dockerfile").read_text(encoding="utf-8")
+
+    assert "ARG APP_VERSION=1.2.0" in dockerfile
+    assert "ENV APP_VERSION=$APP_VERSION" in dockerfile
+    assert 'org.opencontainers.image.version="$APP_VERSION"' in dockerfile
+    assert "pip install --no-cache-dir -r requirements.txt\n" in dockerfile
+    assert "-r requirements.txt gunicorn" not in dockerfile
+
+
 def test_migration_doc_mentions_docker_database_url_encoding():
     doc = Path("docs/postgresql-to-mysql-migration.md").read_text(encoding="utf-8")
 

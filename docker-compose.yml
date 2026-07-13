@@ -1,7 +1,11 @@
 services:
   studybuddy-api:
-    build: .
-    container_name: studybuddy-api-2.0
+    build:
+      context: .
+      args:
+        APP_VERSION: "1.2.0"
+    image: studybuddy-api:1.2.0
+    container_name: studybuddy-api
     restart: always
     ports:
       - "8000:8000"
@@ -12,3 +16,13 @@ services:
     volumes:
       - /data/logs/studybuddy:/app/logs
       - ./tmp:/app/tmp
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=3)"
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
