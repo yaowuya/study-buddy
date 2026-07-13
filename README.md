@@ -2,10 +2,13 @@
 
 家庭作业协作工具 — 家长发布任务（含听写），学生完成，家长批改。
 
+当前版本：**1.2.0**
+
 ## 功能
 
 - **家长端**：发布任务、配置听写词组与语速、批改作业、查看错题本、作业历史
 - **学生端**：查看今日任务、听写模式（本地 TTS 朗读）、提交作业、完成激励
+- **周期作业计划**：按周、月或自定义日期每天生成任务，支持补生成、编辑未来任务和停止计划
 - **管理后台**：用户管理、家庭管理、作业管理、仪表盘统计（Web PC 端）
 - **家庭绑定**：6 位连接码关联家长与学生
 - **角色分离**：家长创建/批改，学生执行/提交
@@ -26,12 +29,13 @@
 ```
 study-buddy/
 ├── app/                    # 后端 FastAPI 应用
-│   ├── api/v1/             # 路由（auth, tasks, dictation, submissions, mistakes）
+│   ├── api/v1/             # 路由（auth, tasks, dictation, homework_plans, submissions, mistakes）
 │   │   └── admin/          # 管理端路由（users, families, tasks, auth）
 │   ├── core/               # 配置、JWT、依赖注入
 │   ├── models/             # SQLAlchemy 模型
 │   ├── schemas/            # Pydantic 请求/响应模型
 │   ├── crud/               # 数据库操作
+│   ├── services/           # 服务层（homework_plan_materializer）
 │   └── main.py             # 入口（含管理后台静态文件挂载）
 ├── alembic/                # 数据库迁移脚本
 ├── tests/                  # 单元测试（SQLite 内存数据库）
@@ -112,6 +116,10 @@ npm run build:h5        # H5 构建
 
 ### Docker 部署
 
+Docker 部署后端 API 与已提交的 `static/admin-dist` 管理后台构建产物；UniApp 客户端需要从 `client/` 单独构建。Compose 继续连接外部 MySQL，不包含数据库服务。
+
+镜像名固定为 `studybuddy-api:1.2.0`，容器名固定为 `studybuddy-api`。
+
 ```bash
 # 在服务器上
 mkdir -p /data/logs/studybuddy
@@ -119,8 +127,27 @@ mkdir -p /data/logs/studybuddy
 # 配置生产环境变量
 cp .env.example .env
 # 修改 .env 中的 DATABASE_URL、SECRET_KEY、ADMIN_INITIAL_PASSWORD 等
+# DATABASE_URL 示例：mysql+pymysql://studybuddy:请替换为强密码@host.docker.internal:3306/studybuddy
 
 docker compose up -d --build
+docker compose ps
+curl http://localhost:8000/health
+```
+
+预期健康响应：
+
+```json
+{"status":"ok","version":"1.2.0"}
+```
+
+#### 从旧版本升级
+
+```bash
+git pull
+pip install -r requirements.txt   # 非 Docker 部署
+docker compose down
+docker compose up -d --build
+docker compose ps
 ```
 
 ## API 概览
@@ -138,6 +165,12 @@ docker compose up -d --build
 | | `GET /api/v1/tasks/` | 查询任务列表 |
 | | `PATCH /api/v1/tasks/{id}/status` | 更新任务状态 |
 | | `DELETE /api/v1/tasks/{id}` | 删除任务 |
+| 作业计划 | `POST /api/v1/homework-plans/` | 创建周期作业计划 |
+| | `GET /api/v1/homework-plans/` | 查询当前家庭活动计划 |
+| | `GET /api/v1/homework-plans/{id}` | 获取计划详情 |
+| | `PATCH /api/v1/homework-plans/{id}` | 更新未来任务模板 |
+| | `DELETE /api/v1/homework-plans/{id}` | 停止计划后续生成 |
+| | `POST /api/v1/homework-plans/materialize` | 补生成截至今天的计划任务 |
 | 听写 | `POST /api/v1/dictation/` | 创建听写词组 |
 | | `GET /api/v1/dictation/{task_id}` | 获取听写词组 |
 | 提交 | `POST /api/v1/submissions/` | 提交作业 |

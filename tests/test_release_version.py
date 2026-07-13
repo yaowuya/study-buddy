@@ -38,3 +38,15 @@ def test_frontend_package_versions_match_release():
         assert package["version"] == EXPECTED_VERSION
     assert client_lock["packages"][""]["version"] == EXPECTED_VERSION
     assert admin_lock["packages"][""]["version"] == EXPECTED_VERSION
+
+
+def test_release_docs_describe_current_version_and_docker_upgrade():
+    changelog = Path("CHANGELOG.md").read_text(encoding="utf-8")
+    readme = Path("README.md").read_text(encoding="utf-8")
+
+    assert "## [1.2.0] - 2026-07-12" in changelog
+    assert "周期作业计划" in changelog
+    assert "当前版本：**1.2.0**" in readme
+    assert "studybuddy-api:1.2.0" in readme
+    assert "docker compose ps" in readme
+    assert "GET /api/v1/homework-plans/" in readme

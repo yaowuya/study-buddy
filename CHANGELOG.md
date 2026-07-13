@@ -1,5 +1,34 @@
 # 更新日志
 
+## [1.2.0] - 2026-07-12
+
+### 新功能
+
+- 新增周期作业计划，支持最近一周、最近一个月和自定义日期范围。
+- 支持计划自动物化、缺失日期补生成、编辑未来任务模板和停止后续生成。
+- 家长端新增活动计划卡片、听写预览、错题本入口和完整批改流程。
+- 学生端支持计划任务同步、连续听写、提交状态和家长评价展示。
+
+### 优化
+
+- 发布页和编辑页统一使用听写配置组件。
+- 作业卡片清理重复日期标题，计划操作采用统一有机主题样式。
+- 注册流程直接调用注册接口，避免预期外的登录请求。
+- Docker 镜像、运行时、客户端和管理后台版本统一为 1.2.0。
+
+### 修复
+
+- 修复 Windows 缺少 IANA 时区数据导致作业计划接口返回 500 的问题。
+- 修复听写完成后显示“第 0 个”及已提交/已批改任务被重置为进行中的问题。
+- 修复批改弹窗“跳过”未完成评分的问题。
+- 修复周期作业计划并发生成、编辑和删除时的一致性问题。
+
+### 部署变更
+
+- Docker 镜像名为 `studybuddy-api:1.2.0`，容器名稳定为 `studybuddy-api`。
+- Compose 增加 `/health` 健康检查。
+- Windows 与最小化 Linux 环境通过 `tzdata` 依赖提供 `Asia/Shanghai` 时区数据。
+
 ## [0.1.0] - 2025-01-17
 
 ### 新功能
@@ -46,7 +75,7 @@
 
 ```bash
 # 后端 .env
-DATABASE_URL=postgresql://postgres:password@host:5432/studybuddy
+DATABASE_URL=mysql+pymysql://studybuddy:请替换为强密码@host.docker.internal:3306/studybuddy
 SECRET_KEY=your-secret-key
 BAIDU_TTS_API_KEY=your-api-key
 BAIDU_TTS_SECRET_KEY=your-secret-key
