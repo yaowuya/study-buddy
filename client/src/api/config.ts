@@ -5,7 +5,7 @@
 const PROD_API_URL = 'http://106.55.249.101:8000/api/v1'
 
 // 本地开发 API 地址（真机调试用）
-const DEV_API_URL = 'http://10.10.41.184:8000/api/v1'
+const DEV_API_URL = 'http://192.168.3.25:8000/api/v1'
 
 // 判断当前运行环境
 // typeof window 在 H5 下存在，App 下不存在
